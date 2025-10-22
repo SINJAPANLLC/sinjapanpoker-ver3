@@ -66,7 +66,7 @@ export function usePokerGame(gameId: string | null) {
       setConnected(false);
     });
 
-    newSocket.on('connect_error', (err) => {
+    newSocket.on('connect_error', (err: Error) => {
       console.error('Connection error:', err);
       setError('接続エラーが発生しました');
       setConnected(false);

@@ -37,8 +37,9 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 **UI Component Patterns**
 - Protected routes via `ProtectedRoute` and `AdminProtectedRoute` components for authentication gates
 - Custom loading states with `LoadingSpinner` and `PageTransition` components
-- Reusable poker-specific components (`Card`, `PokerTable`, `GameActions`)
+- Reusable poker-specific components (`PokerTable`, `ActionButtons`, `GameChat`)
 - Modal-based interactions for table creation, avatar selection, and tournaments
+- Real-time game UI at `/game/active` with Socket.io integration (2025-10-22)
 
 ### Backend Architecture
 
@@ -59,6 +60,12 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
     - Saves each player's hand to `hand_history` table
     - Updates `player_stats` with win/loss statistics
     - Updates `users` chips balance
+- **Client-side real-time UI** at `/game/active` (2025-10-22):
+  - `usePokerGame` hook for Socket.io connection and state management
+  - `PokerTable` component with circular player positioning and card display
+  - `ActionButtons` for fold, check, call, raise, all-in actions
+  - `GameChat` for in-game messaging
+  - Framer Motion animations for cards and player actions (500ms duration)
 
 **Game Logic Libraries**
 - `lib/poker-engine.ts` - Card deck management, hand evaluation (royal flush to high card)

@@ -13,6 +13,11 @@ export default function ActiveGamePage() {
     { rank: '10', suit: 'spades', id: 'card-5' },
   ];
 
+  const players = [
+    { name: 'プレイヤー1', chips: 5000 },
+    { name: 'プレイヤー2', chips: 8500 },
+  ];
+
   return (
     <div 
       className="relative min-h-screen w-full"
@@ -40,8 +45,20 @@ export default function ActiveGamePage() {
           {communityCards.map((card, index) => (
             <div key={`avatar-${card.id}`} className="w-20 flex justify-center">
               {(index === 0 || index === 4) && (
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-5xl border-4 border-white shadow-lg">
-                  👤
+                <div className="relative">
+                  {/* アバターアイコン */}
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-5xl border-4 border-white shadow-lg">
+                    👤
+                  </div>
+                  {/* ユーザー情報（アバターの下部に被せる） */}
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border-2 border-white/30 shadow-lg min-w-[100px]">
+                    <p className="text-white text-xs font-bold text-center whitespace-nowrap">
+                      {players[index === 0 ? 0 : 1].name}
+                    </p>
+                    <p className="text-yellow-400 text-xs font-semibold text-center whitespace-nowrap">
+                      {players[index === 0 ? 0 : 1].chips.toLocaleString()} チップ
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

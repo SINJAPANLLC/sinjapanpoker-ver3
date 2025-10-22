@@ -134,18 +134,24 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 ## External Dependencies
 
 ### Core Infrastructure
-- **MongoDB** - Primary database (connection via `MONGODB_URI` environment variable)
+- **MongoDB** - Primary database (connection via `MONGODB_URI` environment variable) - Connection code implemented in `lib/mongodb.ts`
 - **Node.js 18+** - Runtime environment
 
 ### Cloud Services (Configured but Optional)
 - **AWS S3** - Image storage via `@aws-sdk/client-s3` (logo/avatars currently use external CDN)
-- **SendGrid** - Email service via `@sendgrid/mail` (for notifications)
+- **SendGrid** - Email service via `@sendgrid/mail` (for notifications) - **Note**: User declined Replit integration. Manual API key setup required via `SENDGRID_API_KEY` environment variable if needed.
 - **Redis/IORedis** - Caching layer (configured but not currently required)
+- **Replit Object Storage** - Available via blueprint:javascript_object_storage for file uploads and storage
 
-### Payment & Real Money (Currently Disabled)
-- No payment processor integrated yet
+### Payment & Real Money
+- **Cryptocurrency Payment System** - Fully implemented in `lib/crypto-payment.ts`
+  - Supports: BTC, ETH, USDT, USDC, LTC
+  - Invoice generation, QR codes, webhook processing
+  - Real-time status tracking with blockchain confirmations
+  - API endpoints: `/api/payment/crypto/*`
+  - Frontend UI: `/app/payment/crypto/page.tsx`
 - Real money mode controlled by admin via `useMoneyModeStore`
-- Designed to support future integration with payment gateways
+- Credit card payments (Stripe) planned but not implemented
 
 ### Authentication
 - JWT token-based (self-hosted, no third-party auth service)

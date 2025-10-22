@@ -36,11 +36,11 @@ export default function ActiveGamePage() {
       {/* コミュニティカード - ロゴの下 */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-10">
         {/* アバターアイコン - Aと10の上のみ */}
-        <div className="flex gap-3 justify-center mb-4">
+        <div className="flex gap-3 justify-center mb-6">
           {communityCards.map((card, index) => (
             <div key={`avatar-${card.id}`} className="w-20 flex justify-center">
               {(index === 0 || index === 4) && (
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl border-4 border-white shadow-lg">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-5xl border-4 border-white shadow-lg">
                   👤
                 </div>
               )}

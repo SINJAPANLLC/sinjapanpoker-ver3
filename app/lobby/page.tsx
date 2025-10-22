@@ -208,22 +208,6 @@ function LobbyContent() {
                 </div>
               </div>
             </Link>
-
-            <Link
-              href="/game/quick"
-              className="card-blue hover-lift hover-glow group relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative z-10 flex items-center space-x-3 md:space-x-4">
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center animate-glow flex-shrink-0">
-                  <Zap className="text-2xl md:text-3xl text-white" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-lg md:text-2xl font-bold text-white mb-1">クイックゲーム</h3>
-                  <p className="text-gray-400 text-sm md:text-base">オンラインでマッチング</p>
-                </div>
-              </div>
-            </Link>
           </div>
         </div>
 

@@ -348,6 +348,21 @@ function AdminDashboardContent() {
               </div>
             </div>
           </button>
+
+          <button
+            onClick={() => router.push('/admin/payment')}
+            className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-xl p-3 md:p-6 hover:border-cyan-500/50 transition-all group"
+          >
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-3 md:space-x-4">
+              <div className="p-2 md:p-3 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/30 transition-colors">
+                <DollarSign className="w-4 h-4 md:w-6 md:h-6 text-cyan-400" />
+              </div>
+              <div className="text-center md:text-left">
+                <h3 className="text-white font-semibold mb-1 text-xs md:text-base">決済ページ</h3>
+                <p className="text-gray-400 text-xs hidden md:block">入出金・決済履歴</p>
+              </div>
+            </div>
+          </button>
         </div>
 
 

@@ -40,6 +40,13 @@ export default function ActiveGamePage() {
         <Menu className="w-6 h-6" />
       </button>
 
+      {/* 画面上部中央 - ゲームフェーズ */}
+      <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
+        <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-8 py-3 rounded-full border-4 border-white shadow-2xl">
+          <p className="text-white font-bold text-xl tracking-wide">フロップ</p>
+        </div>
+      </div>
+
       {/* 右角 - チャットアイコン */}
       <button className="absolute top-4 right-4 w-12 h-12 bg-black/40 hover:bg-black/60 rounded-xl flex items-center justify-center text-white transition-colors backdrop-blur-sm">
         <MessageCircle className="w-6 h-6" />

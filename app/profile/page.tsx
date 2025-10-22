@@ -222,7 +222,7 @@ function ProfileContent() {
               alt="SIN JAPAN POKER"
               className="w-32 h-10 object-contain"
             />
-            <h1 className="text-lg font-bold text-gradient-blue">プロファイル</h1>
+            <h1 className="text-base font-bold text-gradient-blue">プロファイル</h1>
           </div>
 
           <div className="flex items-center space-x-3">
@@ -240,14 +240,16 @@ function ProfileContent() {
               <Link href="/purchase" className="text-blue-400 hover:text-cyan-300 text-xs">+</Link>
             </div>
             
-            {/* 出金 */}
-            <button 
-              onClick={() => setShowWithdrawModal(true)}
-              className="glass px-3 py-2 rounded-full hover-lift flex items-center space-x-2 group"
-              title="出金"
-            >
-              <DollarSign className="w-5 h-5 text-green-400 group-hover:text-green-300" />
-            </button>
+            {/* 出金（リアルマネーモード有効時のみ表示） */}
+            {isRealMoneyEnabled && (
+              <button 
+                onClick={() => setShowWithdrawModal(true)}
+                className="glass px-3 py-2 rounded-full hover-lift flex items-center space-x-2 group"
+                title="出金"
+              >
+                <DollarSign className="w-5 h-5 text-green-400 group-hover:text-green-300" />
+              </button>
+            )}
           </div>
         </div>
       </header>

@@ -98,15 +98,12 @@ export default function RegisterPage() {
         <div className="w-full max-w-md animate-scale-in">
           {/* ロゴ */}
           <div className="text-center mb-8">
-            <div className="relative inline-block mb-6">
-              <div className="w-56 h-20 flex items-center justify-center mx-auto animate-glow">
-                <img
-                  src="/logo.png"
-                  alt="SIN JAPAN POKER Logo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
+            <div className="mb-6">
+              <img
+                src="/logo.png"
+                alt="SIN JAPAN POKER Logo"
+                className="w-56 h-20 mx-auto object-contain"
+              />
             </div>
             <h1 className="text-5xl font-black text-gradient-blue mb-2 neon-glow">
               Join Us
@@ -122,40 +119,6 @@ export default function RegisterPage() {
                 className="btn-primary w-full"
               >
                 メールアドレスで登録
-              </button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-700"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-[#1a1a1a] text-gray-500">または</span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => alert('Google連携機能は準備中です')}
-                className="w-full glass hover-lift px-6 py-3 rounded-xl border border-white/10 flex items-center justify-center space-x-3"
-              >
-                <FaGoogle className="text-xl text-blue-400" />
-                <span className="text-white">Googleで登録</span>
-              </button>
-
-              <button
-                onClick={() => alert('Apple連携機能は準備中です')}
-                className="w-full glass hover-lift px-6 py-3 rounded-xl border border-white/10 flex items-center justify-center space-x-3"
-              >
-                <FaApple className="text-xl text-white" />
-                <span className="text-white">Appleで登録</span>
-              </button>
-
-              <button
-                onClick={() => alert('ウォレット連携機能は準備中です')}
-                className="w-full glass-blue hover-lift hover-glow px-6 py-3 rounded-xl border border-blue-400/30 flex items-center justify-center space-x-3 group relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <FaWallet className="text-xl text-blue-400 relative z-10" />
-                <span className="text-white relative z-10">仮想通貨ウォレットで登録</span>
               </button>
 
               <div className="text-center pt-4">

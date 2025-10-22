@@ -274,7 +274,7 @@ function ChangePasswordContent() {
                   </div>
                   <div className="h-2 bg-gray-600 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                      className={`h-full transition-all duration-500 ${passwordStrength.color}`}
                       style={{ width: `${passwordStrength.strength}%` }}
                     />
                   </div>

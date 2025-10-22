@@ -3,14 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FaStar } from 'react-icons/fa';
-import { Zap, Coins, Crown, ShoppingCart, BarChart3, User, MessageCircle, Gamepad2, Lock, AlertCircle } from 'lucide-react';
+import { Zap, Coins, Crown, ShoppingCart, BarChart3, User, MessageCircle, Gamepad2, Lock, AlertCircle, Loader } from 'lucide-react';
 import { useCurrencyStore } from '@/store/useCurrencyStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 function ShopContent() {
   const { currency, isRealMoneyMode } = useCurrencyStore();
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('chips');
   const [isRealMoneyEnabled, setIsRealMoneyEnabled] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   // Adminがリアルマネーモードを有効にしているかチェック
   useEffect(() => {
@@ -50,6 +53,42 @@ function ShopContent() {
     { chips: 50000, price: 50000, popular: false }, // 50,000チップ = 50,000円
     { chips: 100000, price: 100000, popular: false } // 100,000チップ = 100,000円
   ];
+
+  const handlePurchase = async (chips: number, price: number) => {
+    if (!user) {
+      alert('ログインが必要です');
+      return;
+    }
+
+    setProcessingPayment(true);
+
+    try {
+      const response = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chips,
+          price,
+          userId: user.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('決済セッションの作成に失敗しました: ' + data.error);
+        setProcessingPayment(false);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('決済処理中にエラーが発生しました');
+      setProcessingPayment(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden page-transition">
@@ -165,8 +204,19 @@ function ShopContent() {
                   </div>
 
                   {isRealMoneyEnabled ? (
-                    <button className="btn-primary w-full">
-                      購入する
+                    <button 
+                      onClick={() => handlePurchase(pkg.chips, pkg.price)}
+                      disabled={processingPayment}
+                      className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      {processingPayment ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          <span>処理中...</span>
+                        </>
+                      ) : (
+                        <span>購入する</span>
+                      )}
                     </button>
                   ) : (
                     <button 

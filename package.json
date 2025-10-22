@@ -8,19 +8,26 @@
     "start": "next start -p 5000",
     "lint": "next lint",
     "server": "node server/index.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.456.0",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
+    "@neondatabase/serverless": "^1.0.2",
     "@sendgrid/mail": "^7.7.0",
+    "@types/ws": "^8.18.1",
     "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
     "cookie": "^0.6.0",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
+    "drizzle-kit": "^0.31.5",
+    "drizzle-orm": "^0.44.6",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
     "framer-motion": "^10.18.0",
@@ -37,6 +44,7 @@
     "recharts": "^2.10.0",
     "redis": "^4.6.10",
     "socket.io": "^4.6.0",
+    "ws": "^8.18.3",
     "zustand": "^4.4.0"
   },
   "devDependencies": {

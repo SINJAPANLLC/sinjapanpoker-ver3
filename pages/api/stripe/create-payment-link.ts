@@ -24,6 +24,10 @@ export default async function handler(
       return res.status(400).json({ error: 'userId and amount are required' });
     }
 
+    if (amount < 50) {
+      return res.status(400).json({ error: 'Stripeの最低決済金額は50円です' });
+    }
+
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {

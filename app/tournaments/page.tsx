@@ -80,11 +80,11 @@ function TournamentsContent() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <Image
-              src="https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5b45aaad-02a4-4454-911d-14fb0a0000c5/img/70686fc0-87b1-013e-fa57-0a58a9feac02/SJsP-thumbnail.png"
+              src="/logo.png"
               alt="SIN JAPAN POKER"
               width={128}
               height={40}
-              className="w-32 h-10 rounded-lg object-cover"
+              className="w-32 h-10 object-contain"
             />
             <h1 className="text-2xl font-bold text-gradient-blue">トーナメント</h1>
           </div>

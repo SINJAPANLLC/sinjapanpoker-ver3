@@ -1,0 +1,153 @@
+
+> sin-japan-poker@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.33
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./app/auth/login/page.tsx
+88:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/auth/register/page.tsx
+91:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/career/page.tsx
+65:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/clubs/page.tsx
+44:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/forum/page.tsx
+35:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+105:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/game/active/page.tsx
+489:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/kyc/page.tsx
+73:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+109:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+143:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/lobby/page.tsx
+97:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/profile/page.tsx
+71:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+107:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+123:21  Warning: Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+
+./app/shop/page.tsx
+39:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/54) ...
+   Generating static pages (13/54) 
+   Generating static pages (26/54) 
+[DEPRECATED] `getStorage`, `serialize` and `deserialize` options are deprecated. Use `storage` option instead.
+   Generating static pages (40/54) 
+[DEPRECATED] `getStorage`, `serialize` and `deserialize` options are deprecated. Use `storage` option instead.
+ ✓ Generating static pages (54/54)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                               Size     First Load JS
+┌ ○ /                                     5.24 kB         107 kB
+├ ○ /_not-found                           878 B          88.2 kB
+├ ○ /admin                                689 B            88 kB
+├ ○ /admin/analytics                      4.41 kB         113 kB
+├ ○ /admin/currency                       4.71 kB        94.6 kB
+├ ○ /admin/dashboard                      5.05 kB        98.1 kB
+├ ○ /admin/games                          2.95 kB         111 kB
+├ ○ /admin/login                          3.22 kB        93.1 kB
+├ ○ /admin/monitor                        6.87 kB        96.8 kB
+├ ○ /admin/realmoney                      5.67 kB        95.6 kB
+├ ○ /admin/revenue                        5.44 kB        95.3 kB
+├ ○ /admin/settings                       6.28 kB        96.2 kB
+├ ○ /admin/tables                         6.29 kB        96.2 kB
+├ ○ /admin/tournaments/create             2.38 kB        95.5 kB
+├ ○ /admin/users                          6.38 kB        96.3 kB
+├ ○ /aml                                  2.98 kB          99 kB
+├ ○ /auth/login                           3.37 kB         133 kB
+├ ○ /auth/register                        3.63 kB         131 kB
+├ ○ /career                               5.17 kB         114 kB
+├ ○ /clubs                                4 kB            112 kB
+├ ƒ /clubs/[id]                           3.55 kB         112 kB
+├ ƒ /clubs/[id]/revenue                   4.18 kB         113 kB
+├ ○ /clubs/create                         2.99 kB         111 kB
+├ ○ /clubs/join                           2.3 kB          124 kB
+├ ○ /company                              2.7 kB          111 kB
+├ ○ /compliance                           2.57 kB         111 kB
+├ ○ /faq                                  3.43 kB        99.5 kB
+├ ○ /feedback                             2.59 kB         111 kB
+├ ○ /forum                                4.75 kB         103 kB
+├ ƒ /game/[id]                            18.6 kB         118 kB
+├ ○ /game/active                          38.1 kB         125 kB
+├ ○ /game/create                          2.76 kB         101 kB
+├ ○ /game/practice                        4.29 kB         113 kB
+├ ○ /game/quick                           3.02 kB         102 kB
+├ ƒ /game/room/[id]                       4.95 kB         105 kB
+├ ○ /history                              2.71 kB         101 kB
+├ ○ /invite                               2.31 kB         101 kB
+├ ○ /kyc                                  2.92 kB         111 kB
+├ ○ /lobby                                10 kB           109 kB
+├ ○ /payment/crypto                       3.43 kB         112 kB
+├ ○ /pet                                  3.32 kB         125 kB
+├ ○ /privacy                              3.91 kB        99.9 kB
+├ ○ /profile                              8.72 kB         107 kB
+├ ○ /profile/enhanced                     6.08 kB         114 kB
+├ ○ /purchase                             4.96 kB         104 kB
+├ ○ /responsible-gaming                   3.28 kB        99.3 kB
+├ ○ /risk-disclosure                      3.26 kB        99.3 kB
+├ ○ /settings                             3.36 kB         112 kB
+├ ○ /shop                                 5.41 kB         114 kB
+├ ○ /spinup                               3.32 kB         102 kB
+├ ○ /stats                                2.47 kB         114 kB
+├ ○ /terms                                3.96 kB         100 kB
+├ ○ /terms-of-use                         3.09 kB        99.1 kB
+├ ○ /tournaments                          2.77 kB         107 kB
+├ ○ /transactions                         3.99 kB         103 kB
+└ ○ /vip                                  4.18 kB         113 kB
++ First Load JS shared by all             87.3 kB
+  ├ chunks/2117-564cfb5ec1e9ce57.js       31.7 kB
+  ├ chunks/fd9d1056-d27c681e1447b928.js   53.7 kB
+  └ other shared chunks (total)           1.95 kB
+
+Route (pages)                             Size     First Load JS
+┌ ƒ /api/admin/dashboard                  0 B            81.1 kB
+├ ƒ /api/admin/grant-currency             0 B            81.1 kB
+├ ƒ /api/admin/rake-config                0 B            81.1 kB
+├ ƒ /api/admin/revenue                    0 B            81.1 kB
+├ ƒ /api/admin/stats                      0 B            81.1 kB
+├ ƒ /api/admin/table-revenue              0 B            81.1 kB
+├ ƒ /api/auth/login                       0 B            81.1 kB
+├ ƒ /api/auth/register                    0 B            81.1 kB
+├ ƒ /api/clubs                            0 B            81.1 kB
+├ ƒ /api/clubs/[id]                       0 B            81.1 kB
+├ ƒ /api/clubs/[id]/revenue               0 B            81.1 kB
+├ ƒ /api/clubs/create                     0 B            81.1 kB
+├ ƒ /api/clubs/join                       0 B            81.1 kB
+├ ƒ /api/currency/add-points              0 B            81.1 kB
+├ ƒ /api/currency/balance                 0 B            81.1 kB
+├ ƒ /api/currency/purchase                0 B            81.1 kB
+├ ƒ /api/currency/transactions            0 B            81.1 kB
+├ ƒ /api/forum/posts                      0 B            81.1 kB
+├ ƒ /api/pets/[userId]                    0 B            81.1 kB
+├ ƒ /api/pets/create                      0 B            81.1 kB
+├ ƒ /api/pets/feed                        0 B            81.1 kB
+├ ƒ /api/stats/[userId]                   0 B            81.1 kB
+├ ƒ /api/stats/user                       0 B            81.1 kB
+├ ƒ /api/users                            0 B            81.1 kB
+└ ƒ /api/users/[id]                       0 B            81.1 kB
++ First Load JS shared by all             81.1 kB
+  ├ chunks/framework-a63c59c368572696.js  44.9 kB
+  ├ chunks/main-7642542a5a73ba1d.js       34.3 kB
+  └ other shared chunks (total)           1.93 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -3,12 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Users, Clock, TrendingUp } from 'lucide-react';
-import Link from 'next/link';
+import { Menu, MessageCircle } from 'lucide-react';
 import { usePokerGame } from '@/hooks/usePokerGame';
 import PokerTable from '@/components/poker/PokerTable';
 import ActionButtons from '@/components/poker/ActionButtons';
-import GameChat from '@/components/poker/GameChat';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -31,14 +29,12 @@ function ActiveGameContent() {
     socket,
   } = usePokerGame(gameId);
 
-  // ゲームIDがない場合はロビーに戻る
   useEffect(() => {
     if (!gameId) {
       router.push('/lobby');
     }
   }, [gameId, router]);
 
-  // 自動参加
   useEffect(() => {
     if (connected && !hasJoined && socket) {
       joinGame(1000);
@@ -49,7 +45,6 @@ function ActiveGameContent() {
   const currentPlayer = getCurrentPlayer();
   const myTurn = isMyTurn();
 
-  // フェーズ表示用テキスト
   const getPhaseText = (phase: string) => {
     const phaseMap: Record<string, string> = {
       'waiting': '待機中',
@@ -63,10 +58,9 @@ function ActiveGameContent() {
     return phaseMap[phase] || phase;
   };
 
-  // 接続中またはゲーム状態が読み込まれていない
   if (!connected || !gameState) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-[#1a0a0a] to-black">
+      <div className="min-h-screen flex items-center justify-center bg-[#1a1a2e]">
         <div className="text-center">
           <LoadingSpinner />
           <p className="mt-4 text-gray-400">
@@ -77,188 +71,103 @@ function ActiveGameContent() {
     );
   }
 
-  // エラー表示
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-[#1a0a0a] to-black">
-        <div className="card-blue max-w-md text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#1a1a2e]">
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 max-w-md text-center">
           <h2 className="text-2xl font-bold text-red-400 mb-4">エラー</h2>
           <p className="text-gray-300 mb-6">{error}</p>
-          <Link href="/lobby" className="btn-primary">
+          <button
+            onClick={() => router.push('/lobby')}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+          >
             ロビーに戻る
-          </Link>
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-black via-[#1a0a0a] to-black">
-      {/* 背景 */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
+    <div className="relative min-h-screen bg-[#1a1a2e] flex flex-col">
+      {/* トップバー */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4">
+        <button
+          onClick={() => router.push('/lobby')}
+          className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-xl flex items-center justify-center text-white transition-colors shadow-lg"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+
+        <div className="bg-gray-900/80 backdrop-blur-sm px-6 py-3 rounded-full border border-gray-700">
+          <p className="text-white font-bold text-lg">{getPhaseText(gameState.phase)}</p>
         </div>
-        <div className="absolute inset-0 bg-dots opacity-20"></div>
+
+        <button className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-xl flex items-center justify-center text-white transition-colors shadow-lg">
+          <MessageCircle className="w-6 h-6" />
+        </button>
       </div>
 
-      {/* ヘッダー */}
-      <header className="relative z-10 glass-strong border-b border-white/10 p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/lobby" className="text-blue-400 hover:text-cyan-300 transition-colors">
-              <ArrowLeft className="w-6 h-6" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gradient-blue">{gameState.type.toUpperCase()} ゲーム</h1>
-              <p className="text-sm text-gray-400">ゲームID: {gameId?.slice(0, 8)}...</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            {/* フェーズ表示 */}
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-400" />
-              <span className="text-gray-300">{getPhaseText(gameState.phase)}</span>
-            </div>
-
-            {/* プレイヤー数 */}
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-400" />
-              <span className="text-gray-300">{gameState.players.length} プレイヤー</span>
-            </div>
-
-            {/* ステータス */}
-            <div className={`px-3 py-1 rounded-full ${
-              connected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-            }`}>
-              {connected ? '接続中' : '切断'}
-            </div>
-          </div>
+      {/* メインゲームエリア */}
+      <div className="flex-1 flex items-center justify-center p-4 pt-20 pb-32">
+        <div className="w-full max-w-[800px]">
+          <PokerTable
+            players={gameState.players}
+            communityCards={gameState.communityCards}
+            pot={gameState.pot}
+            currentPlayerIndex={gameState.currentPlayerIndex}
+            myPlayerId={socket?.id || null}
+          />
         </div>
-      </header>
+      </div>
 
-      {/* メインコンテンツ */}
-      <main className="relative z-10 max-w-[1600px] mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* 左サイドバー - プレイヤー統計 */}
-          <div className="space-y-4">
-            <div className="card-blue">
-              <h3 className="font-bold text-gradient-blue mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                あなたの情報
-              </h3>
-              {currentPlayer ? (
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">チップ</span>
-                    <span className="text-yellow-400 font-bold">{currentPlayer.chips.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">ベット</span>
-                    <span className="text-green-400 font-bold">{currentPlayer.bet.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">ポジション</span>
-                    <span className="text-blue-400 font-bold">
-                      {currentPlayer.isDealer ? 'ディーラー' : `#${currentPlayer.position + 1}`}
-                    </span>
-                  </div>
-                  {currentPlayer.folded && (
-                    <div className="badge-secondary text-center">フォールド済み</div>
-                  )}
-                  {currentPlayer.isAllIn && (
-                    <div className="badge-primary text-center">オールイン</div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-gray-400 text-sm">データ読み込み中...</p>
-              )}
-            </div>
-
-            {/* ゲーム情報 */}
-            <div className="card-blue">
-              <h3 className="font-bold text-gradient-blue mb-4">ゲーム情報</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">ゲームタイプ</span>
-                  <span className="text-white">{gameState.type}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">現在のフェーズ</span>
-                  <span className="text-white">{getPhaseText(gameState.phase)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">ポット</span>
-                  <span className="text-yellow-400 font-bold">{gameState.pot.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">現在のベット</span>
-                  <span className="text-green-400 font-bold">{gameState.currentBet.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 中央 - ポーカーテーブル */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* ターン表示 */}
+      {/* ボトムエリア - アクションボタン */}
+      {currentPlayer && !currentPlayer.folded && gameState.phase !== 'finished' && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-[#1a1a2e] via-[#1a1a2e] to-transparent">
+          <div className="max-w-2xl mx-auto">
             {myTurn && (
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-xl p-4 text-center">
-                  <p className="text-white font-bold text-xl">あなたのターンです！</p>
+                <div className="mb-4 text-center">
+                  <p className="text-green-400 font-bold text-xl">あなたのターンです！</p>
                 </div>
               </motion.div>
             )}
-
-            {/* 勝者表示 */}
-            {gameState.phase === 'finished' && gameState.winner && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl p-4 text-center">
-                  <p className="text-white font-bold text-xl">🏆 {gameState.winner} の勝利!</p>
-                  {gameState.winningHand && (
-                    <p className="text-yellow-100 mt-2">{gameState.winningHand}</p>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {/* ポーカーテーブル */}
-            <div className="card-blue p-6">
-              <PokerTable
-                players={gameState.players}
-                communityCards={gameState.communityCards}
-                pot={gameState.pot}
-                currentPlayerIndex={gameState.currentPlayerIndex}
-                myPlayerId={socket?.id || null}
-              />
-            </div>
-
-            {/* アクションボタン */}
-            {currentPlayer && !currentPlayer.folded && gameState.phase !== 'finished' && (
-              <ActionButtons
-                currentBet={gameState.currentBet}
-                myChips={currentPlayer.chips}
-                myBet={currentPlayer.bet}
-                onAction={performAction}
-                disabled={!myTurn}
-              />
-            )}
-          </div>
-
-          {/* 右サイドバー - チャット */}
-          <div>
-            <GameChat messages={messages} onSendMessage={sendMessage} />
+            <ActionButtons
+              currentBet={gameState.currentBet}
+              myChips={currentPlayer.chips}
+              myBet={currentPlayer.bet}
+              onAction={performAction}
+              disabled={!myTurn}
+            />
           </div>
         </div>
-      </main>
+      )}
+
+      {/* 勝者表示 */}
+      {gameState.phase === 'finished' && gameState.winner && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-8 text-center shadow-2xl">
+              <p className="text-white font-bold text-3xl mb-2">🏆 {gameState.winner} の勝利!</p>
+              {gameState.winningHand && (
+                <p className="text-yellow-100 text-lg">{gameState.winningHand}</p>
+              )}
+              <button
+                onClick={() => router.push('/lobby')}
+                className="mt-6 px-6 py-3 bg-white text-orange-600 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+              >
+                ロビーに戻る
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

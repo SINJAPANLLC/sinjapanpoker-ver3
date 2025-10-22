@@ -167,6 +167,12 @@ function PaymentContent() {
       return;
     }
 
+    const amountNum = parseInt(paymentLinkForm.amount);
+    if (amountNum < 50) {
+      alert('Stripeの最低決済金額は50円です');
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const response = await fetch('/api/stripe/create-payment-link', {
@@ -442,10 +448,11 @@ function PaymentContent() {
                         type="number"
                         value={paymentLinkForm.amount}
                         onChange={(e) => setPaymentLinkForm({...paymentLinkForm, amount: e.target.value})}
-                        placeholder="10000"
+                        placeholder="1000"
                         className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-cyan-400 focus:outline-none"
-                        min="100"
+                        min="50"
                       />
+                      <p className="text-gray-400 text-xs mt-1">最低金額: 50円（Stripe制限）</p>
                     </div>
 
                     <div>

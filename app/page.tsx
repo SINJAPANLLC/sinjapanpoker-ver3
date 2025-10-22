@@ -221,18 +221,12 @@ export default function HomePage() {
               世界最高峰のオンラインポーカー体験
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center w-full max-w-md mx-auto">
+            <div className="flex justify-center items-center">
               <Link
                 href="/auth/register"
-                className="btn-primary text-base md:text-lg px-8 md:px-12 py-3 md:py-4 hover-lift animate-pulse-slow w-full sm:w-auto"
+                className="btn-primary text-base md:text-lg px-8 md:px-12 py-3 md:py-4 hover-lift animate-pulse-slow"
               >
                 今すぐ始める
-              </Link>
-              <Link
-                href="/lobby"
-                className="btn-secondary text-base md:text-lg px-8 md:px-12 py-3 md:py-4 hover-lift w-full sm:w-auto"
-              >
-                ゲストで試す
               </Link>
             </div>
           </div>

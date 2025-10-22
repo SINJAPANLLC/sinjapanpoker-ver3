@@ -1,4 +1,5 @@
 // PostgreSQL database operations for game server
+const crypto = require('crypto');
 const { Pool, neonConfig } = require('@neondatabase/serverless');
 const { drizzle } = require('drizzle-orm/neon-serverless');
 const { pgTable, varchar, text, integer, boolean, timestamp, jsonb, index, uniqueIndex } = require('drizzle-orm/pg-core');
@@ -41,7 +42,7 @@ const games = pgTable('games', {
 });
 
 const handHistory = pgTable('hand_history', {
-  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: varchar('id', { length: 100 }).primaryKey(),
   userId: varchar('user_id', { length: 100 }).notNull(),
   gameId: varchar('game_id', { length: 100 }).notNull(),
   gameType: varchar('game_type', { length: 50 }).notNull(),
@@ -53,7 +54,7 @@ const handHistory = pgTable('hand_history', {
 });
 
 const playerStats = pgTable('player_stats', {
-  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: varchar('id', { length: 100 }).primaryKey(),
   userId: varchar('user_id', { length: 100 }).notNull().unique(),
   totalGames: integer('total_games').notNull().default(0),
   gamesWon: integer('games_won').notNull().default(0),
@@ -92,6 +93,7 @@ async function saveGameToDatabase(game, winners) {
       const chipsChange = winAmount - (game.totalBets.get(player.id) || 0);
 
       await db.insert(handHistory).values({
+        id: crypto.randomUUID(),
         userId: player.userId,
         gameId: game.id,
         gameType: game.type,
@@ -137,6 +139,7 @@ async function updatePlayerStats(userId, gameResult) {
     if (existingStats.length === 0) {
       // Create new stats
       await db.insert(playerStats).values({
+        id: crypto.randomUUID(),
         userId,
         totalGames: 1,
         gamesWon: gameResult.won ? 1 : 0,

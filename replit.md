@@ -48,12 +48,17 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 - Separate `/server` directory contains game logic independent of Next.js
 
 **Real-time Game Engine**
-- **Socket.io** manages game rooms with event-driven architecture
+- **Socket.io** manages game rooms with event-driven architecture (Port 3001)
 - `PokerGame` class encapsulates game state machine:
   - Phases: waiting → preflop → flop → turn → river → showdown
   - Player action validation and turn management
   - Pot calculation with side pot support
   - Dealer/blind rotation logic
+  - **Automatic PostgreSQL persistence** on game end via `server/game-db.js`:
+    - Saves game results to `games` table
+    - Saves each player's hand to `hand_history` table
+    - Updates `player_stats` with win/loss statistics
+    - Updates `users` chips balance
 
 **Game Logic Libraries**
 - `lib/poker-engine.ts` - Card deck management, hand evaluation (royal flush to high card)
@@ -71,17 +76,20 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 ### Data Layer
 
 **Database Strategy**
-- **PostgreSQL** with Drizzle ORM for persistent data storage (migrated from MongoDB on 2025-10-22)
-- Database connection via `server/db.ts` using environment variable `DATABASE_URL`
+- **PostgreSQL** with Drizzle ORM for persistent data storage (fully migrated from MongoDB on 2025-10-22)
+- Database connection via `server/db.ts` and `server/game-db.js` using environment variable `DATABASE_URL`
+- Real-time game data automatically saved to PostgreSQL on game completion
+- MongoDB/Mongoose completely removed (2025-10-22)
 - Schema defined in `shared/schema.ts` with UUID-based primary keys
 - Tables include:
-  - `users` - Player accounts, chips, levels, achievements, clubs, friends
+  - `users` - Player accounts, chips (auto-updated on game end), levels, achievements, clubs, friends
   - `clubs` - Club metadata, members, roles, privacy settings
-  - `games` - Game state, players, community cards, pot, blinds
-  - `player_stats` - Win rates, VPIP, PFR, aggression metrics, hands played
+  - `games` - Game state, players, community cards, pot, blinds, winner (auto-saved on game end)
+  - `player_stats` - Win rates, total games, chips won/lost, biggest pot (auto-updated on game end)
   - `pets` - Virtual pet system for gamification
   - `tournaments` - Tournament metadata, players, prize pools
-  - `hand_history` - Individual hand results per player (userId, gameId, chipsChange, result, date)
+  - `hand_history` - Individual hand results per player (userId, gameId, chipsChange, result, date, auto-saved for each player on game end)
+- All game data relationships properly linked via userId and gameId foreign keys
 
 **In-Memory State**
 - Active games stored in `Map` structures on the Socket.io server
@@ -143,7 +151,7 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 ## External Dependencies
 
 ### Core Infrastructure
-- **MongoDB** - Primary database (connection via `MONGODB_URI` environment variable) - Connection code implemented in `lib/mongodb.ts`
+- **PostgreSQL (Neon)** - Primary database (connection via `DATABASE_URL` environment variable)
 - **Node.js 18+** - Runtime environment
 
 ### Cloud Services (Configured but Optional)

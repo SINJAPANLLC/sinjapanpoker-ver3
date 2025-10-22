@@ -153,6 +153,17 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 - **Replit Object Storage** - Available via blueprint:javascript_object_storage for file uploads and storage
 
 ### Payment & Real Money
+- **Stripe Payment Integration** - Fully implemented for chip purchases (2025-10-22)
+  - Stripe Checkout for credit card payments (1 chip = 1 yen)
+  - API endpoints:
+    - `/api/stripe/create-checkout-session` - Creates Stripe Checkout session
+    - `/api/stripe/verify-session` - Verifies payment completion
+    - `/api/stripe/create-payment-link` - Admin payment link generation
+  - Payment flow pages:
+    - `/app/payment/success` - Post-payment success handling with chip addition
+    - `/app/payment/cancel` - Payment cancellation page
+  - Shop page integration: `/app/shop/page.tsx` with purchase button handlers
+  - Admin payment management: `/admin/payment` with payment link creation modal
 - **Cryptocurrency Payment System** - Fully implemented in `lib/crypto-payment.ts`
   - Supports: BTC, ETH, USDT, USDC, LTC
   - Invoice generation, QR codes, webhook processing
@@ -160,7 +171,7 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
   - API endpoints: `/api/payment/crypto/*`
   - Frontend UI: `/app/payment/crypto/page.tsx`
 - Real money mode controlled by admin via `useMoneyModeStore`
-- Credit card payments (Stripe) planned but not implemented
+- Chip purchase packages: 1,000 to 100,000 chips (1:1 yen conversion)
 
 ### Authentication
 - JWT token-based (self-hosted, no third-party auth service)

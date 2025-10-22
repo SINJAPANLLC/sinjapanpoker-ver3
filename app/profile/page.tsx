@@ -40,6 +40,11 @@ function ProfileContent() {
     accountNumber: '',
     accountName: ''
   });
+  const [cryptoInfo, setCryptoInfo] = useState({
+    currency: 'BTC',
+    walletAddress: '',
+    network: 'BTC'
+  });
   const [isRealMoneyEnabled, setIsRealMoneyEnabled] = useState(false);
   const [withdrawStatus, setWithdrawStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [withdrawMessage, setWithdrawMessage] = useState('');
@@ -154,6 +159,21 @@ function ProfileContent() {
       }
     }
 
+    // 仮想通貨情報のバリデーション
+    if (withdrawMethod === 'crypto') {
+      if (!cryptoInfo.walletAddress) {
+        setWithdrawStatus('error');
+        setWithdrawMessage('ウォレットアドレスを入力してください');
+        return;
+      }
+      // アドレスの基本的なバリデーション
+      if (cryptoInfo.walletAddress.length < 26) {
+        setWithdrawStatus('error');
+        setWithdrawMessage('有効なウォレットアドレスを入力してください');
+        return;
+      }
+    }
+
     setWithdrawStatus('processing');
     setWithdrawMessage('出金申請を処理中...');
 
@@ -171,6 +191,7 @@ function ProfileContent() {
         amount,
         method: withdrawMethod,
         bankInfo: withdrawMethod === 'bank' ? bankInfo : null,
+        cryptoInfo: withdrawMethod === 'crypto' ? cryptoInfo : null,
         status: 'pending',
         date: new Date().toISOString(),
         userId: user?.id
@@ -583,6 +604,86 @@ function ProfileContent() {
                           className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
                           disabled={withdrawStatus === 'processing' || withdrawStatus === 'success'}
                         />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 仮想通貨情報入力 */}
+                  {withdrawMethod === 'crypto' && (
+                    <div className="space-y-4 bg-gray-800/30 rounded-lg p-4">
+                      <h3 className="text-white font-semibold mb-3">仮想通貨情報</h3>
+                      
+                      <div>
+                        <label className="block text-gray-300 text-sm mb-1">通貨選択</label>
+                        <select
+                          value={cryptoInfo.currency}
+                          onChange={(e) => {
+                            const newCurrency = e.target.value;
+                            setCryptoInfo({
+                              ...cryptoInfo, 
+                              currency: newCurrency,
+                              network: newCurrency === 'USDT' || newCurrency === 'USDC' ? 'ERC20' : newCurrency
+                            });
+                          }}
+                          className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+                          disabled={withdrawStatus === 'processing' || withdrawStatus === 'success'}
+                        >
+                          <option value="BTC">Bitcoin (BTC)</option>
+                          <option value="ETH">Ethereum (ETH)</option>
+                          <option value="USDT">Tether (USDT)</option>
+                          <option value="USDC">USD Coin (USDC)</option>
+                          <option value="LTC">Litecoin (LTC)</option>
+                        </select>
+                      </div>
+
+                      {(cryptoInfo.currency === 'USDT' || cryptoInfo.currency === 'USDC') && (
+                        <div>
+                          <label className="block text-gray-300 text-sm mb-1">ネットワーク</label>
+                          <select
+                            value={cryptoInfo.network}
+                            onChange={(e) => setCryptoInfo({...cryptoInfo, network: e.target.value})}
+                            className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+                            disabled={withdrawStatus === 'processing' || withdrawStatus === 'success'}
+                          >
+                            <option value="ERC20">ERC20 (Ethereum)</option>
+                            <option value="TRC20">TRC20 (Tron)</option>
+                            <option value="BEP20">BEP20 (BSC)</option>
+                          </select>
+                          <p className="text-yellow-400 text-xs mt-1">
+                            ⚠️ 必ず正しいネットワークを選択してください
+                          </p>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-gray-300 text-sm mb-1">
+                          ウォレットアドレス
+                        </label>
+                        <input
+                          type="text"
+                          value={cryptoInfo.walletAddress}
+                          onChange={(e) => setCryptoInfo({...cryptoInfo, walletAddress: e.target.value})}
+                          placeholder={
+                            cryptoInfo.currency === 'BTC' ? '例: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' :
+                            cryptoInfo.currency === 'ETH' ? '例: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb' :
+                            '受取アドレスを入力'
+                          }
+                          className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-400 focus:outline-none text-sm font-mono"
+                          disabled={withdrawStatus === 'processing' || withdrawStatus === 'success'}
+                        />
+                        <p className="text-gray-400 text-xs mt-1">
+                          間違ったアドレスに送金すると資金を失う可能性があります
+                        </p>
+                      </div>
+
+                      <div className="bg-orange-900/20 border border-orange-500/30 rounded-lg p-3">
+                        <h5 className="text-orange-400 font-semibold text-sm mb-1">重要な確認事項</h5>
+                        <ul className="text-gray-300 text-xs space-y-1">
+                          <li>• アドレスは必ずコピー&ペーストしてください</li>
+                          <li>• {cryptoInfo.currency}ネットワークのアドレスであることを確認してください</li>
+                          <li>• 最低出金額: 1,000チップ（≈ {cryptoInfo.currency === 'BTC' ? '0.001 BTC' : cryptoInfo.currency === 'ETH' ? '0.01 ETH' : '10 USDT'}）</li>
+                          <li>• ネットワーク手数料が別途かかります</li>
+                        </ul>
                       </div>
                     </div>
                   )}

@@ -63,7 +63,6 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
 
   return (
     <div className="glass-strong p-6 rounded-2xl space-y-4">
-      {/* レイズ入力 */}
       {showRaiseInput && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -71,10 +70,7 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
           exit={{ opacity: 0, height: 0 }}
           className="flex items-center gap-3"
         >
-          <button
-            onClick={decrementRaise}
-            className="btn-secondary-small"
-          >
+          <button onClick={decrementRaise} className="btn-secondary-small">
             <Minus className="w-4 h-4" />
           </button>
           <div className="flex-1">
@@ -87,18 +83,13 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
               max={myChips}
             />
           </div>
-          <button
-            onClick={incrementRaise}
-            className="btn-secondary-small"
-          >
+          <button onClick={incrementRaise} className="btn-secondary-small">
             <Plus className="w-4 h-4" />
           </button>
         </motion.div>
       )}
 
-      {/* アクションボタン */}
       <div className="grid grid-cols-2 gap-3">
-        {/* フォールド */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -108,7 +99,6 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
           フォールド
         </motion.button>
 
-        {/* チェック/コール */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -118,7 +108,6 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
           {canCheck ? 'チェック' : `コール (${callAmount.toLocaleString()})`}
         </motion.button>
 
-        {/* レイズ */}
         {canRaise && (
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -130,7 +119,6 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
           </motion.button>
         )}
 
-        {/* オールイン */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -141,7 +129,6 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
         </motion.button>
       </div>
 
-      {/* 情報表示 */}
       <div className="flex justify-between text-sm text-gray-300">
         <span>現在のベット: {currentBet.toLocaleString()}</span>
         <span>あなたのチップ: {myChips.toLocaleString()}</span>

@@ -54,13 +54,14 @@ export default function GameChat({ messages, onSendMessage }: GameChatProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-black/30 rounded-lg p-3"
             >
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-bold text-blue-400 text-sm">{msg.username}</span>
-                <span className="text-xs text-gray-500">{formatTime(msg.timestamp)}</span>
+              <div className="bg-black/30 rounded-lg p-3">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="font-bold text-blue-400 text-sm">{msg.username}</span>
+                  <span className="text-xs text-gray-500">{formatTime(msg.timestamp)}</span>
+                </div>
+                <p className="text-gray-200 text-sm">{msg.message}</p>
               </div>
-              <p className="text-gray-200 text-sm">{msg.message}</p>
             </motion.div>
           ))
         )}

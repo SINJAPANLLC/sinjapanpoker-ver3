@@ -69,7 +69,7 @@ export default function ActiveGamePage() {
                           className="relative"
                           style={{
                             transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'}) translateY(${cardIndex === 0 ? '2px' : '2px'})`,
-                            marginLeft: cardIndex === 1 ? '-22px' : '0',
+                            marginLeft: cardIndex === 1 ? '-28px' : '0',
                             zIndex: cardIndex,
                           }}
                         >

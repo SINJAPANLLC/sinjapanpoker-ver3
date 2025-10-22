@@ -222,29 +222,32 @@ function ProfileContent() {
               alt="SIN JAPAN POKER"
               className="w-32 h-10 object-contain"
             />
-            <h1 className="text-2xl font-bold text-gradient-blue">プロファイル</h1>
+            <h1 className="text-lg font-bold text-gradient-blue">プロファイル</h1>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            {/* エネルギー */}
             <div className="flex items-center space-x-2 glass px-3 py-2 rounded-full hover-lift">
               <Zap className="w-5 h-5 text-yellow-400" />
               <span className="text-white font-semibold">{currency.energy}</span>
               <Link href="/purchase" className="text-blue-400 hover:text-cyan-300 text-xs">+</Link>
             </div>
+            
+            {/* チップ */}
             <div className="flex items-center space-x-2 glass px-3 py-2 rounded-full hover-lift">
               <Coins className="w-5 h-5 text-yellow-500" />
               <span className="text-white font-semibold">{currency?.realChips?.toLocaleString() || '0'}</span>
-              <div className="flex items-center space-x-1">
-                <Link href="/purchase" className="text-blue-400 hover:text-cyan-300 text-xs">+</Link>
-                <button 
-                  onClick={() => setShowWithdrawModal(true)}
-                  className="text-green-400 hover:text-green-300 text-xs font-bold"
-                  title="出金"
-                >
-                  <DollarSign className="w-4 h-4" />
-                </button>
-              </div>
+              <Link href="/purchase" className="text-blue-400 hover:text-cyan-300 text-xs">+</Link>
             </div>
+            
+            {/* 出金 */}
+            <button 
+              onClick={() => setShowWithdrawModal(true)}
+              className="glass px-3 py-2 rounded-full hover-lift flex items-center space-x-2 group"
+              title="出金"
+            >
+              <DollarSign className="w-5 h-5 text-green-400 group-hover:text-green-300" />
+            </button>
           </div>
         </div>
       </header>

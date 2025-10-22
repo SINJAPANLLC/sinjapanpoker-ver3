@@ -192,7 +192,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2 md:space-x-4">
             <Image
-              src="/logo.jpg"
+              src="/logo.png"
               alt="SIN JAPAN POKER"
               width={240}
               height={80}

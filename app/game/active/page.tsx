@@ -69,7 +69,7 @@ function ActiveGameContent() {
         </div>
       </div>
     );
-  }
+  };
 
   if (error) {
     return (
@@ -89,7 +89,7 @@ function ActiveGameContent() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#1a1a2e] flex flex-col">
+    <div className="relative min-h-screen bg-[#1a1a2e] flex flex-col overflow-hidden">
       {/* トップバー */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4">
         <button

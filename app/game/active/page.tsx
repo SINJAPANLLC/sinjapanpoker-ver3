@@ -14,8 +14,22 @@ export default function ActiveGamePage() {
   ];
 
   const players = [
-    { name: 'プレイヤー1', chips: 5000 },
-    { name: 'プレイヤー2', chips: 8500 },
+    { 
+      name: 'プレイヤー1', 
+      chips: 5000,
+      cards: [
+        { rank: 'A', suit: 'hearts', id: 'p1-card-1' },
+        { rank: 'K', suit: 'diamonds', id: 'p1-card-2' },
+      ]
+    },
+    { 
+      name: 'プレイヤー2', 
+      chips: 8500,
+      cards: [
+        { rank: 'Q', suit: 'clubs', id: 'p2-card-1' },
+        { rank: 'J', suit: 'spades', id: 'p2-card-2' },
+      ]
+    },
   ];
 
   return (
@@ -51,13 +65,32 @@ export default function ActiveGamePage() {
                     👤
                   </div>
                   {/* ユーザー情報（アバターの下部に被せる） */}
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border-2 border-white/30 shadow-lg min-w-[100px]">
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border-2 border-white/30 shadow-lg min-w-[100px] z-10">
                     <p className="text-white text-xs font-bold text-center whitespace-nowrap">
                       {players[index === 0 ? 0 : 1].name}
                     </p>
                     <p className="text-yellow-400 text-xs font-semibold text-center whitespace-nowrap">
                       {players[index === 0 ? 0 : 1].chips.toLocaleString()} チップ
                     </p>
+                  </div>
+                  
+                  {/* ハンドカード - 扇形に表示 */}
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex items-end" style={{ perspective: '400px' }}>
+                    {players[index === 0 ? 0 : 1].cards.map((handCard, cardIndex) => (
+                      <div
+                        key={handCard.id}
+                        className="relative"
+                        style={{
+                          transform: `rotate(${cardIndex === 0 ? '-12deg' : '12deg'}) translateY(${cardIndex === 0 ? '4px' : '4px'})`,
+                          marginLeft: cardIndex === 1 ? '-20px' : '0',
+                          zIndex: cardIndex,
+                        }}
+                      >
+                        <div className="scale-50 origin-bottom">
+                          <Card card={handCard} faceUp={true} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

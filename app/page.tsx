@@ -194,10 +194,10 @@ export default function HomePage() {
             <Image
               src="https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5b45aaad-02a4-4454-911d-14fb0a0000c5/img/70686fc0-87b1-013e-fa57-0a58a9feac02/SJsP-thumbnail.png"
               alt="SIN JAPAN POKER"
-              width={160}
-              height={48}
+              width={240}
+              height={80}
               priority
-              className="w-24 h-8 md:w-40 md:h-12 object-contain"
+              className="w-40 h-14 md:w-60 md:h-20 object-contain"
             />
           </div>
           

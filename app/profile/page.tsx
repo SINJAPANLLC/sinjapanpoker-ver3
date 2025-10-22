@@ -445,18 +445,7 @@ function ProfileContent() {
 
             {/* コンテンツ */}
             <div className="p-6">
-              {/* リアルマネーモード無効時の警告 */}
-              {!isRealMoneyEnabled ? (
-                <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 backdrop-blur-lg rounded-2xl border border-red-500/30 p-6 text-center">
-                  <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-white mb-4">出金機能は現在利用できません</h3>
-                  <div className="text-gray-300 space-y-2">
-                    <p className="text-red-400 font-semibold">リアルマネーモードが無効になっています</p>
-                    <p>管理者がリアルマネーモードを有効にするまで、出金はできません</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
+              <div className="space-y-6">
                   {/* ステータスメッセージ */}
                   {withdrawStatus !== 'idle' && (
                     <div className={`p-4 rounded-lg flex items-center space-x-2 ${
@@ -613,7 +602,6 @@ function ProfileContent() {
                     {withdrawStatus === 'processing' ? '処理中...' : withdrawStatus === 'success' ? '申請完了' : '出金申請'}
                   </button>
                 </div>
-              )}
             </div>
           </div>
         </div>

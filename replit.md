@@ -71,14 +71,17 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 ### Data Layer
 
 **Database Strategy**
-- **MongoDB** via Mongoose ODM for persistent data storage
-- Connection pooling with global caching pattern (`lib/mongodb.ts`)
-- Models defined for:
-  - `User` - Player accounts, chips, levels, achievements
-  - `Club` - Club metadata, members, roles
-  - `Game` - Game history, hands, results
-  - `PlayerStats` - Win rates, VPIP, PFR, aggression metrics
-  - `Pet` - Virtual pet system for gamification
+- **PostgreSQL** with Drizzle ORM for persistent data storage (migrated from MongoDB on 2025-10-22)
+- Database connection via `server/db.ts` using environment variable `DATABASE_URL`
+- Schema defined in `shared/schema.ts` with UUID-based primary keys
+- Tables include:
+  - `users` - Player accounts, chips, levels, achievements, clubs, friends
+  - `clubs` - Club metadata, members, roles, privacy settings
+  - `games` - Game state, players, community cards, pot, blinds
+  - `player_stats` - Win rates, VPIP, PFR, aggression metrics, hands played
+  - `pets` - Virtual pet system for gamification
+  - `tournaments` - Tournament metadata, players, prize pools
+  - `hand_history` - Individual hand results per player (userId, gameId, chipsChange, result, date)
 
 **In-Memory State**
 - Active games stored in `Map` structures on the Socket.io server
@@ -88,6 +91,12 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 **Storage Utilities**
 - `lib/storage.ts` - LocalStorage helpers for tables, tournaments, forum posts
 - Used as cache layer and offline fallback
+
+**Statistics & Analytics**
+- `/api/stats/user` - Retrieves player statistics with period filtering (day/week/month/all)
+- Real-time chart data generation from hand_history table
+- Cumulative earnings tracking for career page graphs
+- `/api/stats/seed-test-data` - Development endpoint for populating test data
 
 ### Key Architectural Decisions
 

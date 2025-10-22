@@ -1,69 +1,106 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { db } from '@/server/db';
+import { handHistory, playerStats, users } from '@/shared/schema';
+import { eq, and, gte, sql } from 'drizzle-orm';
 
-// ユーザー統計データの型定義
-interface UserStats {
-  totalEarnings: number;
-  recentEarnings: number;
-  gamesPlayed: number;
-  winRate: number;
-  totalChips: number;
-  energy: number;
-  gems: number;
-  coins: number;
-  vipDays: number;
-  level: number;
-  experience: number;
-  handHistory: any[];
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { userId, period = 'all' } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({ error: 'User ID is required' });
   }
 
   try {
-    const { userId } = req.query;
+    const now = new Date();
+    let dateFilter: Date | null = null;
 
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+    if (period === 'day') {
+      dateFilter = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    } else if (period === 'week') {
+      dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (period === 'month') {
+      dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
 
-    // 実際のデータベースから取得する想定（現在はモックデータ）
-    const userStats: UserStats = {
-      totalEarnings: 565.71,
-      recentEarnings: 378.39,
-      gamesPlayed: 42,
-      winRate: 67.5,
-      totalChips: 104130000,
-      energy: 185,
-      gems: 38,
-      coins: 104130000,
-      vipDays: 28,
-      level: 6,
-      experience: 4250,
-      handHistory: [
-        {
-          id: 1,
-          date: '2025-01-15',
-          result: 'win',
-          chips: 1500,
-          gameType: 'NLH',
-          blinds: '0.1/0.2'
-        },
-        {
-          id: 2,
-          date: '2025-01-14',
-          result: 'loss',
-          chips: -800,
-          gameType: 'NLH',
-          blinds: '0.05/0.1'
-        }
-      ]
-    };
+    const whereCondition = dateFilter
+      ? and(eq(handHistory.userId, userId), gte(handHistory.createdAt, dateFilter))
+      : eq(handHistory.userId, userId);
 
-    return res.status(200).json(userStats);
+    const history = await db
+      .select()
+      .from(handHistory)
+      .where(whereCondition)
+      .orderBy(sql`${handHistory.createdAt} DESC`)
+      .limit(100);
+
+    const stats = await db
+      .select()
+      .from(playerStats)
+      .where(eq(playerStats.userId, userId))
+      .limit(1);
+
+    const totalChipsChange = history.reduce((sum, h) => sum + (h.chipsChange || 0), 0);
+    const gamesPlayed = history.length;
+    const gamesWon = history.filter(h => h.result === 'win').length;
+    const winRate = gamesPlayed > 0 ? (gamesWon / gamesPlayed) * 100 : 0;
+
+    const recentHistory = history.slice(0, 10);
+    const recentEarnings = recentHistory.reduce((sum, h) => sum + (h.chipsChange || 0), 0);
+
+    const chartData: { date: string; earnings: number }[] = [];
+    const groupedByDay: { [key: string]: number } = {};
+    
+    history.forEach(h => {
+      const date = new Date(h.createdAt);
+      const dateKey = `${date.getMonth() + 1}/${date.getDate()}`;
+      
+      if (!groupedByDay[dateKey]) {
+        groupedByDay[dateKey] = 0;
+      }
+      groupedByDay[dateKey] += h.chipsChange;
+    });
+
+    const sortedDates = Object.keys(groupedByDay).sort((a, b) => {
+      const [aMonth, aDay] = a.split('/').map(Number);
+      const [bMonth, bDay] = b.split('/').map(Number);
+      return aMonth === bMonth ? aDay - bDay : aMonth - bMonth;
+    });
+
+    let cumulativeEarnings = 0;
+    sortedDates.forEach(dateKey => {
+      cumulativeEarnings += groupedByDay[dateKey];
+      chartData.push({
+        date: dateKey,
+        earnings: cumulativeEarnings,
+      });
+    });
+
+    const handHistoryData = recentHistory.map(h => ({
+      gameType: h.gameType,
+      blinds: h.blinds,
+      chips: h.chipsChange,
+      result: h.result,
+      date: new Date(h.createdAt).toLocaleString('ja-JP'),
+    }));
+
+    return res.status(200).json({
+      gamesPlayed,
+      winRate,
+      totalEarnings: totalChipsChange,
+      recentEarnings,
+      handHistory: handHistoryData,
+      chartData,
+      playerStats: stats[0] || null,
+    });
   } catch (error) {
-    console.error('User stats error:', error);
-    return res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    console.error('Error fetching user stats:', error);
+    return res.status(500).json({ error: 'Failed to fetch user stats' });
   }
 }

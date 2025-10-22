@@ -200,11 +200,36 @@ export type Tournament = typeof tournaments.$inferSelect;
 export type InsertTournament = typeof tournaments.$inferInsert;
 
 // ========================================
+// HAND HISTORY TABLE
+// ========================================
+export const handHistory = pgTable('hand_history', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar('user_id', { length: 100 }).notNull(),
+  gameId: varchar('game_id', { length: 100 }).notNull(),
+  gameType: varchar('game_type', { length: 50 }).notNull(),
+  blinds: varchar('blinds', { length: 50 }).notNull(),
+  chipsChange: integer('chips_change').notNull(),
+  result: varchar('result', { length: 20 }).notNull().$type<'win' | 'loss' | 'tie'>(),
+  hand: text('hand'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('hand_history_user_id_idx').on(table.userId),
+    gameIdIdx: index('hand_history_game_id_idx').on(table.gameId),
+    createdAtIdx: index('hand_history_created_at_idx').on(table.createdAt),
+  };
+});
+
+export type HandHistory = typeof handHistory.$inferSelect;
+export type InsertHandHistory = typeof handHistory.$inferInsert;
+
+// ========================================
 // RELATIONS
 // ========================================
 export const usersRelations = relations(users, ({ many }) => ({
   playerStats: many(playerStats),
   pets: many(pets),
+  handHistory: many(handHistory),
 }));
 
 export const playerStatsRelations = relations(playerStats, ({ one }) => ({
@@ -218,5 +243,16 @@ export const petsRelations = relations(pets, ({ one }) => ({
   user: one(users, {
     fields: [pets.userId],
     references: [users.id],
+  }),
+}));
+
+export const handHistoryRelations = relations(handHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [handHistory.userId],
+    references: [users.id],
+  }),
+  game: one(games, {
+    fields: [handHistory.gameId],
+    references: [games.gameId],
   }),
 }));

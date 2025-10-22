@@ -15,7 +15,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 function ActiveGameContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const gameId = searchParams?.get('id') || null;
+  const gameId = searchParams?.get('id') || searchParams?.get('table') || null;
   const [hasJoined, setHasJoined] = useState(false);
 
   const {

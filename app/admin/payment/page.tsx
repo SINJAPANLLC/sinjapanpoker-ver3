@@ -17,12 +17,24 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Link as LinkIcon,
+  Copy,
+  X,
+  Send,
 } from 'lucide-react';
 
 function PaymentContent() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'deposits' | 'withdrawals' | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false);
+  const [paymentLinkForm, setPaymentLinkForm] = useState({
+    userId: '',
+    amount: '',
+    description: '',
+  });
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // ダミーの決済データ
   const payments = [
@@ -149,6 +161,55 @@ function PaymentContent() {
     return labels[method as keyof typeof labels] || method;
   };
 
+  const handleGeneratePaymentLink = async () => {
+    if (!paymentLinkForm.userId || !paymentLinkForm.amount) {
+      alert('ユーザーIDと金額を入力してください');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/stripe/create-payment-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: paymentLinkForm.userId,
+          amount: parseInt(paymentLinkForm.amount),
+          description: paymentLinkForm.description || 'チップ購入',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setGeneratedLink(data.url);
+      } else {
+        alert('決済リンクの生成に失敗しました: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Payment link generation error:', error);
+      alert('決済リンクの生成中にエラーが発生しました');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(generatedLink);
+    alert('リンクをコピーしました！');
+  };
+
+  const handleResetForm = () => {
+    setPaymentLinkForm({
+      userId: '',
+      amount: '',
+      description: '',
+    });
+    setGeneratedLink('');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900">
       {/* ヘッダー */}
@@ -167,6 +228,14 @@ function PaymentContent() {
                 <p className="text-gray-400 text-sm">入出金・決済履歴の管理</p>
               </div>
             </div>
+            
+            <button
+              onClick={() => setShowPaymentLinkModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg transition-all"
+            >
+              <LinkIcon className="w-5 h-5" />
+              <span>決済リンク作成</span>
+            </button>
           </div>
         </div>
       </header>
@@ -326,6 +395,143 @@ function PaymentContent() {
           )}
         </div>
       </div>
+
+      {/* 決済リンク作成モーダル */}
+      {showPaymentLinkModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl max-w-lg w-full border border-gray-700">
+            {/* ヘッダー */}
+            <div className="p-6 border-b border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
+                  <LinkIcon className="text-cyan-400" />
+                  <span>決済リンク作成</span>
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowPaymentLinkModal(false);
+                    handleResetForm();
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* コンテンツ */}
+            <div className="p-6 space-y-6">
+              {!generatedLink ? (
+                <>
+                  {/* フォーム */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-white font-semibold mb-2">ユーザーID</label>
+                      <input
+                        type="text"
+                        value={paymentLinkForm.userId}
+                        onChange={(e) => setPaymentLinkForm({...paymentLinkForm, userId: e.target.value})}
+                        placeholder="user123"
+                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-cyan-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-semibold mb-2">金額（円）</label>
+                      <input
+                        type="number"
+                        value={paymentLinkForm.amount}
+                        onChange={(e) => setPaymentLinkForm({...paymentLinkForm, amount: e.target.value})}
+                        placeholder="10000"
+                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-cyan-400 focus:outline-none"
+                        min="100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-semibold mb-2">説明（オプション）</label>
+                      <input
+                        type="text"
+                        value={paymentLinkForm.description}
+                        onChange={(e) => setPaymentLinkForm({...paymentLinkForm, description: e.target.value})}
+                        placeholder="チップ購入"
+                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-cyan-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 生成ボタン */}
+                  <button
+                    onClick={handleGeneratePaymentLink}
+                    disabled={isGenerating}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>生成中...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        <span>決済リンクを生成</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* 生成されたリンク */}
+                  <div className="space-y-4">
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <div className="flex items-center space-x-2 text-green-400 mb-2">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-semibold">決済リンクを生成しました！</span>
+                      </div>
+                      <p className="text-gray-300 text-sm">このリンクをユーザーに送信してください。</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-semibold mb-2">決済リンク</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={generatedLink}
+                          readOnly
+                          className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none"
+                        />
+                        <button
+                          onClick={handleCopyLink}
+                          className="px-4 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-all"
+                        >
+                          <Copy className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => window.open(generatedLink, '_blank')}
+                        className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+                      >
+                        リンクを開く
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleResetForm();
+                        }}
+                        className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                      >
+                        新しく作成
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

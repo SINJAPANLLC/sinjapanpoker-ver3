@@ -60,23 +60,37 @@ function ActiveGameContent() {
 
   if (!connected || !gameState) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1a1a2e]">
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          backgroundImage: 'url(/poker-table-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="text-center">
           <LoadingSpinner />
-          <p className="mt-4 text-gray-400">
+          <p className="mt-4 text-white text-shadow">
             {!connected ? 'サーバーに接続中...' : 'ゲームを読み込み中...'}
           </p>
         </div>
       </div>
     );
-  };
+  }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1a1a2e]">
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 max-w-md text-center">
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          backgroundImage: 'url(/poker-table-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="bg-black/60 backdrop-blur-sm border border-white/20 rounded-2xl p-8 max-w-md text-center">
           <h2 className="text-2xl font-bold text-red-400 mb-4">エラー</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <p className="text-white mb-6">{error}</p>
           <button
             onClick={() => router.push('/lobby')}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
@@ -89,7 +103,14 @@ function ActiveGameContent() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#1a1a2e] flex flex-col overflow-hidden">
+    <div 
+      className="relative min-h-screen flex flex-col overflow-hidden"
+      style={{
+        backgroundImage: 'url(/poker-table-bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       {/* トップバー */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4">
         <button
@@ -99,7 +120,7 @@ function ActiveGameContent() {
           <Menu className="w-6 h-6" />
         </button>
 
-        <div className="bg-gray-900/80 backdrop-blur-sm px-6 py-3 rounded-full border border-gray-700">
+        <div className="bg-black/60 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
           <p className="text-white font-bold text-lg">{getPhaseText(gameState.phase)}</p>
         </div>
 
@@ -123,7 +144,7 @@ function ActiveGameContent() {
 
       {/* ボトムエリア - アクションボタン */}
       {currentPlayer && !currentPlayer.folded && gameState.phase !== 'finished' && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-[#1a1a2e] via-[#1a1a2e] to-transparent">
+        <div className="absolute bottom-0 left-0 right-0 z-20 p-4">
           <div className="max-w-2xl mx-auto">
             {myTurn && (
               <motion.div
@@ -131,7 +152,7 @@ function ActiveGameContent() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="mb-4 text-center">
-                  <p className="text-green-400 font-bold text-xl">あなたのターンです！</p>
+                  <p className="text-yellow-300 font-bold text-xl drop-shadow-lg">あなたのターンです！</p>
                 </div>
               </motion.div>
             )}

@@ -8,7 +8,7 @@ import { relations } from 'drizzle-orm';
 // USERS TABLE
 // ========================================
 export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   email: varchar('email', { length: 255 }).notNull().unique(),
   username: varchar('username', { length: 100 }).notNull().unique(),
   password: text('password').notNull(),
@@ -41,7 +41,7 @@ export type InsertUser = typeof users.$inferInsert;
 // CLUBS TABLE
 // ========================================
 export const clubs = pgTable('clubs', {
-  id: serial('id').primaryKey(),
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: varchar('name', { length: 200 }).notNull(),
   ownerId: varchar('owner_id', { length: 100 }).notNull(),
   description: text('description').default(''),
@@ -71,7 +71,7 @@ export type InsertClub = typeof clubs.$inferInsert;
 // GAMES TABLE
 // ========================================
 export const games = pgTable('games', {
-  id: serial('id').primaryKey(),
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   gameId: varchar('game_id', { length: 100 }).notNull().unique(),
   type: varchar('type', { length: 20 }).notNull().$type<'texas-holdem' | 'omaha' | 'ofc'>(),
   phase: varchar('phase', { length: 20 }).notNull().default('waiting').$type<'waiting' | 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' | 'ended'>(),
@@ -115,7 +115,7 @@ export type InsertGame = typeof games.$inferInsert;
 // PLAYER STATS TABLE
 // ========================================
 export const playerStats = pgTable('player_stats', {
-  id: serial('id').primaryKey(),
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: varchar('user_id', { length: 100 }).notNull().unique(),
   totalGames: integer('total_games').notNull().default(0),
   gamesWon: integer('games_won').notNull().default(0),
@@ -142,7 +142,7 @@ export type InsertPlayerStats = typeof playerStats.$inferInsert;
 // PETS TABLE
 // ========================================
 export const pets = pgTable('pets', {
-  id: serial('id').primaryKey(),
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: varchar('user_id', { length: 100 }).notNull(),
   name: varchar('name', { length: 100 }).notNull(),
   type: varchar('type', { length: 50 }).notNull().$type<'dragon' | 'phoenix' | 'tiger' | 'turtle'>(),
@@ -170,7 +170,7 @@ export type InsertPet = typeof pets.$inferInsert;
 // TOURNAMENTS TABLE
 // ========================================
 export const tournaments = pgTable('tournaments', {
-  id: serial('id').primaryKey(),
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: varchar('name', { length: 200 }).notNull(),
   description: text('description'),
   type: varchar('type', { length: 50 }).notNull().$type<'sit-n-go' | 'scheduled' | 'bounty'>(),

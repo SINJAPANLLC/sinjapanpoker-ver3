@@ -83,15 +83,12 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* ロゴセクション */}
           <div className="text-center mb-12 animate-fade-in">
-            <div className="relative inline-block mb-6">
-              <div className="w-56 h-20 flex items-center justify-center mx-auto animate-glow">
-                <img
-                  src="/logo.png"
-                  alt="SIN JAPAN POKER Logo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
+            <div className="mb-6">
+              <img
+                src="/logo.png"
+                alt="SIN JAPAN POKER Logo"
+                className="w-56 h-20 mx-auto object-contain"
+              />
             </div>
             <h1 className="text-5xl font-black text-gradient-blue mb-2 neon-glow">
               Welcome Back
@@ -161,32 +158,6 @@ export default function LoginPage() {
               >
                 {loading ? 'ログイン中...' : 'ログイン'}
               </button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-700"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-[#1a1a1a] text-gray-500">または</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  className="glass hover-lift px-4 py-3 rounded-xl border border-white/10 flex items-center justify-center space-x-2"
-                >
-                  <FaGoogle className="text-xl text-blue-400" />
-                  <span className="text-white text-sm">Google</span>
-                </button>
-                <button
-                  type="button"
-                  className="glass hover-lift px-4 py-3 rounded-xl border border-white/10 flex items-center justify-center space-x-2"
-                >
-                  <FaApple className="text-xl text-white" />
-                  <span className="text-white text-sm">Apple</span>
-                </button>
-              </div>
             </form>
 
             <div className="mt-8 text-center">

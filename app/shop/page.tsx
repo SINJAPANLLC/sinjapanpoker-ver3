@@ -120,27 +120,6 @@ function ShopContent() {
       <main className="relative z-10 max-w-7xl mx-auto px-4 pb-24">
         {activeTab === 'chips' && (
           <div className="max-w-4xl mx-auto">
-            {/* リアルマネーモード無効時の警告 */}
-            {!isRealMoneyEnabled && (
-              <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 backdrop-blur-lg rounded-2xl border border-red-500/30 p-6 mb-8 animate-fade-in shadow-xl">
-                <div className="text-center">
-                  <Lock className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-white mb-4">チップ購入は現在利用できません</h3>
-                  <div className="text-gray-300 space-y-2 max-w-2xl mx-auto">
-                    <p className="text-red-400 font-semibold">リアルマネーモードが無効になっています</p>
-                    <p>管理者がリアルマネーモードを有効にするまで、チップ購入はできません</p>
-                    <p>現在は練習モードのゲームチップをご利用いただけます</p>
-                  </div>
-                  <div className="mt-6 p-4 bg-red-900/30 rounded-lg border border-red-500/30">
-                    <div className="flex items-center justify-center space-x-2 text-red-300">
-                      <AlertCircle className="w-5 h-5" />
-                      <span className="font-semibold">管理者にお問い合わせください</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* チップ購入の説明（リアルマネーモード有効時のみ表示） */}
             {isRealMoneyEnabled && (
               <div className="card-blue mb-8 animate-fade-in">

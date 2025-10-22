@@ -190,7 +190,7 @@ export default function HomePage() {
       {/* ヘッダー */}
       <header className="relative z-10 glass border-b border-white/10 p-3 md:p-6 animate-slide-in-down">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4 -ml-2 md:-ml-4">
             <Image
               src="/logo.png"
               alt="SIN JAPAN POKER"

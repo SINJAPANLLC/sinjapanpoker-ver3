@@ -99,11 +99,11 @@ export default function RegisterPage() {
           {/* ロゴ */}
           <div className="text-center mb-8">
             <div className="relative inline-block mb-6">
-              <div className="w-56 h-20 rounded-2xl flex items-center justify-center mx-auto overflow-hidden animate-glow">
+              <div className="w-56 h-20 flex items-center justify-center mx-auto animate-glow">
                 <img
-                  src="https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5b45aaad-02a4-4454-911d-14fb0a0000c5/img/70686fc0-87b1-013e-fa57-0a58a9feac02/SJsP-thumbnail.png"
+                  src="/logo.png"
                   alt="SIN JAPAN POKER Logo"
-                  className="w-full h-full object-cover rounded-2xl"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
@@ -293,11 +293,11 @@ export default function RegisterPage() {
             {/* ヘッダー */}
             <div className="p-6 border-b border-white/10">
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden">
+                <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                   <img
-                    src="https://s3-ap-northeast-1.amazonaws.com/s3.peraichi.com/userData/5b45aaad-02a4-4454-911d-14fb0a0000c5/img/70686fc0-87b1-013e-fa57-0a58a9feac02/SJsP-thumbnail.png"
+                    src="/logo.png"
                     alt="SIN JAPAN POKER"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">登録完了！🎉</h2>

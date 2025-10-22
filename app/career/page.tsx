@@ -191,35 +191,35 @@ function CareerContent() {
       {/* ボトムナビゲーション */}
       <nav className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/10 p-6 z-20">
         <div className="max-w-2xl mx-auto flex justify-around">
-          <Link href="/shop" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-300 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-300">
+          <Link href="/shop" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-500 group">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-500">
               <ShoppingCart className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-medium">ショップ</span>
           </Link>
-          <Link href="/forum" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-300 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-300">
+          <Link href="/forum" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-500 group">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-500">
               <MessageCircle className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-medium">フォーラム</span>
           </Link>
-          <Link href="/lobby" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-300 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-300">
+          <Link href="/lobby" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-500 group">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-500">
               <Gamepad2 className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-medium">ロビー</span>
           </Link>
           <Link href="/career" prefetch={true} className="flex flex-col items-center space-y-1 text-blue-400 group">
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-300">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-500">
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div className="absolute -inset-1 bg-cyan-400/20 rounded-full blur-sm animate-pulse"></div>
             </div>
             <span className="text-sm font-semibold">キャリア</span>
           </Link>
-          <Link href="/profile" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-300 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-300">
+          <Link href="/profile" prefetch={true} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-blue-400 active:text-blue-500 transition-all duration-500 group">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center group-hover:scale-110 group-active:scale-95 transition-transform duration-500">
               <User className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-medium">プロフ</span>

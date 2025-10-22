@@ -296,29 +296,29 @@ export default function HomePage() {
                     {/* Card Suit Icons */}
                     <div className="relative flex flex-col items-center justify-center">
                       <div className="flex space-x-1 mb-1">
-                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-300 group-hover:scale-110 transition-transform duration-300" style={{ animationDelay: '0.1s' }}>♠</span>
-                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-300 group-hover:scale-110 transition-transform duration-300" style={{ animationDelay: '0.2s' }}>♣</span>
+                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-500 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '0.1s' }}>♠</span>
+                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-500 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '0.2s' }}>♣</span>
                       </div>
                       <div className="flex space-x-1">
-                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-300 group-hover:scale-110 transition-transform duration-300" style={{ animationDelay: '0.3s' }}>♥</span>
-                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-300 group-hover:scale-110 transition-transform duration-300" style={{ animationDelay: '0.4s' }}>♦</span>
+                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-500 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '0.3s' }}>♥</span>
+                        <span className="text-white text-lg group-hover:text-blue-100 transition-colors duration-500 group-hover:scale-110 transition-transform duration-500" style={{ animationDelay: '0.4s' }}>♦</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 {/* Title */}
-                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-300 group-hover:translate-y-[-2px] transition-transform duration-300">
+                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-500 group-hover:translate-y-[-2px] transition-transform duration-500">
                   Texas Hold&apos;em
                 </h3>
                 
                 {/* Subtitle */}
-                <h4 className="text-lg font-semibold text-gray-300 mb-3 group-hover:text-white transition-colors duration-300 group-hover:translate-y-[-1px] transition-transform duration-300">
+                <h4 className="text-lg font-semibold text-gray-300 mb-3 group-hover:text-white transition-colors duration-500 group-hover:translate-y-[-1px] transition-transform duration-500">
                   キャッシュゲーム
                 </h4>
                 
                 {/* Description */}
-                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-300 group-hover:translate-y-[-1px] transition-transform duration-300">
+                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-500 group-hover:translate-y-[-1px] transition-transform duration-500">
                   ステークス $0.01 - $100
                 </p>
                 
@@ -363,23 +363,23 @@ export default function HomePage() {
                       </div>
                       
                       {/* Trophy */}
-                      <Trophy className="w-8 h-8 text-white group-hover:text-blue-100 transition-colors duration-300 group-hover:scale-110 transition-transform duration-300" />
+                      <Trophy className="w-8 h-8 text-white group-hover:text-blue-100 transition-colors duration-500 group-hover:scale-110 transition-transform duration-500" />
                     </div>
                   </div>
                 </div>
                 
                 {/* Title */}
-                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors duration-300 group-hover:translate-y-[-2px] transition-transform duration-300">
+                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors duration-500 group-hover:translate-y-[-2px] transition-transform duration-500">
                   Tournament
                 </h3>
                 
                 {/* Subtitle */}
-                <h4 className="text-lg font-semibold text-gray-300 mb-3 group-hover:text-white transition-colors duration-300 group-hover:translate-y-[-1px] transition-transform duration-300">
+                <h4 className="text-lg font-semibold text-gray-300 mb-3 group-hover:text-white transition-colors duration-500 group-hover:translate-y-[-1px] transition-transform duration-500">
                   トーナメント
                 </h4>
                 
                 {/* Description */}
-                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-300 group-hover:translate-y-[-1px] transition-transform duration-300">
+                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-500 group-hover:translate-y-[-1px] transition-transform duration-500">
                   バイイン $1 - $1,000
                 </p>
                 
@@ -423,23 +423,23 @@ export default function HomePage() {
                       <div className="absolute w-8 h-8 border border-white/20 rounded-full group-hover:-rotate-90 transition-transform duration-700" style={{ animationDelay: '0.2s' }}></div>
                       
                       {/* Star */}
-                      <Star className="w-6 h-6 text-white group-hover:text-blue-100 transition-colors duration-300 group-hover:scale-125 transition-transform duration-500" />
+                      <Star className="w-6 h-6 text-white group-hover:text-blue-100 transition-colors duration-500 group-hover:scale-125 transition-transform duration-500" />
                     </div>
                   </div>
                 </div>
                 
                 {/* Title */}
-                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors duration-300 group-hover:translate-y-[-2px] transition-transform duration-300">
+                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors duration-500 group-hover:translate-y-[-2px] transition-transform duration-500">
                   Spin & Go
                 </h3>
                 
                 {/* Subtitle */}
-                <h4 className="text-lg font-semibold text-gray-300 mb-3 group-hover:text-white transition-colors duration-300 group-hover:translate-y-[-1px] transition-transform duration-300">
+                <h4 className="text-lg font-semibold text-gray-300 mb-3 group-hover:text-white transition-colors duration-500 group-hover:translate-y-[-1px] transition-transform duration-500">
                   スピンアップ
                 </h4>
                 
                 {/* Description */}
-                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-300 group-hover:translate-y-[-1px] transition-transform duration-300">
+                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-500 group-hover:translate-y-[-1px] transition-transform duration-500">
                   3人制ハイパーターボ
                 </p>
                 

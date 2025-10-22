@@ -121,6 +121,38 @@ function PurchaseContent() {
           </div>
         )}
 
+        {/* 決済方法選択 */}
+        {isAdmin && realMoneyEnabled && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-6">チャージ方法を選択</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Link href="/payment/crypto" className="card hover-lift p-8 text-center transition-all">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-500/20 rounded-full mb-4">
+                  <Bitcoin className="w-8 h-8 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">仮想通貨決済</h3>
+                <p className="text-gray-400 text-sm mb-4">BTC, ETH, USDT, USDC, LTC対応</p>
+                <div className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-500/20 rounded-lg">
+                  <Zap className="w-4 h-4 text-purple-400" />
+                  <span className="text-purple-400 font-semibold">即時反映</span>
+                </div>
+              </Link>
+
+              <Link href="/payment/card" className="card hover-lift p-8 text-center transition-all opacity-50 cursor-not-allowed pointer-events-none">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500/20 rounded-full mb-4">
+                  <CreditCard className="w-8 h-8 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">クレジットカード</h3>
+                <p className="text-gray-400 text-sm mb-4">準備中</p>
+                <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-500/20 rounded-lg">
+                  <Lock className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-400 font-semibold">近日公開</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* ポイントチャージ */}
         {isAdmin && realMoneyEnabled && (
           <div className="card mb-8 animate-fade-in">

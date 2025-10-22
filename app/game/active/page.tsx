@@ -34,7 +34,7 @@ export default function ActiveGamePage() {
       </button>
 
       {/* コミュニティカード - ロゴの下 */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-20">
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-10">
         <div className="flex gap-3">
           {communityCards.map((card) => (
             <Card key={card.id} card={card} faceUp={true} />

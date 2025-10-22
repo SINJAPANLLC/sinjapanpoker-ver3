@@ -15,7 +15,7 @@ function CareerContent() {
 
   useEffect(() => {
     if (user?.id) {
-      fetch(`/api/stats/user?userId=${user.id}`)
+      fetch(`/api/stats/user?userId=${user.id}&period=${activePeriod}`)
         .then(res => res.json())
         .then(data => {
           setUserStats(data);
@@ -28,7 +28,7 @@ function CareerContent() {
     } else {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, activePeriod]);
 
   // 実際のデータを使用
   const gamesPlayed = userStats?.gamesPlayed || gameStats.gamesPlayed || 0;
@@ -134,20 +134,40 @@ function CareerContent() {
             <span>収益推移</span>
           </h3>
 
-          <div className="h-64 flex items-end justify-between space-x-2">
-            {[20, 45, 30, 60, 40, 70, 55, 80, 65, 90, 75, 85].map((height, i) => (
-              <div key={i} className="flex-1 relative group">
-                <div
-                  className="w-full rounded-t-lg bg-gradient-to-t from-blue-500 to-cyan-400 hover-lift cursor-pointer transition-all"
-                  style={{ height: `${height}%` }}
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 px-2 py-1 rounded text-xs whitespace-nowrap">
-                    +${(height * 10).toFixed(0)}
+          {userStats?.chartData && userStats.chartData.length > 0 ? (
+            <div className="h-64 flex items-end justify-between space-x-2">
+              {userStats.chartData.slice(-12).map((dataPoint: any, i: number) => {
+                const maxEarnings = Math.max(...userStats.chartData.map((d: any) => Math.abs(d.earnings)));
+                const height = maxEarnings > 0 ? Math.abs(dataPoint.earnings / maxEarnings) * 100 : 0;
+                const isNegative = dataPoint.earnings < 0;
+                
+                return (
+                  <div key={i} className="flex-1 relative group flex flex-col justify-end h-full">
+                    <div
+                      className={`w-full rounded-t-lg ${isNegative ? 'bg-gradient-to-t from-red-500 to-red-400' : 'bg-gradient-to-t from-blue-500 to-cyan-400'} hover-lift cursor-pointer transition-all`}
+                      style={{ height: `${Math.max(height, 5)}%` }}
+                    >
+                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 px-2 py-1 rounded text-xs whitespace-nowrap">
+                        <div className="font-semibold">{dataPoint.date}</div>
+                        <div className={isNegative ? 'text-red-400' : 'text-green-400'}>
+                          {dataPoint.earnings >= 0 ? '+' : ''}{dataPoint.earnings.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 text-center mt-2 truncate">{dataPoint.date}</div>
                   </div>
-                </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-center">
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-30 text-gray-500" />
+                <p className="text-gray-500">まだデータがありません</p>
+                <p className="text-gray-600 text-sm mt-2">ゲームをプレイすると収益推移が表示されます</p>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* 最近のゲーム */}

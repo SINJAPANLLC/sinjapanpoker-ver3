@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import gameStore from '@/lib/game-store';
+import { db } from '@/server/db';
+import { users } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = params.id;
+    const userId = parseInt(params.id);
     const body = await request.json();
     const { chips } = body;
+
+    if (isNaN(userId)) {
+      return NextResponse.json(
+        { error: 'Invalid user ID' },
+        { status: 400 }
+      );
+    }
 
     if (typeof chips !== 'number') {
       return NextResponse.json(
@@ -17,20 +26,23 @@ export async function PATCH(
       );
     }
 
-    let user = gameStore.getUser(userId);
-    
-    if (!user) {
-      user = {
-        id: userId,
-        username: `Player${userId.substring(0, 4)}`,
-        chips: 1000,
-      };
+    const [updatedUser] = await db.update(users)
+      .set({ chips })
+      .where(eq(users.id, userId))
+      .returning();
+
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
 
-    user.chips = chips;
-    gameStore.setUser(userId, user);
-
-    return NextResponse.json(user);
+    return NextResponse.json({
+      id: updatedUser.id.toString(),
+      username: updatedUser.username,
+      chips: updatedUser.chips,
+    });
   } catch (error) {
     console.error('Error updating chips:', error);
     return NextResponse.json(
@@ -45,24 +57,33 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = params.id;
+    const userId = parseInt(params.id);
     
-    let user = gameStore.getUser(userId);
-    
-    if (!user) {
-      user = {
-        id: userId,
-        username: `Player${userId.substring(0, 4)}`,
-        chips: 1000,
-      };
-      gameStore.setUser(userId, user);
+    if (isNaN(userId)) {
+      return NextResponse.json(
+        { error: 'Invalid user ID' },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(user);
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      id: user.id.toString(),
+      username: user.username,
+      chips: user.chips,
+    });
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error('Error fetching user chips:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch user' },
+      { error: 'Failed to fetch user chips' },
       { status: 500 }
     );
   }

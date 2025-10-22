@@ -1,13 +1,13 @@
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const mongoose = require('mongoose');
 const {
   calculateSidePots,
   determineWinners,
   distributePots,
   validateBet,
 } = require('./poker-helpers');
+const { saveGameToDatabase } = require('./game-db');
 
 const app = express();
 const httpServer = createServer(app);
@@ -16,14 +16,6 @@ const io = new Server(httpServer, {
     origin: '*',
     methods: ['GET', 'POST'],
   },
-});
-
-// MongoDB接続
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/poker-app';
-mongoose.connect(MONGODB_URI).then(() => {
-  console.log('MongoDB接続成功');
-}).catch((err) => {
-  console.error('MongoDB接続エラー:', err);
 });
 
 // ゲームルーム管理
@@ -250,15 +242,22 @@ class PokerGame {
     }
   }
 
-  endRound() {
+  async endRound() {
     this.phase = 'showdown';
     
     const activePlayers = this.players.filter(p => !p.folded);
+    let winners = [];
     
     if (activePlayers.length === 1) {
       activePlayers[0].chips += this.pot;
       this.winner = activePlayers[0].username;
       this.winningHand = '全員フォールド';
+      winners = [{
+        id: activePlayers[0].id,
+        playerId: activePlayers[0].id,
+        handRank: '全員フォールド',
+        winAmount: this.pot,
+      }];
     } else {
       const playerBets = this.players.map(p => ({
         playerId: p.id,
@@ -267,7 +266,7 @@ class PokerGame {
       }));
       
       const sidePots = calculateSidePots(playerBets);
-      const winners = determineWinners(activePlayers, this.communityCards);
+      winners = determineWinners(activePlayers, this.communityCards);
       
       if (winners.length > 0) {
         this.winner = winners.map(w => {
@@ -278,6 +277,14 @@ class PokerGame {
       }
       
       distributePots(sidePots, winners, this.players);
+    }
+
+    // Save game to PostgreSQL database
+    try {
+      await saveGameToDatabase(this, winners);
+      console.log(`Game ${this.id} saved to database`);
+    } catch (error) {
+      console.error('Error saving game to database:', error);
     }
 
     this.phase = 'finished';

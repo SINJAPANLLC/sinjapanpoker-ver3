@@ -196,6 +196,7 @@ export default function HomePage() {
               alt="SIN JAPAN POKER"
               width={160}
               height={48}
+              priority
               className="w-24 h-8 md:w-40 md:h-12 rounded-xl object-cover animate-glow"
             />
           </div>

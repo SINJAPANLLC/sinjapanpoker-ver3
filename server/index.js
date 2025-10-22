@@ -2,6 +2,12 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
+const {
+  calculateSidePots,
+  determineWinners,
+  distributePots,
+  validateBet,
+} = require('./poker-helpers');
 
 const app = express();
 const httpServer = createServer(app);
@@ -39,6 +45,9 @@ class PokerGame {
     this.dealerIndex = 0;
     this.smallBlind = blinds.small;
     this.bigBlind = blinds.big;
+    this.winner = null;
+    this.winningHand = null;
+    this.totalBets = new Map();
   }
 
   addPlayer(player) {
@@ -78,6 +87,7 @@ class PokerGame {
     this.communityCards = [];
     this.pot = 0;
     this.currentBet = this.bigBlind;
+    this.totalBets.clear();
     
     // カードを配る
     this.players.forEach(player => {
@@ -85,6 +95,7 @@ class PokerGame {
       player.bet = 0;
       player.folded = false;
       player.hasActed = false;
+      this.totalBets.set(player.id, 0);
     });
 
     // ブラインドを徴収
@@ -93,10 +104,12 @@ class PokerGame {
     
     this.players[sbIndex].chips -= this.smallBlind;
     this.players[sbIndex].bet = this.smallBlind;
+    this.totalBets.set(this.players[sbIndex].id, this.smallBlind);
     this.pot += this.smallBlind;
 
     this.players[bbIndex].chips -= this.bigBlind;
     this.players[bbIndex].bet = this.bigBlind;
+    this.totalBets.set(this.players[bbIndex].id, this.bigBlind);
     this.pot += this.bigBlind;
 
     this.currentPlayerIndex = (this.dealerIndex + 3) % this.players.length;
@@ -124,33 +137,60 @@ class PokerGame {
 
   playerAction(playerId, action, amount = 0) {
     const player = this.players.find(p => p.id === playerId);
-    if (!player || player.folded) return false;
+    if (!player || player.folded) return { success: false, error: 'プレイヤーが見つかりません' };
+
+    const validation = validateBet(
+      action,
+      amount,
+      player.chips,
+      player.bet,
+      this.currentBet,
+      this.bigBlind
+    );
+
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
 
     switch (action) {
       case 'fold':
         player.folded = true;
         break;
+        
       case 'check':
-        if (player.bet < this.currentBet) return false;
         break;
+        
       case 'call':
-        const callAmount = this.currentBet - player.bet;
-        player.chips -= callAmount;
-        player.bet += callAmount;
-        this.pot += callAmount;
+        const callAmount = validation.adjustedAmount || (this.currentBet - player.bet);
+        const actualCallAmount = Math.min(callAmount, player.chips);
+        player.chips -= actualCallAmount;
+        player.bet += actualCallAmount;
+        this.pot += actualCallAmount;
+        const currentTotal = this.totalBets.get(player.id) || 0;
+        this.totalBets.set(player.id, currentTotal + actualCallAmount);
+        if (player.chips === 0) {
+          player.isAllIn = true;
+        }
         break;
+        
       case 'raise':
-        const raiseAmount = amount;
+        const raiseAmount = validation.adjustedAmount || amount;
         player.chips -= raiseAmount;
         player.bet += raiseAmount;
         this.pot += raiseAmount;
+        const raiseTotalBet = this.totalBets.get(player.id) || 0;
+        this.totalBets.set(player.id, raiseTotalBet + raiseAmount);
         this.currentBet = player.bet;
         break;
+        
       case 'all-in':
-        this.pot += player.chips;
-        player.bet += player.chips;
+        const allInAmount = player.chips;
+        this.pot += allInAmount;
+        player.bet += allInAmount;
         player.chips = 0;
         player.isAllIn = true;
+        const allInTotalBet = this.totalBets.get(player.id) || 0;
+        this.totalBets.set(player.id, allInTotalBet + allInAmount);
         if (player.bet > this.currentBet) {
           this.currentBet = player.bet;
         }
@@ -159,7 +199,7 @@ class PokerGame {
 
     player.hasActed = true;
     this.nextPlayer();
-    return true;
+    return { success: true };
   }
 
   nextPlayer() {
@@ -211,19 +251,37 @@ class PokerGame {
   }
 
   endRound() {
-    this.phase = 'finished';
+    this.phase = 'showdown';
     
     const activePlayers = this.players.filter(p => !p.folded);
     
     if (activePlayers.length === 1) {
       activePlayers[0].chips += this.pot;
+      this.winner = activePlayers[0].username;
+      this.winningHand = '全員フォールド';
     } else {
-      // 簡易的な勝者決定（実際にはhand評価が必要）
-      const winner = activePlayers[0];
-      winner.chips += this.pot;
+      const playerBets = this.players.map(p => ({
+        playerId: p.id,
+        bet: this.totalBets.get(p.id) || 0,
+        folded: p.folded,
+      }));
+      
+      const sidePots = calculateSidePots(playerBets);
+      const winners = determineWinners(activePlayers, this.communityCards);
+      
+      if (winners.length > 0) {
+        this.winner = winners.map(w => {
+          const player = this.players.find(p => p.id === w.playerId);
+          return player ? player.username : '';
+        }).join(', ');
+        this.winningHand = winners[0].handDescription;
+      }
+      
+      distributePots(sidePots, winners, this.players);
     }
 
-    // 次のラウンドの準備
+    this.phase = 'finished';
+    
     setTimeout(() => {
       this.dealerIndex = (this.dealerIndex + 1) % this.players.length;
       this.startGame();
@@ -289,8 +347,12 @@ io.on('connection', (socket) => {
     
     if (game) {
       const { action, amount } = data;
-      if (game.playerAction(socket.id, action, amount)) {
+      const result = game.playerAction(socket.id, action, amount);
+      
+      if (result.success) {
         io.to(gameId).emit('game-state', game.getGameState());
+      } else {
+        socket.emit('action-error', { message: result.error || 'アクションが失敗しました' });
       }
     }
   });

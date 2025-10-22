@@ -9,7 +9,7 @@ export default function ActiveGamePage() {
       style={{
         backgroundImage: 'url(/poker-table-bg.png)',
         backgroundSize: 'cover',
-        backgroundPosition: '55% 35%',
+        backgroundPosition: '55% 32%',
         backgroundRepeat: 'no-repeat',
       }}
     >

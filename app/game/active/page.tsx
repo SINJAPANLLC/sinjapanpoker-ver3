@@ -292,7 +292,7 @@ export default function ActiveGamePage() {
             player.cardSide === 'right' 
               ? 'right-0 translate-x-1/2' 
               : 'left-0 -translate-x-1/2'
-          }`}>
+          }`} style={{ zIndex: player.id === 1 ? 100 : 10 }}>
             <div className="flex items-end" style={{ perspective: '400px' }}>
               {player.cards.map((card, cardIndex) => (
                 <div
@@ -301,7 +301,7 @@ export default function ActiveGamePage() {
                   style={{
                     transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
                     marginLeft: cardIndex === 1 ? '-60px' : '0',
-                    zIndex: cardIndex,
+                    zIndex: 100 + cardIndex,
                   }}
                 >
                   <motion.div

@@ -278,6 +278,44 @@ export default function ActiveGamePage() {
 
   const currentPlayerData = getCurrentPlayer();
   const player1HandCards: CardType[] = currentPlayerData?.cards.map(convertSocketCard) || [];
+  
+  // 現在の役を計算
+  const getCurrentHandRank = () => {
+    if (!currentPlayerData || player1HandCards.length === 0) return 'ハイカード';
+    
+    const allCards = [...player1HandCards, ...communityCards];
+    if (allCards.length < 2) return 'ハイカード';
+    
+    // 簡易的な役判定（実際の評価ロジックはserver/poker-helpers.jsを使用）
+    const hasFlush = (cards: CardType[]) => {
+      if (cards.length < 5) return false;
+      const suitCounts: Record<string, number> = {};
+      cards.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
+      return Object.values(suitCounts).some(count => count >= 5);
+    };
+    
+    const hasPair = (cards: CardType[]) => {
+      if (cards.length < 2) return false;
+      const rankCounts: Record<string, number> = {};
+      cards.forEach(c => rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1);
+      const counts = Object.values(rankCounts);
+      if (counts.some(c => c >= 4)) return 'フォーカード';
+      if (counts.some(c => c >= 3) && counts.some(c => c >= 2)) return 'フルハウス';
+      if (counts.some(c => c >= 3)) return 'スリーカード';
+      const pairs = counts.filter(c => c >= 2).length;
+      if (pairs >= 2) return 'ツーペア';
+      if (pairs === 1) return 'ワンペア';
+      return null;
+    };
+    
+    if (hasFlush(allCards)) return 'フラッシュ';
+    const pairResult = hasPair(allCards);
+    if (pairResult) return pairResult;
+    
+    return 'ハイカード';
+  };
+  
+  const currentHandRank = getCurrentHandRank();
 
   // プレイヤーリストを自分を基準に並び替え（自分が常にプレイヤー1の位置）
   const getRotatedPlayers = () => {
@@ -1180,7 +1218,7 @@ export default function ActiveGamePage() {
               border: '2px solid rgba(255, 255, 255, 0.3)'
             }}
           >
-            <p className="text-white text-xs font-bold">ロイヤルフラッシュ</p>
+            <p className="text-white text-xs font-bold">{currentHandRank}</p>
           </motion.div>
         </motion.div>
       </div>

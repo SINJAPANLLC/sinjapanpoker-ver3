@@ -1,2661 +1,305 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { User, Menu, MessageCircle, Volume2, VolumeX, Music, Wifi, WifiOff, Maximize, Minimize, Info, History, Eye } from 'lucide-react';
-import Card from '@/components/Card';
-import { Card as CardType, Suit, Rank } from '@/types';
-import Image from 'next/image';
+import { useState } from 'react';
+import { usePokerGame } from '@/hooks/usePokerGame';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSoundManager } from '@/hooks/useSoundManager';
-import { useMoneyModeStore } from '@/store/useMoneyModeStore';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function ActiveGamePage() {
-  const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
-  const { mode, isEnabled } = useMoneyModeStore();
-  const { user } = useAppStore();
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const [gameId] = useState('test-game-1');
+  const [raiseAmount, setRaiseAmount] = useState(0);
+  const [showRaiseInput, setShowRaiseInput] = useState(false);
   
-  const [raiseAmount, setRaiseAmount] = useState(200);
-  const [turnTimer, setTurnTimer] = useState(15);
-  const [showRaiseSlider, setShowRaiseSlider] = useState(false);
-  const [chatMessage, setChatMessage] = useState('');
-  const [showChat, setShowChat] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-  const [autoCheck, setAutoCheck] = useState(false);
-  const [autoCheckFold, setAutoCheckFold] = useState(false);
-  const [showEmotes, setShowEmotes] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [musicEnabled, setMusicEnabled] = useState(true);
-  const [showRebuy, setShowRebuy] = useState(false);
-  const [showTableInfo, setShowTableInfo] = useState(false);
-  const [showHandHistory, setShowHandHistory] = useState(false);
-  const [isSpectator, setIsSpectator] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
-  const [showActionLog, setShowActionLog] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [winnerPlayerId, setWinnerPlayerId] = useState<number | null>(null);
-  const [showWinnerAnimation, setShowWinnerAnimation] = useState(false);
-  const [chipAnimations, setChipAnimations] = useState<Array<{ id: number; playerId: number }>>([]);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [showLanguageSettings, setShowLanguageSettings] = useState(false);
-  const [showAccountSettings, setShowAccountSettings] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('日本語');
-  const [showShare, setShowShare] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showPlayerList, setShowPlayerList] = useState(false);
-  const [showStats, setShowStats] = useState(false);
-  const [showRules, setShowRules] = useState(false);
-  const [animationSpeed, setAnimationSpeed] = useState(1);
-  const [dealingCards, setDealingCards] = useState(false);
-  const [revealFlop, setRevealFlop] = useState(false);
-  const [revealTurn, setRevealTurn] = useState(false);
-  const [revealRiver, setRevealRiver] = useState(false);
-  const [showWinnerChips, setShowWinnerChips] = useState(false);
-  const [showHandRank, setShowHandRank] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [allInPlayer, setAllInPlayer] = useState<number | null>(null);
-  const [dealerButtonMoving, setDealerButtonMoving] = useState(false);
-  const [showShuffling, setShowShuffling] = useState(false);
-  const [winningCards, setWinningCards] = useState<string[]>([]);
-  const [showPlayerTurn, setShowPlayerTurn] = useState(false);
-  const [currentTurnPlayer, setCurrentTurnPlayer] = useState<string>('');
-  const [joiningPlayer, setJoiningPlayer] = useState<number | null>(null);
-  const [leavingPlayer, setLeavingPlayer] = useState<number | null>(null);
-  const [betIncrease, setBetIncrease] = useState<{playerId: number, amount: number} | null>(null);
-  const [showBadBeat, setShowBadBeat] = useState(false);
-  const [showLevelUp, setShowLevelUp] = useState(false);
-  const [winStreak, setWinStreak] = useState(0);
-  const [showRebuyNotification, setShowRebuyNotification] = useState(false);
-  const [rebuyAmount, setRebuyAmount] = useState(0);
-  const [tableAtmosphere, setTableAtmosphere] = useState<'normal' | 'final'>('normal');
-  const [chatMessages, setChatMessages] = useState([
-    { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
-    { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
-    { id: 3, player: 'プレイヤー9', message: 'よし、勝負！', time: '12:34' },
-  ]);
-  
-  const callAmount = 200;
-  const minRaise = 200;
-  const maxRaise = 5000;
+  const {
+    gameState,
+    messages,
+    connected,
+    error,
+    joinGame,
+    performAction,
+    sendMessage,
+    getCurrentPlayer,
+    isMyTurn,
+    canCheck,
+    canCall,
+    getCallAmount,
+    getMinRaise,
+  } = usePokerGame(gameId);
 
-  const actionLog = [
-    { player: 'プレイヤー2', action: 'レイズ 200', time: '12:34' },
-    { player: 'プレイヤー6', action: 'コール 200', time: '12:35' },
-    { player: 'プレイヤー9', action: 'コール 200', time: '12:35' },
-    { player: 'プレイヤー5', action: 'フォールド', time: '12:36' },
-    { player: 'プレイヤー7', action: 'フォールド', time: '12:36' },
-  ];
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTurnTimer((prev) => {
-        if (prev <= 1) {
-          return 15;
-        }
-        if (prev === 6) {
-          playSound('timerWarning');
-        } else if (prev <= 10) {
-          playSound('timerTick');
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  const currentPlayer = getCurrentPlayer();
+  const myTurn = isMyTurn();
 
-    return () => clearInterval(interval);
-  }, [playSound]);
-
-  useEffect(() => {
-    setSoundManagerEnabled(soundEnabled);
-  }, [soundEnabled, setSoundManagerEnabled]);
-
-  // アニメーションに応じたサウンド再生
-  useEffect(() => {
-    if (dealingCards) {
-      playSound('cardDeal');
-    }
-  }, [dealingCards, playSound]);
-
-  useEffect(() => {
-    if (revealFlop || revealTurn || revealRiver) {
-      playSound('cardFlip');
-    }
-  }, [revealFlop, revealTurn, revealRiver, playSound]);
-
-  useEffect(() => {
-    if (showWinnerChips) {
-      playSound('chipCollect');
-    }
-  }, [showWinnerChips, playSound]);
-
-  useEffect(() => {
-    if (showCelebration) {
-      playSound('win');
-    }
-  }, [showCelebration, playSound]);
-
-  useEffect(() => {
-    if (allInPlayer !== null) {
-      playSound('allIn');
-    }
-  }, [allInPlayer, playSound]);
-
-  useEffect(() => {
-    if (showShuffling) {
-      playSound('shuffle');
-    }
-  }, [showShuffling, playSound]);
-
-  useEffect(() => {
-    if (joiningPlayer !== null) {
-      playSound('playerJoin');
-    }
-  }, [joiningPlayer, playSound]);
-
-  useEffect(() => {
-    if (leavingPlayer !== null) {
-      playSound('playerLeave');
-    }
-  }, [leavingPlayer, playSound]);
-
-  useEffect(() => {
-    if (showLevelUp) {
-      playSound('levelUp');
-    }
-  }, [showLevelUp, playSound]);
-
-  useEffect(() => {
-    if (showBadBeat) {
-      playSound('lose');
-    }
-  }, [showBadBeat, playSound]);
-  
-  const communityCards: CardType[] = [
-    { rank: 'A' as Rank, suit: 'spades' as Suit, id: 'comm-1' },
-    { rank: 'K' as Rank, suit: 'hearts' as Suit, id: 'comm-2' },
-    { rank: 'Q' as Rank, suit: 'diamonds' as Suit, id: 'comm-3' },
-    { rank: 'J' as Rank, suit: 'clubs' as Suit, id: 'comm-4' },
-    { rank: '10' as Rank, suit: 'spades' as Suit, id: 'comm-5' },
-  ];
-
-  const pot = 15000;
-  const potAmount = 1050;
-  const tableName = "SIN JAPAN TABLE #1";
-  const handNumber = 42;
-  const smallBlind = 50;
-  const bigBlind = 100;
-  const gamePhase = "FLOP"; // PREFLOP, FLOP, TURN, RIVER, SHOWDOWN
-
-  const player1HandCards: CardType[] = [
-    { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-hand-1' },
-    { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-hand-2' },
-  ];
-
-  const activePlayerId = 3;
-
-  const players = [
-    { 
-      id: 1, 
-      name: user?.username || 'プレイヤー1', 
-      chips: user?.chips || 5000, 
-      avatar: user?.avatar || 'https://i.pravatar.cc/150?img=1', 
-      cardSide: 'right' as const, 
-      showCards: false, 
-      position: null, 
-      bet: 0, 
-      lastAction: null, 
-      folded: false, 
-      chatMessage: null, 
-      isWinner: false, 
-      cards: [
-        { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
-        { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
-      ]
-    },
-    { id: 2, name: 'プレイヤー2', chips: 8500, avatar: 'https://i.pravatar.cc/150?img=2', cardSide: 'right' as const, showCards: true, position: 'D', bet: 200, lastAction: 'RAISE', folded: false, chatMessage: 'いい手だ！', isWinner: true, cards: [
-      { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
-      { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
-    ]},
-    { id: 3, name: 'プレイヤー3', chips: 12000, avatar: 'https://i.pravatar.cc/150?img=3', cardSide: 'right' as const, showCards: true, position: 'SB', bet: 50, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
-      { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
-      { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
-    ]},
-    { id: 4, name: 'プレイヤー4', chips: 6200, avatar: 'https://i.pravatar.cc/150?img=4', cardSide: 'right' as const, showCards: true, position: 'BB', bet: 100, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
-      { rank: '8' as Rank, suit: 'clubs' as Suit, id: 'p4-card-1' },
-      { rank: '7' as Rank, suit: 'spades' as Suit, id: 'p4-card-2' },
-    ]},
-    { id: 5, name: 'プレイヤー5', chips: 9800, avatar: 'https://i.pravatar.cc/150?img=5', cardSide: 'right' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, isWinner: false, cards: [
-      { rank: '6' as Rank, suit: 'hearts' as Suit, id: 'p5-card-1' },
-      { rank: '5' as Rank, suit: 'diamonds' as Suit, id: 'p5-card-2' },
-    ]},
-    { id: 6, name: 'プレイヤー6', chips: 7500, avatar: 'https://i.pravatar.cc/150?img=6', cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: 'よし、勝負！', isWinner: false, cards: [
-      { rank: '4' as Rank, suit: 'clubs' as Suit, id: 'p6-card-1' },
-      { rank: '3' as Rank, suit: 'spades' as Suit, id: 'p6-card-2' },
-    ]},
-    { id: 7, name: 'プレイヤー7', chips: 11000, avatar: 'https://i.pravatar.cc/150?img=7', cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, isWinner: false, cards: [
-      { rank: '2' as Rank, suit: 'hearts' as Suit, id: 'p7-card-1' },
-      { rank: 'A' as Rank, suit: 'clubs' as Suit, id: 'p7-card-2' },
-    ]},
-    { id: 8, name: 'プレイヤー8', chips: 0, avatar: 'https://i.pravatar.cc/150?img=8', cardSide: 'left' as const, showCards: true, position: null, bet: 4500, lastAction: 'ALL IN', folded: false, chatMessage: null, isWinner: false, isAllIn: true, cards: [
-      { rank: 'K' as Rank, suit: 'spades' as Suit, id: 'p8-card-1' },
-      { rank: 'Q' as Rank, suit: 'hearts' as Suit, id: 'p8-card-2' },
-    ]},
-    { id: 9, name: 'プレイヤー9', chips: 8200, avatar: 'https://i.pravatar.cc/150?img=9', cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: null, isWinner: false, cards: [
-      { rank: 'J' as Rank, suit: 'diamonds' as Suit, id: 'p9-card-1' },
-      { rank: '10' as Rank, suit: 'clubs' as Suit, id: 'p9-card-2' },
-    ]},
-  ];
-
-  const PlayerComponent = ({ player }: { player: typeof players[0] }) => {
-    const isActive = player.id === activePlayerId;
-    const isJoining = joiningPlayer === player.id;
-    const isLeaving = leavingPlayer === player.id;
-    const hasWinningCards = player.isWinner && winningCards.length > 0;
-    
-    return (
-      <motion.div 
-        style={{ position: 'relative' }}
-        initial={isJoining ? { scale: 0, opacity: 0 } : false}
-        animate={isLeaving ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* アクティブターンのハイライト */}
-        {isActive && (
-          <div className="absolute inset-0 -m-2">
-            <div className="w-24 h-24 rounded-full border-4 border-cyan-400 animate-pulse shadow-lg shadow-cyan-400/50"></div>
-          </div>
-        )}
-        
-        {/* 勝者のカードハイライト */}
-        {hasWinningCards && (
-          <div className="absolute inset-0 -m-4 pointer-events-none">
-            <motion.div
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '9999px'
-              }}
-              animate={{
-                boxShadow: [
-                  '0 0 20px 5px rgba(251, 191, 36, 0.5)',
-                  '0 0 40px 10px rgba(251, 191, 36, 0.8)',
-                  '0 0 20px 5px rgba(251, 191, 36, 0.5)'
-                ]
-              }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-          </div>
-        )}
-
-        {/* ハンドカード - アバターに重ねる */}
-        {player.showCards && (
-          <div className={`absolute top-1/2 transform -translate-y-1/2 ${
-            player.cardSide === 'right' 
-              ? 'right-0 translate-x-1/2' 
-              : 'left-0 -translate-x-1/2'
-          }`} style={{ zIndex: 100 }}>
-            <div className="flex items-end" style={{ perspective: '400px' }}>
-              {player.cards.map((card, cardIndex) => (
-                <div
-                  key={card.id}
-                  className="relative"
-                  style={{
-                    transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
-                    marginLeft: cardIndex === 1 ? '-60px' : '0',
-                    zIndex: 100 + cardIndex,
-                  }}
-                >
-                  <motion.div
-                    initial={dealingCards ? { x: 0, y: -200, opacity: 0, scale: 0.5 } : false}
-                    animate={{ x: 0, y: 0, opacity: player.folded ? 0 : 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.5, 
-                      delay: dealingCards ? (player.id - 1) * 0.1 + cardIndex * 0.05 : 0,
-                      ease: "easeOut"
-                    }}
-                  >
-                    <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
-                      <Card card={card} faceUp={false} />
-                    </div>
-                  </motion.div>
-                </div>
-              ))}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-800 via-green-700 to-green-900 p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-white">ポーカーゲーム</h1>
+              <p className="text-white/70">ゲームID: {gameId}</p>
             </div>
-            
-            {/* ベット額表示 - カードの横 */}
-            {player.bet > 0 && !player.folded && (
-              <div className={`absolute top-1/2 transform -translate-y-1/2 ${
-                player.cardSide === 'right' ? '-right-12' : '-left-12'
-              }`}>
-                <motion.div
-                  initial={{ scale: 0.5, y: -20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  transition={{ type: "spring", duration: 0.5 }}
+            <div className="flex items-center gap-4">
+              <div className={`flex items-center gap-2 ${connected ? 'text-green-300' : 'text-red-300'}`}>
+                <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} />
+                {connected ? '接続中' : '切断'}
+              </div>
+              {!gameState && connected && (
+                <button
+                  onClick={() => joinGame(1000)}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
                 >
-                  <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded-md border-2 border-white shadow-lg">
-                    <div className="flex items-center gap-1">
-                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
-                      <p className="text-white text-xs font-bold">{player.bet}</p>
-                    </div>
+                  ゲームに参加
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Error Display */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-red-500/90 backdrop-blur-sm rounded-lg p-4 mb-4 text-white"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {gameState && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Main Game Area */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Game Info */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-white/70 text-sm">フェーズ</div>
+                    <div className="text-white text-xl font-bold capitalize">{gameState.phase}</div>
                   </div>
-                </motion.div>
-                {/* ベット増加表示 */}
-                {betIncrease && betIncrease.playerId === player.id && (
+                  <div className="text-center">
+                    <div className="text-white/70 text-sm">ポット</div>
+                    <div className="text-yellow-400 text-2xl font-bold">{gameState.pot}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white/70 text-sm">現在のベット</div>
+                    <div className="text-white text-xl font-bold">{gameState.currentBet}</div>
+                  </div>
+                </div>
+
+                {/* Community Cards */}
+                <div className="mb-6">
+                  <div className="text-white/70 text-sm mb-2 text-center">コミュニティカード</div>
+                  <div className="flex justify-center gap-2">
+                    {gameState.communityCards.map((card, idx) => (
+                      <motion.div
+                        key={card.id}
+                        initial={{ rotateY: 180, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="w-16 h-24 bg-white rounded-lg shadow-lg flex items-center justify-center"
+                      >
+                        <div className={`text-3xl ${card.suit === '♥' || card.suit === '♦' ? 'text-red-600' : 'text-black'}`}>
+                          {card.rank}{card.suit}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Players */}
+                <div className="grid grid-cols-3 gap-3">
+                  {gameState.players.map((player, idx) => (
+                    <div
+                      key={player.userId}
+                      className={`p-4 rounded-lg ${
+                        player.userId === user.id
+                          ? 'bg-blue-600/30 border-2 border-blue-400'
+                          : gameState.currentPlayerIndex === idx
+                          ? 'bg-yellow-600/30 border-2 border-yellow-400'
+                          : 'bg-white/10'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="text-white font-bold">{player.username}</div>
+                          {player.isDealer && (
+                            <span className="text-xs bg-orange-500 px-2 py-0.5 rounded">D</span>
+                          )}
+                        </div>
+                        <div className="text-yellow-400 font-bold">{player.chips}</div>
+                      </div>
+                      
+                      {player.bet > 0 && (
+                        <div className="text-white/70 text-sm">ベット: {player.bet}</div>
+                      )}
+                      
+                      {player.folded && (
+                        <div className="text-red-400 text-sm">フォールド</div>
+                      )}
+                      
+                      {player.isAllIn && (
+                        <div className="text-purple-400 text-sm font-bold">オールイン!</div>
+                      )}
+
+                      {/* Player Cards */}
+                      {player.userId === user.id && player.cards.length > 0 && (
+                        <div className="mt-2 flex gap-1">
+                          {player.cards.map((card) => (
+                            <div
+                              key={card.id}
+                              className="w-10 h-14 bg-white rounded shadow flex items-center justify-center text-sm"
+                            >
+                              <div className={card.suit === '♥' || card.suit === '♦' ? 'text-red-600' : 'text-black'}>
+                                {card.rank}{card.suit}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Winner Display */}
+                {gameState.phase === 'finished' && gameState.winners && (
                   <motion.div
-                    initial={{ y: 0, opacity: 1 }}
-                    animate={{ y: -40, opacity: 0 }}
-                    transition={{ duration: 1 }}
-                    onAnimationComplete={() => setBetIncrease(null)}
-                    style={{
-                      position: 'absolute',
-                      top: '-20px',
-                      left: '50%',
-                      transform: 'translateX(-50%)'
-                    }}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="mt-6 p-6 bg-yellow-500/20 border-2 border-yellow-400 rounded-lg"
                   >
-                    <p className="text-green-400 text-sm font-bold whitespace-nowrap">
-                      +{betIncrease.amount}
-                    </p>
+                    <h3 className="text-white text-xl font-bold mb-2">勝者!</h3>
+                    {gameState.winners.map((winner, idx) => (
+                      <div key={idx} className="text-white">
+                        {winner.username}: {winner.amount} チップ ({winner.handDescription})
+                      </div>
+                    ))}
                   </motion.div>
                 )}
               </div>
-            )}
-          </div>
-        )}
 
-        {/* アバターアイコン */}
-        <div className="relative">
-          {/* ALL IN 炎のエフェクト */}
-          {player.isAllIn && (
-            <>
-              {/* 外側の炎グロー */}
-              <motion.div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '9999px',
-                  background: 'radial-gradient(circle, rgba(255,69,0,0.8) 0%, rgba(255,140,0,0.6) 50%, rgba(255,69,0,0) 100%)',
-                  filter: 'blur(12px)',
-                  zIndex: 0
-                }}
-                animate={{
-                  scale: [1, 1.4, 1],
-                  opacity: [0.8, 1, 0.8],
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-              
-              {/* 炎パーティクル1 */}
-              {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, index) => (
+              {/* Action Buttons */}
+              {myTurn && gameState.phase !== 'finished' && gameState.phase !== 'waiting' && (
                 <motion.div
-                  key={`flame-${index}`}
-                  style={{
-                    position: 'absolute',
-                    width: '16px',
-                    height: '20px',
-                    left: '50%',
-                    top: '50%',
-                    transformOrigin: '50% 50%',
-                  }}
-                  animate={{
-                    rotate: [angle, angle + 360],
-                    x: [
-                      Math.cos((angle * Math.PI) / 180) * 35,
-                      Math.cos(((angle + 360) * Math.PI) / 180) * 35
-                    ],
-                    y: [
-                      Math.sin((angle * Math.PI) / 180) * 35,
-                      Math.sin(((angle + 360) * Math.PI) / 180) * 35
-                    ],
-                    scale: [0.8, 1.2, 0.8],
-                    opacity: [0.7, 1, 0.7],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "linear",
-                    delay: index * 0.1,
-                  }}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  className="bg-white/10 backdrop-blur-sm rounded-lg p-6"
                 >
-                  <div 
-                    className="w-full h-full"
-                    style={{
-                      background: 'linear-gradient(to top, #FF4500 0%, #FF8C00 50%, #FFD700 100%)',
-                      borderRadius: '40% 40% 60% 60%',
-                      boxShadow: '0 0 10px #FF4500, 0 0 20px #FF8C00',
-                      filter: 'blur(1px)',
-                    }}
-                  />
-                </motion.div>
-              ))}
-              
-              {/* 内側の赤い輪 */}
-              <motion.div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '9999px',
-                  border: '3px solid #FF4500',
-                  boxShadow: '0 0 15px #FF4500, inset 0 0 15px #FF4500',
-                  zIndex: 1
-                }}
-                animate={{
-                  scale: [1, 1.15, 1],
-                  opacity: [0.6, 1, 0.6],
-                }}
-                transition={{
-                  duration: 0.8,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-            </>
-          )}
-          
-          {/* 勝利者の光るエフェクト */}
-          {player.isWinner && (
-            <>
-              <motion.div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '9999px',
-                  background: 'linear-gradient(45deg, #FFD700, #FFA500, #FFD700)',
-                  filter: 'blur(8px)',
-                  zIndex: 0
-                }}
-                animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [0.7, 1, 0.7],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-              <motion.div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '9999px',
-                  border: '4px solid #FFD700',
-                  boxShadow: '0 0 20px #FFD700, 0 0 40px #FFA500',
-                  zIndex: 1
-                }}
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
-                }}
-              />
-            </>
-          )}
-          <div className={`relative w-20 h-20 rounded-full border-3 ${player.isAllIn ? 'border-red-500' : player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
-            <Image
-              src={player.avatar}
-              alt={player.name}
-              width={80}
-              height={80}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-
-        {/* ポジションマーカー（D, SB, BB） */}
-        {player.position && (
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
-            <p className="text-white text-xs font-bold">{player.position}</p>
-          </div>
-        )}
-
-        {/* ターンタイマーとプログレスバー */}
-        {isActive && (
-          <>
-            <motion.div 
-              style={{
-                position: 'absolute',
-                top: '-0.5rem',
-                left: '-0.5rem',
-                width: '2.5rem',
-                height: '2.5rem',
-                borderRadius: '9999px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '2px solid white',
-                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                zIndex: 20
-              }}
-              animate={{
-                background: turnTimer <= 5 
-                  ? ['linear-gradient(to bottom right, rgb(239, 68, 68), rgb(185, 28, 28))', 'linear-gradient(to bottom right, rgb(220, 38, 38), rgb(153, 27, 27))']
-                  : turnTimer <= 10
-                  ? ['linear-gradient(to bottom right, rgb(234, 179, 8), rgb(202, 138, 4))']
-                  : ['linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))'],
-                scale: turnTimer <= 5 ? [1, 1.1, 1] : 1
-              }}
-              transition={{
-                duration: turnTimer <= 5 ? 0.5 : 1,
-                repeat: turnTimer <= 5 ? Infinity : 0
-              }}
-            >
-              <p className="text-white text-sm font-bold">{turnTimer}</p>
-            </motion.div>
-            {/* タイマープログレスバー */}
-            <div className="absolute -bottom-3 left-0 right-0 h-1 bg-white/30 rounded-full overflow-hidden">
-              <motion.div 
-                style={{ height: '100%' }}
-                animate={{
-                  width: `${(turnTimer / 15) * 100}%`,
-                  backgroundColor: turnTimer <= 5 ? 'rgb(239, 68, 68)' : turnTimer <= 10 ? 'rgb(234, 179, 8)' : 'rgb(34, 211, 238)'
-                }}
-                transition={{ duration: 1 }}
-              />
-            </div>
-          </>
-        )}
-
-        {/* チャット吹き出し */}
-        {player.chatMessage && (
-          <div className={`absolute top-0 ${
-            player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
-          } transform -translate-y-1/2`}>
-            <motion.div
-              initial={{ x: player.cardSide === 'right' ? -20 : 20, opacity: 0, scale: 0.8 }}
-              animate={{ x: 0, opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            >
-              <div className="relative bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-1.5 rounded-md border-2 border-white/30 shadow-lg whitespace-nowrap">
-                <p className="text-white text-[10px] font-semibold">{player.chatMessage}</p>
-                {/* 吹き出しの三角形 */}
-                <div className={`absolute top-1/2 transform -translate-y-1/2 ${
-                  player.cardSide === 'right' ? '-left-2' : '-right-2'
-                }`}>
-                  <div className={`w-0 h-0 ${
-                    player.cardSide === 'right' 
-                      ? 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-cyan-400'
-                      : 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[8px] border-l-cyan-400'
-                  }`}></div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {/* ユーザー情報（アバターの下部に被せる） */}
-        <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(50%+10px)] bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10 ${player.folded ? 'opacity-40' : ''}`}>
-          <p className="text-white text-[10px] font-bold text-center whitespace-nowrap">
-            {player.name}
-          </p>
-          <p className="text-white text-[10px] font-semibold text-center whitespace-nowrap">
-            {player.chips.toLocaleString()}
-          </p>
-        </div>
-
-        {/* 最後のアクション表示 - 所持チップの下 */}
-        {player.lastAction && (
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(100%+34px)]">
-            <div className={`px-2 py-0.5 rounded-md border border-white/50 shadow-md ${
-              player.lastAction === 'FOLD' ? 'bg-red-500' : 
-              player.lastAction === 'RAISE' ? 'bg-green-500' : 
-              player.lastAction === 'ALL IN' ? 'bg-orange-500' :
-              'bg-blue-500'
-            }`}>
-              <p className="text-white text-[9px] font-bold text-center whitespace-nowrap">{player.lastAction}</p>
-            </div>
-          </div>
-        )}
-      </motion.div>
-    );
-  };
-
-  return (
-    <div 
-      className="relative w-full h-screen"
-      style={{
-        backgroundImage: 'url(/poker-table-bg.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: '55% 32%',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
-      {/* 左上 - メニューアイコン */}
-      <div className="absolute top-4 left-4">
-        <button 
-          onClick={() => setShowMenu(!showMenu)}
-          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-        >
-          <Menu className="w-6 h-6 text-white" />
-        </button>
-      </div>
-
-      {/* メニューパネル */}
-      {showMenu && (
-        <div className="absolute top-16 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Menu className="w-4 h-4 text-white" />
-                <p className="text-white text-sm font-bold">メニュー</p>
-              </div>
-              <button 
-                onClick={() => setShowMenu(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-xs">✕</p>
-              </button>
-            </div>
-
-            {/* メニュー項目 */}
-            <div className="space-y-2">
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-semibold">🏠 ホームに戻る</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowTableInfo(!showTableInfo);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold flex items-center gap-2">
-                  <Info className="w-4 h-4" /> テーブル情報
-                </p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowHandHistory(!showHandHistory);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold flex items-center gap-2">
-                  <History className="w-4 h-4" /> ハンド履歴
-                </p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowPlayerList(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">👥 プレイヤーリスト</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowStats(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">📊 統計</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowActionLog(!showActionLog);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">📝 アクションログ</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowSettings(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">⚙️ 設定</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowRules(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">📖 ルール</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowShare(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">📤 シェア</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowFeedback(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">💬 フィードバック</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowLanguageSettings(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">🌐 言語設定</p>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowAccountSettings(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold">👤 アカウント設定</p>
-              </button>
-              
-              <div className="border-t border-white/30 my-2"></div>
-              
-              {isEnabled && mode === 'real' && (
-                <button 
-                  onClick={() => {
-                    setShowRebuy(true);
-                    setShowMenu(false);
-                  }}
-                  className="w-full bg-green-500/80 hover:bg-green-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-                >
-                  <p className="text-white text-sm font-bold">💰 チップ追加</p>
-                </button>
-              )}
-              
-              <button 
-                onClick={() => setIsSpectator(!isSpectator)}
-                className={`w-full ${isSpectator ? 'bg-purple-600' : 'bg-white/20'} hover:bg-purple-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left`}
-              >
-                <p className="text-white text-sm font-bold">👁️ 観戦モード {isSpectator ? 'ON' : 'OFF'}</p>
-              </button>
-              
-              <button className="w-full bg-orange-500/80 hover:bg-orange-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-bold">🪑 離席中</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 右上 - チャットアイコン */}
-      <div className="absolute top-4 right-4">
-        <button 
-          onClick={() => setShowChat(!showChat)}
-          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-        >
-          <MessageCircle className="w-6 h-6 text-white" />
-        </button>
-      </div>
-
-      {/* チャットパネル */}
-      {showChat && (
-        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-white" />
-                <p className="text-white text-sm font-bold">チャット</p>
-              </div>
-              <button 
-                onClick={() => setShowChat(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-xs">✕</p>
-              </button>
-            </div>
-
-            {/* メッセージ履歴 */}
-            <div className="bg-white/10 rounded-lg p-2 h-48 overflow-y-auto mb-2 space-y-1.5">
-              {chatMessages.map((msg) => (
-                <div key={msg.id} className="bg-white/20 rounded px-2 py-1.5 border border-white/30">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-white text-[9px] font-bold">{msg.player}</p>
-                    <p className="text-white/70 text-[8px]">{msg.time}</p>
+                  <div className="text-white text-lg font-bold mb-4 text-center">
+                    あなたのターンです！
                   </div>
-                  <p className="text-white text-[10px]">{msg.message}</p>
-                </div>
-              ))}
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => performAction('fold')}
+                      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"
+                    >
+                      フォールド
+                    </button>
+                    
+                    {canCheck() && (
+                      <button
+                        onClick={() => performAction('check')}
+                        className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold"
+                      >
+                        チェック
+                      </button>
+                    )}
+                    
+                    {canCall() && (
+                      <button
+                        onClick={() => performAction('call')}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
+                      >
+                        コール ({getCallAmount()})
+                      </button>
+                    )}
+                    
+                    <button
+                      onClick={() => setShowRaiseInput(!showRaiseInput)}
+                      className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold"
+                    >
+                      レイズ
+                    </button>
+                    
+                    <button
+                      onClick={() => performAction('all-in')}
+                      className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold col-span-2"
+                    >
+                      オールイン ({currentPlayer?.chips})
+                    </button>
+                  </div>
+
+                  {showRaiseInput && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      className="mt-4 p-4 bg-white/10 rounded-lg"
+                    >
+                      <div className="text-white mb-2">
+                        レイズ額: {raiseAmount} (最小: {getMinRaise()})
+                      </div>
+                      <input
+                        type="range"
+                        min={getMinRaise()}
+                        max={currentPlayer?.chips || 0}
+                        value={raiseAmount}
+                        onChange={(e) => setRaiseAmount(Number(e.target.value))}
+                        className="w-full mb-3"
+                      />
+                      <button
+                        onClick={() => {
+                          performAction('raise', raiseAmount);
+                          setShowRaiseInput(false);
+                        }}
+                        className="w-full px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold"
+                      >
+                        レイズ実行
+                      </button>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
             </div>
 
-            {/* クイックメッセージ */}
-            <div className="grid grid-cols-3 gap-1 mb-2">
-              <button
-                onClick={() => setChatMessage('よろしく！')}
-                className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
-              >
-                <p className="text-white text-[8px] font-semibold">よろしく！</p>
-              </button>
-              <button
-                onClick={() => setChatMessage('いい手だ！')}
-                className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
-              >
-                <p className="text-white text-[8px] font-semibold">いい手だ！</p>
-              </button>
-              <button
-                onClick={() => setChatMessage('GG')}
-                className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
-              >
-                <p className="text-white text-[8px] font-semibold">GG</p>
-              </button>
-            </div>
-
-            {/* 入力フィールド */}
-            <div className="flex gap-1.5">
+            {/* Chat Sidebar */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <h3 className="text-white font-bold mb-4">チャット</h3>
+              <div className="space-y-2 mb-4 h-64 overflow-y-auto">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className="bg-white/10 p-2 rounded">
+                    <div className="text-white/70 text-sm">{msg.username}</div>
+                    <div className="text-white">{msg.message}</div>
+                  </div>
+                ))}
+              </div>
               <input
                 type="text"
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && chatMessage.trim()) {
-                    const newMessage = {
-                      id: chatMessages.length + 1,
-                      player: user?.username || 'プレイヤー1',
-                      message: chatMessage,
-                      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
-                    };
-                    setChatMessages([...chatMessages, newMessage]);
-                    setChatMessage('');
-                  }
-                }}
                 placeholder="メッセージを入力..."
-                className="flex-1 bg-white/20 text-white text-xs px-2 py-1.5 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30"
-                maxLength={100}
-              />
-              <button
-                onClick={() => {
-                  if (chatMessage.trim()) {
-                    const newMessage = {
-                      id: chatMessages.length + 1,
-                      player: user?.username || 'プレイヤー1',
-                      message: chatMessage,
-                      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
-                    };
-                    setChatMessages([...chatMessages, newMessage]);
-                    setChatMessage('');
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value) {
+                    sendMessage(e.currentTarget.value);
+                    e.currentTarget.value = '';
                   }
                 }}
-                className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded border border-white/40 transition-colors"
-              >
-                <p className="text-white text-[9px] font-bold">送信</p>
-              </button>
+              />
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* テーブル情報ヘッダー */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded border border-white/30 shadow-sm">
-          <div className="flex items-center justify-center gap-2">
-            <p className="text-white text-[8px]">Hand #{handNumber}</p>
-            <p className="text-white text-[8px]">•</p>
-            <p className="text-white text-[8px]">SB/BB: {smallBlind}/{bigBlind}</p>
-          </div>
-        </div>
-        
-        {/* 観戦モードバッジ */}
-        {isSpectator && (
-          <div className="bg-purple-600 px-3 py-1 rounded-full border-2 border-white/30 shadow-lg flex items-center gap-1">
-            <Eye className="w-3 h-3 text-white" />
-            <p className="text-white text-[9px] font-bold">観戦中</p>
           </div>
         )}
       </div>
-
-      {/* コミュニティカード */}
-      <div className="absolute top-[56%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <div className="flex gap-3">
-          {communityCards.map((card, index) => (
-            <div key={card.id} style={{ perspective: '1000px' }}>
-              <motion.div 
-                initial={{ 
-                  rotateY: 180, 
-                  scale: 0.5,
-                  y: -50
-                }}
-                animate={{ 
-                  rotateY: 0, 
-                  scale: 1.1,
-                  y: 0
-                }}
-                transition={{ 
-                  duration: 0.6,
-                  delay: index < 3 ? index * 0.15 : (index === 3 ? 1.5 : 2.5),
-                  ease: "easeOut"
-                }}
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <Card card={card} enable3D={true} />
-              </motion.div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ゲームフェーズ */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[700%]">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1 rounded-md border border-white/30 shadow-md">
-          <p className="text-white text-xs font-bold text-center">{gamePhase}</p>
-        </div>
-      </div>
-
-      {/* ポットとサイドポット */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%] flex gap-3 items-center">
-        {/* サイドポット（複数オールインがある場合） */}
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
-          <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
-          <div className="flex items-center justify-center gap-0.5">
-            <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
-            <p className="text-white text-[10px] font-semibold">3,200</p>
-          </div>
-        </div>
-        
-        {/* メインポット */}
-        <div className="relative">
-          {/* チップアニメーション */}
-          <AnimatePresence>
-            {chipAnimations.map((anim) => (
-              <motion.div
-                key={anim.id}
-                initial={{ 
-                  x: 0, 
-                  y: 0, 
-                  scale: 0.5,
-                  opacity: 0 
-                }}
-                animate={{ 
-                  x: 0, 
-                  y: 0, 
-                  scale: 1,
-                  opacity: 1 
-                }}
-                exit={{ 
-                  scale: 0,
-                  opacity: 0 
-                }}
-                transition={{ 
-                  duration: 0.5,
-                  ease: "easeOut"
-                }}
-                style={{ position: 'absolute' }}
-              >
-                <Image src="/chip-icon.png" alt="chip" width={24} height={24} className="drop-shadow-lg" />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          
-          <motion.div 
-            style={{
-              background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
-            }}
-            animate={{ 
-              scale: chipAnimations.length > 0 ? [1, 1.1, 1] : 1 
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            <p className="text-white text-xs font-bold text-center">POT</p>
-            <div className="flex items-center justify-center gap-1">
-              <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
-              <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* プレイヤー1 - 中央下（少し左） */}
-      <div className="absolute bottom-32 left-[45%] transform -translate-x-1/2">
-        <PlayerComponent player={players[0]} />
-      </div>
-
-      {/* 自分の役表示 - プレイヤー1の左 */}
-      <div className="absolute bottom-36 left-[45%] transform -translate-x-1/2 -translate-x-52">
-        <motion.div 
-          initial={{ x: -100, opacity: 0, scale: 0.8 }}
-          animate={{ x: 0, opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <motion.div 
-            animate={{ 
-              boxShadow: [
-                '0 0 20px rgba(34, 211, 238, 0.5)',
-                '0 0 40px rgba(34, 211, 238, 0.8)',
-                '0 0 20px rgba(34, 211, 238, 0.5)'
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{
-              background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              border: '2px solid rgba(255, 255, 255, 0.3)'
-            }}
-          >
-            <p className="text-white text-xs font-bold">ロイヤルフラッシュ</p>
-          </motion.div>
-        </motion.div>
-      </div>
-
-      {/* プレイヤー1のハンドカード - 右側に大きく扇形で表示 */}
-      <div className="absolute bottom-24 left-[45%] transform translate-x-[80px]">
-        <div className="flex items-end">
-          {player1HandCards.map((card, cardIndex) => (
-            <motion.div
-              key={card.id}
-              initial={{
-                x: -300,
-                y: -300,
-                rotate: 0,
-                opacity: 0,
-                scale: 0.5
-              }}
-              animate={{
-                x: 0,
-                y: 0,
-                rotate: cardIndex === 0 ? -10 : 10,
-                opacity: 1,
-                scale: 1
-              }}
-              transition={{
-                duration: 0.6,
-                delay: cardIndex * 0.15,
-                type: "spring",
-                stiffness: 100,
-                damping: 15
-              }}
-              style={{
-                position: 'relative',
-                marginLeft: cardIndex === 1 ? '-30px' : '0',
-                zIndex: cardIndex,
-              }}
-              onAnimationStart={() => {
-                if (soundEnabled) {
-                  setTimeout(() => playSound('cardDeal'), cardIndex * 150);
-                }
-              }}
-            >
-              <motion.div 
-                whileHover={{ 
-                  scale: 1.15, 
-                  y: -10,
-                  rotate: 0,
-                  transition: { duration: 0.2 }
-                }}
-                style={{
-                  transform: 'scale(1.1)',
-                  transformOrigin: 'center center'
-                }}
-              >
-                <Card card={card} faceUp={true} />
-              </motion.div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* プレイヤー2 - 左下 */}
-      <div className="absolute bottom-72 left-6">
-        <PlayerComponent player={players[1]} />
-      </div>
-
-      {/* プレイヤー3 - 左中 */}
-      <div className="absolute top-[40%] left-6 transform -translate-y-1/2">
-        <PlayerComponent player={players[2]} />
-      </div>
-
-      {/* プレイヤー4 - 左上 */}
-      <div className="absolute top-56 left-6">
-        <PlayerComponent player={players[3]} />
-      </div>
-
-      {/* プレイヤー5 - 上左 */}
-      <div className="absolute top-16 left-1/4 transform -translate-x-1/2">
-        <PlayerComponent player={players[4]} />
-      </div>
-
-      {/* プレイヤー6 - 上右 */}
-      <div className="absolute top-16 right-1/4 transform translate-x-1/2">
-        <PlayerComponent player={players[5]} />
-      </div>
-
-      {/* プレイヤー7 - 右上 */}
-      <div className="absolute top-56 right-6">
-        <PlayerComponent player={players[6]} />
-      </div>
-
-      {/* プレイヤー8 - 右中 */}
-      <div className="absolute top-[40%] right-6 transform -translate-y-1/2">
-        <PlayerComponent player={players[7]} />
-      </div>
-
-      {/* プレイヤー9 - 右下 */}
-      <div className="absolute bottom-72 right-6">
-        <PlayerComponent player={players[8]} />
-      </div>
-
-      {/* アクションボタン - 画面下部 */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4">
-        <div className="max-w-md mx-auto space-y-3">
-          {/* レイズスライダー */}
-          {showRaiseSlider && (
-            <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-white text-xs font-bold">
-                  {raiseAmount >= maxRaise ? 'ALL IN' : 'レイズ額'}
-                </p>
-                <div className="flex items-center gap-1">
-                  <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
-                  <p className="text-white text-sm font-bold">{raiseAmount}</p>
-                </div>
-              </div>
-              
-              {/* クイックベットボタン - POTサイズ */}
-              <div className="grid grid-cols-4 gap-1.5 mb-2">
-                <button
-                  onClick={() => setRaiseAmount(Math.floor(potAmount / 3))}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">1/3 POT</p>
-                </button>
-                <button
-                  onClick={() => setRaiseAmount(Math.floor(potAmount * 2 / 3))}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">2/3 POT</p>
-                </button>
-                <button
-                  onClick={() => setRaiseAmount(potAmount)}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">POT</p>
-                </button>
-                <button
-                  onClick={() => setRaiseAmount(maxRaise)}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">MAX</p>
-                </button>
-              </div>
-
-              <input
-                type="range"
-                min={minRaise}
-                max={maxRaise}
-                value={raiseAmount}
-                onChange={(e) => setRaiseAmount(Number(e.target.value))}
-                className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #fbbf24 0%, #fbbf24 ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) 100%)`
-                }}
-              />
-              <div className="flex justify-between mt-1">
-                <p className="text-white text-[10px]">最小: {minRaise}</p>
-                <p className="text-white text-[10px]">最大: {maxRaise}</p>
-              </div>
-            </div>
-          )}
-
-          {/* アクションボタン */}
-          <div className="flex gap-2 items-center">
-            <button 
-              onClick={() => {
-                playSound('fold');
-                setShowRaiseSlider(false);
-              }}
-              className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-            >
-              <p className="text-white text-sm font-bold">フォールド</p>
-            </button>
-            <button 
-              onClick={() => {
-                if (callAmount > 0) {
-                  playSound('call');
-                  console.log(`コール: ${callAmount}`);
-                  // チップアニメーションをトリガー
-                  const newChipAnim = { id: Date.now(), playerId: 1 };
-                  setChipAnimations([...chipAnimations, newChipAnim]);
-                  setTimeout(() => {
-                    setChipAnimations(prev => prev.filter(a => a.id !== newChipAnim.id));
-                  }, 500);
-                } else {
-                  playSound('bet');
-                  console.log('チェック');
-                }
-              }}
-              className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-            >
-              <p className="text-white text-sm font-bold">
-                {callAmount > 0 ? `コール ${callAmount}` : 'チェック'}
-              </p>
-            </button>
-            <button 
-              onClick={() => {
-                if (showRaiseSlider) {
-                  if (raiseAmount >= maxRaise) {
-                    playSound('allIn');
-                  } else {
-                    playSound('raise');
-                  }
-                  console.log(`レイズ: ${raiseAmount}`);
-                  setShowRaiseSlider(false);
-                  // チップアニメーションをトリガー
-                  const newChipAnim = { id: Date.now(), playerId: 1 };
-                  setChipAnimations([...chipAnimations, newChipAnim]);
-                  setTimeout(() => {
-                    setChipAnimations(prev => prev.filter(a => a.id !== newChipAnim.id));
-                  }, 500);
-                } else {
-                  setShowRaiseSlider(true);
-                }
-              }}
-              className="bg-green-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-            >
-              <p className="text-white text-sm font-bold">
-                {showRaiseSlider ? (raiseAmount >= maxRaise ? 'ALL IN' : `レイズ ${raiseAmount}`) : 'レイズ'}
-              </p>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* テーブル情報パネル */}
-      {showTableInfo && (
-        <div className="absolute top-20 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Info className="w-4 h-4 text-white" />
-                <p className="text-white text-sm font-bold">テーブル情報</p>
-              </div>
-              <button 
-                onClick={() => setShowTableInfo(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-xs">✕</p>
-              </button>
-            </div>
-            
-            <div className="space-y-2 text-white text-xs">
-              <div className="flex justify-between bg-white/10 p-2 rounded">
-                <span>平均ポット:</span>
-                <span className="font-bold">¥8,500</span>
-              </div>
-              <div className="flex justify-between bg-white/10 p-2 rounded">
-                <span>ハンド/時間:</span>
-                <span className="font-bold">45/時</span>
-              </div>
-              <div className="flex justify-between bg-white/10 p-2 rounded">
-                <span>プレイヤー数:</span>
-                <span className="font-bold">9/9</span>
-              </div>
-              <div className="flex justify-between bg-white/10 p-2 rounded">
-                <span>テーブルタイプ:</span>
-                <span className="font-bold">キャッシュ</span>
-              </div>
-              <div className="flex justify-between bg-white/10 p-2 rounded">
-                <span>ゲーム時間:</span>
-                <span className="font-bold">2時間15分</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ハンド履歴パネル */}
-      {showHandHistory && (
-        <div className="absolute top-20 left-20 w-80 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <History className="w-4 h-4 text-white" />
-                <p className="text-white text-sm font-bold">ハンド履歴</p>
-              </div>
-              <button 
-                onClick={() => setShowHandHistory(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-xs">✕</p>
-              </button>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-2 h-64 overflow-y-auto space-y-1.5">
-              <div className="bg-white/20 rounded p-2 border border-white/30">
-                <div className="flex justify-between mb-1">
-                  <span className="text-white text-[9px] font-bold">Hand #41</span>
-                  <span className="text-green-300 text-[9px] font-bold">+2,500</span>
-                </div>
-                <p className="text-white text-[8px]">AA vs KK - フロップでセット</p>
-              </div>
-              <div className="bg-white/20 rounded p-2 border border-white/30">
-                <div className="flex justify-between mb-1">
-                  <span className="text-white text-[9px] font-bold">Hand #40</span>
-                  <span className="text-red-300 text-[9px] font-bold">-800</span>
-                </div>
-                <p className="text-white text-[8px]">QJ - ミスドロー</p>
-              </div>
-              <div className="bg-white/20 rounded p-2 border border-white/30">
-                <div className="flex justify-between mb-1">
-                  <span className="text-white text-[9px] font-bold">Hand #39</span>
-                  <span className="text-green-300 text-[9px] font-bold">+1,200</span>
-                </div>
-                <p className="text-white text-[8px]">AK - トップペア勝利</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* リバイモーダル */}
-      {showRebuy && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
-          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-white text-lg font-bold">チップ追加</p>
-              <button 
-                onClick={() => setShowRebuy(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-sm">✕</p>
-              </button>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-3 mb-4">
-              <p className="text-white text-xs mb-2">現在のチップ: 5,000</p>
-              <p className="text-white text-xs mb-3">最小バイイン: 5,000 / 最大: 20,000</p>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">5,000</p>
-                </button>
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">10,000</p>
-                </button>
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">15,000</p>
-                </button>
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">20,000</p>
-                </button>
-              </div>
-            </div>
-            
-            <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors">
-              <p className="text-white text-sm font-bold">追加する</p>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ベット履歴ログ */}
-      {showActionLog && (
-        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-80 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-lg p-2">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-white text-[9px] font-bold">アクションログ</p>
-            <button 
-              onClick={() => setShowActionLog(false)}
-              className="text-white hover:bg-white/20 rounded p-0.5 transition-colors"
-            >
-              <p className="text-[8px]">✕</p>
-            </button>
-          </div>
-          <div className="bg-white/10 rounded p-1.5 max-h-24 overflow-y-auto space-y-0.5">
-            <p className="text-white text-[8px]">プレイヤー2: レイズ 200</p>
-            <p className="text-white text-[8px]">プレイヤー6: コール 200</p>
-            <p className="text-white text-[8px]">プレイヤー9: コール 200</p>
-            <p className="text-white text-[8px]">プレイヤー5: フォールド</p>
-            <p className="text-white text-[8px]">プレイヤー7: フォールド</p>
-          </div>
-        </div>
-      )}
-
-      {/* フィードバックモーダル */}
-      {showFeedback && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
-          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-white text-lg font-bold">💬 フィードバック</p>
-              <button 
-                onClick={() => setShowFeedback(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-sm">✕</p>
-              </button>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-3 mb-4">
-              <p className="text-white text-xs mb-2">ご意見・ご要望をお聞かせください</p>
-              <textarea
-                placeholder="フィードバックを入力..."
-                className="w-full bg-white/20 text-white text-xs px-3 py-2 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30 h-32 resize-none"
-                maxLength={500}
-              />
-              <p className="text-white/70 text-[9px] mt-1">最大500文字</p>
-            </div>
-            
-            <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors">
-              <p className="text-white text-sm font-bold">送信する</p>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 言語設定モーダル */}
-      {showLanguageSettings && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
-          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-white text-lg font-bold">🌐 言語設定</p>
-              <button 
-                onClick={() => setShowLanguageSettings(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-sm">✕</p>
-              </button>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-3 mb-4 space-y-2">
-              <button
-                onClick={() => setSelectedLanguage('日本語')}
-                className={`w-full py-2.5 px-3 rounded-lg border transition-colors text-left ${
-                  selectedLanguage === '日本語' 
-                    ? 'bg-white/30 border-white' 
-                    : 'bg-white/10 border-white/40 hover:bg-white/20'
-                }`}
-              >
-                <p className="text-white text-sm font-semibold">🇯🇵 日本語</p>
-              </button>
-              <button
-                onClick={() => setSelectedLanguage('English')}
-                className={`w-full py-2.5 px-3 rounded-lg border transition-colors text-left ${
-                  selectedLanguage === 'English' 
-                    ? 'bg-white/30 border-white' 
-                    : 'bg-white/10 border-white/40 hover:bg-white/20'
-                }`}
-              >
-                <p className="text-white text-sm font-semibold">🇺🇸 English</p>
-              </button>
-              <button
-                onClick={() => setSelectedLanguage('中文')}
-                className={`w-full py-2.5 px-3 rounded-lg border transition-colors text-left ${
-                  selectedLanguage === '中文' 
-                    ? 'bg-white/30 border-white' 
-                    : 'bg-white/10 border-white/40 hover:bg-white/20'
-                }`}
-              >
-                <p className="text-white text-sm font-semibold">🇨🇳 中文</p>
-              </button>
-            </div>
-            
-            <button 
-              onClick={() => setShowLanguageSettings(false)}
-              className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors"
-            >
-              <p className="text-white text-sm font-bold">保存</p>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* アカウント設定モーダル */}
-      {showAccountSettings && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
-          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-white text-lg font-bold">👤 アカウント設定</p>
-              <button 
-                onClick={() => setShowAccountSettings(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-sm">✕</p>
-              </button>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-3 mb-4 space-y-3">
-              <div>
-                <p className="text-white text-xs mb-1">ユーザー名</p>
-                <input
-                  type="text"
-                  defaultValue="プレイヤー1"
-                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded border border-white/40 focus:outline-none focus:bg-white/30"
-                />
-              </div>
-              <div>
-                <p className="text-white text-xs mb-1">メールアドレス</p>
-                <input
-                  type="email"
-                  defaultValue="player1@example.com"
-                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded border border-white/40 focus:outline-none focus:bg-white/30"
-                />
-              </div>
-              <div>
-                <p className="text-white text-xs mb-1">パスワード変更</p>
-                <input
-                  type="password"
-                  placeholder="新しいパスワード"
-                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30"
-                />
-              </div>
-            </div>
-            
-            <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors mb-2">
-              <p className="text-white text-sm font-bold">保存</p>
-            </button>
-            <button className="w-full bg-red-500/80 hover:bg-red-500 py-2 rounded-lg border-2 border-white/30 transition-colors">
-              <p className="text-white text-xs font-bold">アカウント削除</p>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* シェアモーダル */}
-      {showShare && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
-          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-white text-lg font-bold">📤 シェア</p>
-              <button 
-                onClick={() => setShowShare(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-sm">✕</p>
-              </button>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-3 mb-4">
-              <p className="text-white text-xs mb-3">このテーブルをシェア</p>
-              
-              {/* リンクコピー */}
-              <div className="mb-3">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value="https://sinpoker.com/table/abc123"
-                    readOnly
-                    className="flex-1 bg-white/20 text-white text-xs px-3 py-2 rounded border border-white/40 focus:outline-none"
-                  />
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText('https://sinpoker.com/table/abc123');
-                      alert('リンクをコピーしました！');
-                    }}
-                    className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded border border-white/40 transition-colors"
-                  >
-                    <p className="text-white text-xs font-bold">コピー</p>
-                  </button>
-                </div>
-              </div>
-              
-              {/* SNSシェアボタン */}
-              <p className="text-white text-xs mb-2">SNSでシェア</p>
-              <div className="grid grid-cols-3 gap-2">
-                <button className="bg-blue-500 hover:bg-blue-600 py-2.5 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-xs font-bold">Twitter</p>
-                </button>
-                <button className="bg-blue-600 hover:bg-blue-700 py-2.5 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-xs font-bold">Facebook</p>
-                </button>
-                <button className="bg-green-500 hover:bg-green-600 py-2.5 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-xs font-bold">LINE</p>
-                </button>
-              </div>
-            </div>
-            
-            <button 
-              onClick={() => setShowShare(false)}
-              className="w-full bg-white/20 hover:bg-white/30 py-2 rounded-lg border border-white/40 transition-colors"
-            >
-              <p className="text-white text-sm font-bold">閉じる</p>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 勝利セレブレーション - 紙吹雪 */}
-      {showCelebration && (
-        <div className="absolute inset-0 pointer-events-none z-[150]">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <motion.div
-              key={i}
-              style={{
-                position: 'absolute',
-                left: `${Math.random() * 100}%`,
-                top: '-20px',
-                width: '10px',
-                height: '10px',
-                backgroundColor: ['#fbbf24', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#06b6d4'][Math.floor(Math.random() * 6)],
-                borderRadius: Math.random() > 0.5 ? '50%' : '0',
-              }}
-              animate={{
-                y: [0, window.innerHeight + 100],
-                x: [0, (Math.random() - 0.5) * 200],
-                rotate: [0, Math.random() * 360],
-                opacity: [1, 0]
-              }}
-              transition={{
-                duration: 3 + Math.random() * 2,
-                delay: Math.random() * 0.5,
-                ease: "easeIn"
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* オールイン演出 - 画面フラッシュ */}
-      {allInPlayer !== null && (
-        <motion.div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-            zIndex: 40
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ 
-            opacity: [0, 0.3, 0],
-            backgroundColor: ['rgba(255, 215, 0, 0)', 'rgba(255, 215, 0, 0.5)', 'rgba(255, 215, 0, 0)']
-          }}
-          transition={{ duration: 0.6 }}
-          onAnimationComplete={() => setAllInPlayer(null)}
-        >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 0] }}
-              transition={{ duration: 0.8 }}
-              style={{
-                fontSize: '4rem',
-                fontWeight: 'bold',
-                color: '#ffd700',
-                textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)'
-              }}
-            >
-              ALL IN!
-            </motion.div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* ターン開始プレイヤー名表示 */}
-      {showPlayerTurn && currentTurnPlayer && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[150]">
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: [0, 1.2, 1], opacity: [1, 1, 0] }}
-            transition={{ duration: 1.5 }}
-            onAnimationComplete={() => setShowPlayerTurn(false)}
-            style={{
-              background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
-              padding: '1.5rem 3rem',
-              borderRadius: '1rem',
-              border: '3px solid white',
-              boxShadow: '0 0 40px rgba(34, 211, 238, 0.8)'
-            }}
-          >
-            <p className="text-white text-2xl font-bold text-center">{currentTurnPlayer}のターン</p>
-          </motion.div>
-        </div>
-      )}
-
-      {/* カードシャッフル演出 */}
-      {showShuffling && (
-        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-[150]">
-          <motion.div
-            animate={{ 
-              rotate: [0, 360],
-              scale: [1, 1.2, 1]
-            }}
-            transition={{ 
-              duration: 1,
-              repeat: 3
-            }}
-            onAnimationComplete={() => setShowShuffling(false)}
-          >
-            <div className="flex gap-2">
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  animate={{
-                    x: [(i - 2) * 20, 0, (i - 2) * 20],
-                    opacity: [0.5, 1, 0.5]
-                  }}
-                  transition={{
-                    duration: 0.5,
-                    delay: i * 0.1,
-                    repeat: 6
-                  }}
-                  style={{
-                    width: '40px',
-                    height: '60px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    borderRadius: '4px',
-                    border: '2px solid white'
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* バッドビート演出 */}
-      {showBadBeat && (
-        <div className="absolute inset-0 pointer-events-none z-[150]">
-          <motion.div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'black'
-            }}
-            animate={{
-              opacity: [0, 0.8, 0, 0.8, 0]
-            }}
-            transition={{ duration: 0.8 }}
-            onAnimationComplete={() => setShowBadBeat(false)}
-          />
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: '4px',
-                height: '100%',
-                background: 'linear-gradient(to bottom, transparent, #fbbf24, transparent)',
-                transformOrigin: 'top center'
-              }}
-              animate={{
-                rotate: [i * 60, i * 60],
-                opacity: [0, 1, 0]
-              }}
-              transition={{
-                duration: 0.3,
-                delay: i * 0.1,
-                repeat: 2
-              }}
-            />
-          ))}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0] }}
-              transition={{ duration: 1.5 }}
-              style={{
-                fontSize: '3rem',
-                fontWeight: 'bold',
-                color: '#ef4444',
-                textShadow: '0 0 30px rgba(239, 68, 68, 1)'
-              }}
-            >
-              BAD BEAT!
-            </motion.div>
-          </div>
-        </div>
-      )}
-
-      {/* レベルアップ・アチーブメント */}
-      {showLevelUp && (
-        <div className="absolute inset-0 pointer-events-none z-[150] flex items-center justify-center">
-          <motion.div
-            initial={{ scale: 0, rotate: -180, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ duration: 0.8, type: "spring" }}
-            onAnimationComplete={() => setTimeout(() => setShowLevelUp(false), 2000)}
-          >
-            <div className="relative">
-              {[...Array(8)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    width: '30px',
-                    height: '30px'
-                  }}
-                  animate={{
-                    x: Math.cos(i * 45 * Math.PI / 180) * 100,
-                    y: Math.sin(i * 45 * Math.PI / 180) * 100,
-                    opacity: [0, 1, 0],
-                    scale: [0, 1.5, 0]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    delay: 0.3
-                  }}
-                >
-                  <div className="text-4xl">⭐</div>
-                </motion.div>
-              ))}
-              <div style={{
-                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                padding: '2rem',
-                borderRadius: '1rem',
-                border: '4px solid white',
-                boxShadow: '0 0 60px rgba(251, 191, 36, 0.8)'
-              }}>
-                <p className="text-white text-4xl font-bold text-center mb-2">🏆</p>
-                <p className="text-white text-2xl font-bold text-center">LEVEL UP!</p>
-                <p className="text-white text-lg text-center mt-2">レベル 5 達成</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* 連勝ストリーク */}
-      {winStreak >= 3 && (
-        <div className="absolute top-32 right-8 z-[150]">
-          <motion.div
-            initial={{ x: 100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            style={{
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              padding: '1rem 2rem',
-              borderRadius: '0.5rem',
-              border: '3px solid #fbbf24',
-              boxShadow: '0 0 30px rgba(239, 68, 68, 0.6)'
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <motion.div
-                style={{ fontSize: '1.875rem' }}
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              >
-                🔥
-              </motion.div>
-              <div>
-                <p className="text-white text-xs font-bold">HOT RUN!</p>
-                <p className="text-yellow-300 text-lg font-bold">{winStreak}連勝</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* リバイ/アドオン通知 */}
-      {showRebuyNotification && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[150]">
-          <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring" }}
-            onAnimationComplete={() => setTimeout(() => setShowRebuyNotification(false), 2000)}
-          >
-            <div style={{
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              padding: '2rem 3rem',
-              borderRadius: '1rem',
-              border: '3px solid white',
-              boxShadow: '0 0 50px rgba(16, 185, 129, 0.8)'
-            }}>
-              <motion.div
-                style={{ textAlign: 'center', marginBottom: '1rem' }}
-                animate={{ y: [-20, 0, -20] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                {[...Array(10)].map((_, i) => (
-                  <motion.span
-                    key={i}
-                    style={{ display: 'inline-block', fontSize: '1.875rem', marginLeft: '0.25rem', marginRight: '0.25rem' }}
-                    initial={{ y: -100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.05 }}
-                  >
-                    💰
-                  </motion.span>
-                ))}
-              </motion.div>
-              <p className="text-white text-3xl font-bold text-center">チップ追加！</p>
-              <p className="text-yellow-300 text-4xl font-bold text-center mt-2">+{rebuyAmount.toLocaleString()}</p>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* テーブルの雰囲気切り替え - ファイナルテーブル */}
-      {tableAtmosphere === 'final' && (
-        <>
-          <div className="absolute inset-0 pointer-events-none z-10">
-            <motion.div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'radial-gradient(circle at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%)'
-              }}
-              animate={{
-                opacity: [0.3, 0.6, 0.3]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-          </div>
-          {[...Array(4)].map((_, i) => (
-            <motion.div
-              key={i}
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: '200px',
-                height: '200px',
-                background: 'radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%)',
-                borderRadius: '50%',
-                transform: `translate(-50%, -50%) rotate(${i * 90}deg) translateY(-300px)`,
-                pointerEvents: 'none',
-                zIndex: 5
-              }}
-              animate={{
-                opacity: [0, 1, 0],
-                scale: [0.8, 1.2, 0.8]
-              }}
-              transition={{
-                duration: 2,
-                delay: i * 0.5,
-                repeat: Infinity
-              }}
-            />
-          ))}
-        </>
-      )}
-
-      {/* テーブル情報モーダル */}
-      {showTableInfo && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold flex items-center gap-2">
-                <Info className="w-5 h-5" /> テーブル情報
-              </h2>
-              <button 
-                onClick={() => setShowTableInfo(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {/* テーブル基本情報 */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-xs font-bold mb-2">基本情報</p>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-white/80 text-xs">テーブル名:</span>
-                    <span className="text-white text-xs font-semibold">VIP Table #1</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/80 text-xs">ゲーム種別:</span>
-                    <span className="text-white text-xs font-semibold">Texas Hold'em</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/80 text-xs">SB/BB:</span>
-                    <span className="text-white text-xs font-semibold">{smallBlind}/{bigBlind}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/80 text-xs">最大席数:</span>
-                    <span className="text-white text-xs font-semibold">9人</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/80 text-xs">現在プレイヤー:</span>
-                    <span className="text-white text-xs font-semibold">{players.length}人</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* プレイヤーリスト */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-xs font-bold mb-2">プレイヤー一覧</p>
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {players.map((player) => (
-                    <div key={player.id} className="flex justify-between items-center bg-white/10 rounded px-2 py-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center">
-                          <User className="w-3 h-3 text-white" />
-                        </div>
-                        <span className="text-white text-xs">{player.name}</span>
-                        {player.position && (
-                          <span className="text-yellow-400 text-xs font-bold">{player.position}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
-                        <span className="text-white text-xs font-semibold">{player.chips.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ハンド履歴モーダル */}
-      {showHandHistory && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold flex items-center gap-2">
-                <History className="w-5 h-5" /> ハンド履歴
-              </h2>
-              <button 
-                onClick={() => setShowHandHistory(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {[
-                { hand: '#157', winner: 'プレイヤー2', pot: 1200, cards: 'A♠ K♠' },
-                { hand: '#156', winner: 'プレイヤー6', pot: 850, cards: 'Q♥ Q♦' },
-                { hand: '#155', winner: 'プレイヤー9', pot: 600, cards: '10♣ 10♠' }
-              ].map((record) => (
-                <div key={record.hand} className="bg-white/20 rounded-lg p-3 border border-white/40">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-white text-xs font-bold">ハンド {record.hand}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-white/80 text-xs">ポット:</span>
-                      <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
-                      <span className="text-white text-xs font-semibold">{record.pot}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-yellow-300 text-xs font-semibold">勝者: {record.winner}</span>
-                    <span className="text-white text-xs">{record.cards}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* シェアモーダル */}
-      {showShare && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">📤 シェア</h2>
-              <button 
-                onClick={() => setShowShare(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 py-3 px-4 rounded-lg transition-colors">
-                <p className="text-white text-sm font-semibold">🐦 Twitterでシェア</p>
-              </button>
-              <button className="w-full bg-green-600 hover:bg-green-700 py-3 px-4 rounded-lg transition-colors">
-                <p className="text-white text-sm font-semibold">💬 LINEでシェア</p>
-              </button>
-              <button className="w-full bg-white/20 hover:bg-white/30 py-3 px-4 rounded-lg border border-white/40 transition-colors">
-                <p className="text-white text-sm font-semibold">🔗 リンクをコピー</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* フィードバックモーダル */}
-      {showFeedback && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">💬 フィードバック</h2>
-              <button 
-                onClick={() => setShowFeedback(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-white text-xs font-semibold mb-1 block">カテゴリー</label>
-                <select className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded-lg border border-white/40 focus:outline-none focus:bg-white/30">
-                  <option value="bug">🐛 バグ報告</option>
-                  <option value="feature">💡 機能要望</option>
-                  <option value="other">💬 その他</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-white text-xs font-semibold mb-1 block">詳細</label>
-                <textarea 
-                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded-lg border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30 h-24 resize-none"
-                  placeholder="ご意見をお聞かせください..."
-                />
-              </div>
-              <button className="w-full bg-green-500 hover:bg-green-600 py-2.5 px-4 rounded-lg transition-colors">
-                <p className="text-white text-sm font-bold">送信</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 言語設定モーダル */}
-      {showLanguageSettings && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">🌐 言語設定</h2>
-              <button 
-                onClick={() => setShowLanguageSettings(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {['日本語', 'English', '中文'].map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setSelectedLanguage(lang)}
-                  className={`w-full py-3 px-4 rounded-lg transition-colors ${
-                    selectedLanguage === lang 
-                      ? 'bg-white text-blue-600' 
-                      : 'bg-white/20 text-white hover:bg-white/30'
-                  } border border-white/40`}
-                >
-                  <p className="text-sm font-semibold">{lang}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* アカウント設定モーダル */}
-      {showAccountSettings && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">👤 アカウント設定</h2>
-              <button 
-                onClick={() => setShowAccountSettings(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="bg-white/20 rounded-lg p-4 border border-white/40 text-center">
-                <div className="w-20 h-20 mx-auto rounded-full border-4 border-white mb-2 overflow-hidden">
-                  <Image
-                    src={players[0].avatar}
-                    alt={players[0].name}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <p className="text-white text-sm font-bold">{players[0].name}</p>
-                <p className="text-white/80 text-xs">Level 5</p>
-              </div>
-
-              <div>
-                <label className="text-white text-xs font-semibold mb-1 block">表示名</label>
-                <input 
-                  type="text"
-                  defaultValue="プレイヤー1"
-                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded-lg border border-white/40 focus:outline-none focus:bg-white/30"
-                />
-              </div>
-
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-4 rounded-lg border border-white/40 transition-colors">
-                <p className="text-white text-sm font-semibold">🖼️ アバター変更</p>
-              </button>
-
-              <button className="w-full bg-green-500 hover:bg-green-600 py-2.5 px-4 rounded-lg transition-colors">
-                <p className="text-white text-sm font-bold">保存</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* リバイモーダル */}
-      {showRebuy && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">💰 チップ追加</h2>
-              <button 
-                onClick={() => setShowRebuy(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white/80 text-xs mb-1">現在のチップ</p>
-                <div className="flex items-center gap-2">
-                  <Image src="/chip-icon.png" alt="chip" width={20} height={20} />
-                  <p className="text-white text-2xl font-bold">{(user?.chips || 5000).toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-white text-xs font-semibold mb-1 block">追加するチップ</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[1000, 2000, 5000, 10000].map((amount) => (
-                    <button
-                      key={amount}
-                      onClick={() => setRebuyAmount(amount)}
-                      className={`py-2 px-3 rounded-lg transition-colors ${
-                        rebuyAmount === amount
-                          ? 'bg-white text-blue-600'
-                          : 'bg-white/20 text-white hover:bg-white/30'
-                      } border border-white/40`}
-                    >
-                      <p className="text-xs font-bold">{amount.toLocaleString()}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button 
-                onClick={() => {
-                  setShowRebuyNotification(true);
-                  setShowRebuy(false);
-                }}
-                className="w-full bg-green-500 hover:bg-green-600 py-3 px-4 rounded-lg transition-colors"
-              >
-                <p className="text-white text-sm font-bold">購入する</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* プレイヤーリストモーダル */}
-      {showPlayerList && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">👥 プレイヤーリスト</h2>
-              <button 
-                onClick={() => setShowPlayerList(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {players.map((player, index) => (
-                <div key={player.id} className="bg-white/20 rounded-lg p-3 border border-white/40">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden">
-                        <Image
-                          src={player.avatar}
-                          alt={player.name}
-                          width={40}
-                          height={40}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <p className="text-white text-sm font-bold">{player.name}</p>
-                        <p className="text-white/80 text-xs">席 #{index + 1}</p>
-                      </div>
-                    </div>
-                    {player.position && (
-                      <div className="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
-                        {player.position}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div className="bg-white/10 rounded px-2 py-1">
-                      <p className="text-white/70 text-xs">チップ</p>
-                      <div className="flex items-center gap-1">
-                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
-                        <p className="text-white text-sm font-semibold">{player.chips.toLocaleString()}</p>
-                      </div>
-                    </div>
-                    <div className="bg-white/10 rounded px-2 py-1">
-                      <p className="text-white/70 text-xs">ステータス</p>
-                      <p className="text-green-400 text-sm font-semibold">
-                        {player.folded ? '降りた' : player.bet > 0 ? 'ベット中' : 'アクティブ'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 統計モーダル */}
-      {showStats && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">📊 統計</h2>
-              <button 
-                onClick={() => setShowStats(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {/* 今日の統計 */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🗓️ 今日の統計</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/10 rounded px-2 py-2">
-                    <p className="text-white/70 text-xs">プレイハンド数</p>
-                    <p className="text-white text-xl font-bold">24</p>
-                  </div>
-                  <div className="bg-white/10 rounded px-2 py-2">
-                    <p className="text-white/70 text-xs">勝率</p>
-                    <p className="text-green-400 text-xl font-bold">62%</p>
-                  </div>
-                  <div className="bg-white/10 rounded px-2 py-2">
-                    <p className="text-white/70 text-xs">獲得チップ</p>
-                    <div className="flex items-center gap-1">
-                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
-                      <p className="text-white text-lg font-bold">+3,500</p>
-                    </div>
-                  </div>
-                  <div className="bg-white/10 rounded px-2 py-2">
-                    <p className="text-white/70 text-xs">最大ポット</p>
-                    <div className="flex items-center gap-1">
-                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
-                      <p className="text-white text-lg font-bold">1,200</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 累計統計 */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">📈 累計統計</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/80 text-xs">総ハンド数</span>
-                    <span className="text-white text-sm font-bold">1,847</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/80 text-xs">総勝率</span>
-                    <span className="text-green-400 text-sm font-bold">58.3%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/80 text-xs">プリフロップ勝率</span>
-                    <span className="text-white text-sm font-bold">65%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/80 text-xs">ショーダウン勝率</span>
-                    <span className="text-white text-sm font-bold">48%</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 最強ハンド */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🏆 最強ハンド</p>
-                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg p-3 text-center">
-                  <p className="text-white text-xs mb-1">ロイヤルフラッシュ</p>
-                  <p className="text-white text-2xl font-bold">A♠ K♠ Q♠ J♠ 10♠</p>
-                  <p className="text-white/90 text-xs mt-1">2024/10/15</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ルールモーダル */}
-      {showRules && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">📖 ルール</h2>
-              <button 
-                onClick={() => setShowRules(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {/* ゲーム概要 */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🎯 Texas Hold'em とは</p>
-                <p className="text-white text-xs leading-relaxed">
-                  テキサスホールデムは世界で最も人気のあるポーカーゲームです。2枚の手札と5枚のコミュニティカードで最高の5枚役を作ります。
-                </p>
-              </div>
-
-              {/* ゲームの流れ */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🔄 ゲームの流れ</p>
-                <div className="space-y-2 text-xs text-white">
-                  <div className="flex gap-2">
-                    <span className="font-bold text-yellow-400">1.</span>
-                    <span>プリフロップ: 2枚の手札が配られる</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="font-bold text-yellow-400">2.</span>
-                    <span>フロップ: 3枚のコミュニティカードが開く</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="font-bold text-yellow-400">3.</span>
-                    <span>ターン: 4枚目のカードが開く</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="font-bold text-yellow-400">4.</span>
-                    <span>リバー: 5枚目のカードが開く</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="font-bold text-yellow-400">5.</span>
-                    <span>ショーダウン: 手札を公開して勝敗決定</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* アクション */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🎮 アクション</p>
-                <div className="space-y-1 text-xs text-white">
-                  <div><span className="font-bold text-green-400">チェック:</span> ベットせずに次へ</div>
-                  <div><span className="font-bold text-blue-400">コール:</span> 相手のベットに同額を払う</div>
-                  <div><span className="font-bold text-yellow-400">レイズ:</span> 相手のベットより多く賭ける</div>
-                  <div><span className="font-bold text-red-400">フォールド:</span> 降りる（手札を捨てる）</div>
-                  <div><span className="font-bold text-purple-400">オールイン:</span> 全チップを賭ける</div>
-                </div>
-              </div>
-
-              {/* 役の強さ */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🃏 役の強さ（強い順）</p>
-                <div className="space-y-1 text-xs text-white">
-                  <div className="flex justify-between">
-                    <span>1. ロイヤルフラッシュ</span>
-                    <span className="text-yellow-400">A-K-Q-J-10 同じマーク</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>2. ストレートフラッシュ</span>
-                    <span className="text-yellow-400">連番・同マーク</span>
-                  </div>
-                  <div>3. フォーカード（4枚同じ数字）</div>
-                  <div>4. フルハウス（3枚+2枚）</div>
-                  <div>5. フラッシュ（5枚同マーク）</div>
-                  <div>6. ストレート（5枚連番）</div>
-                  <div>7. スリーカード（3枚同じ）</div>
-                  <div>8. ツーペア（2枚+2枚）</div>
-                  <div>9. ワンペア（2枚同じ）</div>
-                  <div>10. ハイカード（役なし）</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 設定モーダル */}
-      {showSettings && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">⚙️ 設定</h2>
-              <button 
-                onClick={() => setShowSettings(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* サウンド設定 */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🔊 オーディオ</p>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white text-xs">サウンドエフェクト</span>
-                    <button
-                      onClick={() => setSoundEnabled(!soundEnabled)}
-                      className={`w-12 h-6 rounded-full transition-colors ${
-                        soundEnabled ? 'bg-green-500' : 'bg-white/30'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                        soundEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-white text-xs">BGM</span>
-                    <button
-                      onClick={() => setMusicEnabled(!musicEnabled)}
-                      className={`w-12 h-6 rounded-full transition-colors ${
-                        musicEnabled ? 'bg-green-500' : 'bg-white/30'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                        musicEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* アニメーション設定 */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">⚡ アニメーション速度</p>
-                <div className="space-y-1">
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2"
-                    step="0.5"
-                    value={animationSpeed}
-                    onChange={(e) => setAnimationSpeed(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-white text-xs">
-                    <span>遅い</span>
-                    <span className="font-bold">{animationSpeed}x</span>
-                    <span>速い</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* オートアクション */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🤖 オートアクション</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white text-xs">オートチェック</span>
-                    <button
-                      onClick={() => setAutoCheck(!autoCheck)}
-                      className={`w-12 h-6 rounded-full transition-colors ${
-                        autoCheck ? 'bg-green-500' : 'bg-white/30'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                        autoCheck ? 'translate-x-6' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-white text-xs">オートチェック/フォールド</span>
-                    <button
-                      onClick={() => setAutoCheckFold(!autoCheckFold)}
-                      className={`w-12 h-6 rounded-full transition-colors ${
-                        autoCheckFold ? 'bg-green-500' : 'bg-white/30'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                        autoCheckFold ? 'translate-x-6' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => setShowSettings(false)}
-                className="w-full bg-green-500 hover:bg-green-600 py-2.5 px-4 rounded-lg transition-colors"
-              >
-                <p className="text-white text-sm font-bold">閉じる</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

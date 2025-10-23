@@ -215,7 +215,7 @@ export default function ActiveGamePage() {
       { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
       { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
     ]},
-    { id: 3, name: 'プレイヤー3', chips: 0, avatar: 'https://i.pravatar.cc/150?img=3', cardSide: 'right' as const, showCards: true, position: 'SB', bet: 12000, lastAction: 'ALL IN', folded: false, chatMessage: null, isWinner: false, isAllIn: true, cards: [
+    { id: 3, name: 'プレイヤー3', chips: 12000, avatar: 'https://i.pravatar.cc/150?img=3', cardSide: 'right' as const, showCards: true, position: 'SB', bet: 50, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
       { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
       { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
     ]},
@@ -235,7 +235,7 @@ export default function ActiveGamePage() {
       { rank: '2' as Rank, suit: 'hearts' as Suit, id: 'p7-card-1' },
       { rank: 'A' as Rank, suit: 'clubs' as Suit, id: 'p7-card-2' },
     ]},
-    { id: 8, name: 'プレイヤー8', chips: 4500, avatar: 'https://i.pravatar.cc/150?img=8', cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
+    { id: 8, name: 'プレイヤー8', chips: 0, avatar: 'https://i.pravatar.cc/150?img=8', cardSide: 'left' as const, showCards: true, position: null, bet: 4500, lastAction: 'ALL IN', folded: false, chatMessage: null, isWinner: false, isAllIn: true, cards: [
       { rank: 'K' as Rank, suit: 'spades' as Suit, id: 'p8-card-1' },
       { rank: 'Q' as Rank, suit: 'hearts' as Suit, id: 'p8-card-2' },
     ]},

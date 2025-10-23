@@ -8,10 +8,12 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundManager } from '@/hooks/useSoundManager';
 import { useMoneyModeStore } from '@/store/useMoneyModeStore';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function ActiveGamePage() {
   const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
   const { mode, isEnabled } = useMoneyModeStore();
+  const { user } = useAppStore();
   
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);
@@ -191,10 +193,24 @@ export default function ActiveGamePage() {
   const activePlayerId = 3;
 
   const players = [
-    { id: 1, name: 'プレイヤー1', chips: 5000, avatar: 'https://i.pravatar.cc/150?img=1', cardSide: 'right' as const, showCards: false, position: null, bet: 0, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
-      { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
-      { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
-    ]},
+    { 
+      id: 1, 
+      name: user?.username || 'プレイヤー1', 
+      chips: user?.chips || 5000, 
+      avatar: user?.avatar || 'https://i.pravatar.cc/150?img=1', 
+      cardSide: 'right' as const, 
+      showCards: false, 
+      position: null, 
+      bet: 0, 
+      lastAction: null, 
+      folded: false, 
+      chatMessage: null, 
+      isWinner: false, 
+      cards: [
+        { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
+        { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
+      ]
+    },
     { id: 2, name: 'プレイヤー2', chips: 8500, avatar: 'https://i.pravatar.cc/150?img=2', cardSide: 'right' as const, showCards: true, position: 'D', bet: 200, lastAction: 'RAISE', folded: false, chatMessage: 'いい手だ！', isWinner: true, cards: [
       { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
       { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
@@ -722,7 +738,7 @@ export default function ActiveGamePage() {
                   if (e.key === 'Enter' && chatMessage.trim()) {
                     const newMessage = {
                       id: chatMessages.length + 1,
-                      player: 'プレイヤー1',
+                      player: user?.username || 'プレイヤー1',
                       message: chatMessage,
                       time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
                     };
@@ -739,7 +755,7 @@ export default function ActiveGamePage() {
                   if (chatMessage.trim()) {
                     const newMessage = {
                       id: chatMessages.length + 1,
-                      player: 'プレイヤー1',
+                      player: user?.username || 'プレイヤー1',
                       message: chatMessage,
                       time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
                     };
@@ -2119,7 +2135,7 @@ export default function ActiveGamePage() {
                 <p className="text-white/80 text-xs mb-1">現在のチップ</p>
                 <div className="flex items-center gap-2">
                   <Image src="/chip-icon.png" alt="chip" width={20} height={20} />
-                  <p className="text-white text-2xl font-bold">5,000</p>
+                  <p className="text-white text-2xl font-bold">{(user?.chips || 5000).toLocaleString()}</p>
                 </div>
               </div>
 

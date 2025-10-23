@@ -129,9 +129,9 @@ export default function ActiveGamePage() {
         if (prev <= 1) {
           return 15;
         }
-        if (prev === 6) {
+        if (prev === 5) {
           playSound('timerWarning');
-        } else if (prev <= 10) {
+        } else if (prev < 5) {
           playSound('timerTick');
         }
         return prev - 1;

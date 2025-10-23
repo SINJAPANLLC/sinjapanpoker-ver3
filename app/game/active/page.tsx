@@ -13,6 +13,9 @@ export default function ActiveGamePage() {
   const [chatMessage, setChatMessage] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [autoCheck, setAutoCheck] = useState(false);
+  const [autoCheckFold, setAutoCheckFold] = useState(false);
+  const [showEmotes, setShowEmotes] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -286,6 +289,14 @@ export default function ActiveGamePage() {
               
               <div className="border-t border-white/30 my-2"></div>
               
+              <button className="w-full bg-yellow-500/80 hover:bg-yellow-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-bold">⏸️ 待機する</p>
+              </button>
+              
+              <button className="w-full bg-orange-500/80 hover:bg-orange-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-bold">🪑 離席中</p>
+              </button>
+              
               <button className="w-full bg-red-500/80 hover:bg-red-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
                 <p className="text-white text-sm font-bold">🚪 テーブルを離れる</p>
               </button>
@@ -509,6 +520,34 @@ export default function ActiveGamePage() {
       {/* アクションボタン - 画面下部 */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4">
         <div className="max-w-md mx-auto space-y-3">
+          {/* 自動アクション設定 */}
+          <div className="flex gap-2 justify-center">
+            <label className="flex items-center gap-1.5 bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border border-white/30 cursor-pointer hover:opacity-90 transition-opacity">
+              <input
+                type="checkbox"
+                checked={autoCheck}
+                onChange={(e) => {
+                  setAutoCheck(e.target.checked);
+                  if (e.target.checked) setAutoCheckFold(false);
+                }}
+                className="w-3 h-3"
+              />
+              <p className="text-white text-[9px] font-semibold">オートチェック</p>
+            </label>
+            <label className="flex items-center gap-1.5 bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border border-white/30 cursor-pointer hover:opacity-90 transition-opacity">
+              <input
+                type="checkbox"
+                checked={autoCheckFold}
+                onChange={(e) => {
+                  setAutoCheckFold(e.target.checked);
+                  if (e.target.checked) setAutoCheck(false);
+                }}
+                className="w-3 h-3"
+              />
+              <p className="text-white text-[9px] font-semibold">チェック/フォールド</p>
+            </label>
+          </div>
+
           {/* レイズスライダー */}
           {showRaiseSlider && (
             <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">
@@ -522,7 +561,7 @@ export default function ActiveGamePage() {
                 </div>
               </div>
               
-              {/* クイックベットボタン */}
+              {/* クイックベットボタン - POTサイズ */}
               <div className="grid grid-cols-4 gap-1.5 mb-2">
                 <button
                   onClick={() => setRaiseAmount(Math.floor(potAmount / 3))}
@@ -550,6 +589,34 @@ export default function ActiveGamePage() {
                 </button>
               </div>
 
+              {/* BB倍数ボタン */}
+              <div className="grid grid-cols-4 gap-1.5 mb-2">
+                <button
+                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 2.5))}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">2.5 BB</p>
+                </button>
+                <button
+                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 3))}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">3 BB</p>
+                </button>
+                <button
+                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 4))}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">4 BB</p>
+                </button>
+                <button
+                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 5))}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">5 BB</p>
+                </button>
+              </div>
+
               <input
                 type="range"
                 min={minRaise}
@@ -569,7 +636,7 @@ export default function ActiveGamePage() {
           )}
 
           {/* アクションボタン */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <button 
               onClick={() => setShowRaiseSlider(false)}
               className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
@@ -589,7 +656,132 @@ export default function ActiveGamePage() {
                 {showRaiseSlider ? (raiseAmount >= maxRaise ? 'ALL IN' : `レイズ ${raiseAmount}`) : 'レイズ'}
               </p>
             </button>
+            
+            {/* エモートボタン */}
+            <button
+              onClick={() => setShowEmotes(!showEmotes)}
+              className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+            >
+              <p className="text-lg">😊</p>
+            </button>
           </div>
+
+          {/* エモートパネル */}
+          {showEmotes && (
+            <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2 rounded-lg border-2 border-white/30 shadow-lg">
+              <p className="text-white text-[9px] font-bold mb-1.5">エモート</p>
+              <div className="grid grid-cols-6 gap-1.5">
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 😊');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">😊</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 😎');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">😎</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 😤');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">😤</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 🔥');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">🔥</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 👍');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">👍</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 💪');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">💪</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 😱');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">😱</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 🤔');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">🤔</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 😭');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">😭</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 🎉');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">🎉</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: 💰');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">💰</p>
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('エモート送信: ❤️');
+                    setShowEmotes(false);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 p-2 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-xl">❤️</p>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

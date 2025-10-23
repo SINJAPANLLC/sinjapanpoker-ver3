@@ -79,12 +79,20 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 - Password hashing via `bcryptjs`
 - Token storage in sessionStorage for API requests
 - Session validation on protected routes
+- **Admin Authentication System** (2025-10-23):
+  - JWT-based admin authentication via `/api/admin/login`
+  - `lib/auth/admin-auth.ts` provides `requireAdmin()` helper for API route protection
+  - All admin API endpoints require valid JWT token in Authorization header
+  - JWT_SECRET environment variable required for token signing/verification
+  - Admin user identified by email `info@sinjapan.jp` in database
 
 ### Data Layer
 
 **Database Strategy**
 - **PostgreSQL** with Drizzle ORM for persistent data storage (fully migrated from MongoDB on 2025-10-22)
-- Database connection via `server/db.ts` and `server/game-db.js` using environment variable `DATABASE_URL`
+- Database connection strategy (2025-10-23):
+  - `server/db.ts` - Neon Serverless driver for server-side code (server.js, game-db.js)
+  - `server/db-api.ts` - Standard pg driver for Next.js API routes (avoids WebSocket issues in Node.js runtime)
 - Real-time game data automatically saved to PostgreSQL on game completion
 - MongoDB/Mongoose completely removed (2025-10-22)
 - Schema defined in `shared/schema.ts` with UUID-based primary keys
@@ -115,13 +123,15 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 
 ### Key Architectural Decisions
 
-**1. Dual Money System**
-- **Problem**: Need to support both practice play and real money gambling
+**1. Dual Money System & Admin Grant System**
+- **Problem**: Need to support both practice play and real money gambling with controlled chip distribution
 - **Solution**: Two-tier currency system managed by `useCurrencyStore`:
-  - `gameChips` - Free practice chips (default 10,000 for new users)
+  - `gameChips` - Practice chips (new users start with 0 chips as of 2025-10-23)
   - `realChips` - Purchased chips (1 chip = 1 yen conversion)
   - `useMoneyModeStore` controls which mode is active
-- **Rationale**: Allows compliance with gambling regulations by default (play money), while supporting real money when admin enables it
+  - Admin grant system via `/admin/currency` page for manual chip distribution
+  - API endpoints: `/api/admin/grant-currency` (POST) and `/api/admin/users` (GET)
+- **Rationale**: Prevents abuse by requiring admin approval for initial chips; allows compliance with gambling regulations by default (play money), while supporting real money when admin enables it
 
 **2. Club-Based Revenue Sharing**
 - **Problem**: Need to track rake and distribute revenue to club owners

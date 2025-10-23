@@ -479,7 +479,7 @@ export default function ActiveGamePage() {
             </div>
             
             {/* ベット額表示 - カードの横 */}
-            {player.bet > 0 && !player.folded && (
+            {player.bet > 0 && !player.folded && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && (
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${
                 player.cardSide === 'right' ? '-right-12' : '-left-12'
               }`}>

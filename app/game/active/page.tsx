@@ -1,6 +1,14 @@
 'use client';
 
+import Card from '@/components/Card';
+import { Card as CardType, Suit, Rank } from '@/types';
+
 export default function ActiveGamePage() {
+  const playerCards: CardType[] = [
+    { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
+    { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
+  ];
+
   return (
     <div 
       className="relative min-h-screen w-full"
@@ -14,6 +22,27 @@ export default function ActiveGamePage() {
       {/* アバターアイコン - 画面中央下 */}
       <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
         <div className="relative">
+          {/* ハンドカード - アバターの左側 */}
+          <div className="absolute left-0 top-1/2 transform -translate-x-full -translate-y-1/2 -ml-4">
+            <div className="flex items-end" style={{ perspective: '400px' }}>
+              {playerCards.map((card, cardIndex) => (
+                <div
+                  key={card.id}
+                  className="relative"
+                  style={{
+                    transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
+                    marginLeft: cardIndex === 1 ? '-35px' : '0',
+                    zIndex: cardIndex,
+                  }}
+                >
+                  <div className="scale-[0.35] origin-center">
+                    <Card card={card} faceUp={false} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* アバターアイコン */}
           <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-5xl border-4 border-white shadow-lg">
             👤

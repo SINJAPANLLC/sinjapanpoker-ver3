@@ -44,7 +44,7 @@ export default function ActiveGamePage() {
           </div>
 
           {/* アバターアイコン */}
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-5xl border-4 border-white shadow-lg">
+          <div className="w-24 h-24 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-5xl border-4 border-white shadow-lg">
             👤
           </div>
           

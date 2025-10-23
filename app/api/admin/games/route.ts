@@ -4,6 +4,8 @@ import { games, users, handHistory } from '@/shared/schema';
 import { desc, gte, sql, eq, and } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth/admin-auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   // Admin認証チェック
   const authResult = requireAdmin(request);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { db } from '@/server/db-api';
 import { games, handHistory, users, playerStats } from '@/shared/schema';
 import { desc, gte, sql, count } from 'drizzle-orm';

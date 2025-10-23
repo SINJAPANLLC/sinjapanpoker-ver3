@@ -542,7 +542,7 @@ export default function ActiveGamePage() {
 
       {/* メニューパネル */}
       {showMenu && (
-        <div className="absolute top-16 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+        <div className="absolute top-16 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -718,7 +718,7 @@ export default function ActiveGamePage() {
 
       {/* チャットパネル */}
       {showChat && (
-        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
           <div className="p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -1192,7 +1192,7 @@ export default function ActiveGamePage() {
 
       {/* テーブル情報パネル */}
       {showTableInfo && (
-        <div className="absolute top-20 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+        <div className="absolute top-20 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -1235,7 +1235,7 @@ export default function ActiveGamePage() {
 
       {/* ハンド履歴パネル */}
       {showHandHistory && (
-        <div className="absolute top-20 left-20 w-80 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+        <div className="absolute top-20 left-20 w-80 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-[150]">
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -1279,7 +1279,7 @@ export default function ActiveGamePage() {
 
       {/* リバイモーダル */}
       {showRebuy && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
           <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
             <div className="flex items-center justify-between mb-4">
               <p className="text-white text-lg font-bold">チップ追加</p>
@@ -1342,7 +1342,7 @@ export default function ActiveGamePage() {
 
       {/* フィードバックモーダル */}
       {showFeedback && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
           <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
             <div className="flex items-center justify-between mb-4">
               <p className="text-white text-lg font-bold">💬 フィードバック</p>
@@ -1373,7 +1373,7 @@ export default function ActiveGamePage() {
 
       {/* 言語設定モーダル */}
       {showLanguageSettings && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
           <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
             <div className="flex items-center justify-between mb-4">
               <p className="text-white text-lg font-bold">🌐 言語設定</p>
@@ -1430,7 +1430,7 @@ export default function ActiveGamePage() {
 
       {/* アカウント設定モーダル */}
       {showAccountSettings && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
           <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
             <div className="flex items-center justify-between mb-4">
               <p className="text-white text-lg font-bold">👤 アカウント設定</p>
@@ -1481,7 +1481,7 @@ export default function ActiveGamePage() {
 
       {/* シェアモーダル */}
       {showShare && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
           <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
             <div className="flex items-center justify-between mb-4">
               <p className="text-white text-lg font-bold">📤 シェア</p>
@@ -1544,7 +1544,7 @@ export default function ActiveGamePage() {
 
       {/* 勝利セレブレーション - 紙吹雪 */}
       {showCelebration && (
-        <div className="absolute inset-0 pointer-events-none z-50">
+        <div className="absolute inset-0 pointer-events-none z-[150]">
           {Array.from({ length: 50 }).map((_, i) => (
             <motion.div
               key={i}
@@ -1610,7 +1610,7 @@ export default function ActiveGamePage() {
 
       {/* ターン開始プレイヤー名表示 */}
       {showPlayerTurn && currentTurnPlayer && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[150]">
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: [0, 1.2, 1], opacity: [1, 1, 0] }}
@@ -1631,7 +1631,7 @@ export default function ActiveGamePage() {
 
       {/* カードシャッフル演出 */}
       {showShuffling && (
-        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-[150]">
           <motion.div
             animate={{ 
               rotate: [0, 360],
@@ -1672,7 +1672,7 @@ export default function ActiveGamePage() {
 
       {/* バッドビート演出 */}
       {showBadBeat && (
-        <div className="absolute inset-0 pointer-events-none z-50">
+        <div className="absolute inset-0 pointer-events-none z-[150]">
           <motion.div
             style={{
               position: 'absolute',
@@ -1728,7 +1728,7 @@ export default function ActiveGamePage() {
 
       {/* レベルアップ・アチーブメント */}
       {showLevelUp && (
-        <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center">
+        <div className="absolute inset-0 pointer-events-none z-[150] flex items-center justify-center">
           <motion.div
             initial={{ scale: 0, rotate: -180, opacity: 0 }}
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
@@ -1778,7 +1778,7 @@ export default function ActiveGamePage() {
 
       {/* 連勝ストリーク */}
       {winStreak >= 3 && (
-        <div className="absolute top-32 right-8 z-40">
+        <div className="absolute top-32 right-8 z-[150]">
           <motion.div
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -1809,7 +1809,7 @@ export default function ActiveGamePage() {
 
       {/* リバイ/アドオン通知 */}
       {showRebuyNotification && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[150]">
           <motion.div
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -1894,7 +1894,7 @@ export default function ActiveGamePage() {
 
       {/* テーブル情報モーダル */}
       {showTableInfo && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold flex items-center gap-2">
@@ -1966,7 +1966,7 @@ export default function ActiveGamePage() {
 
       {/* ハンド履歴モーダル */}
       {showHandHistory && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold flex items-center gap-2">
@@ -2008,7 +2008,7 @@ export default function ActiveGamePage() {
 
       {/* シェアモーダル */}
       {showShare && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">📤 シェア</h2>
@@ -2037,7 +2037,7 @@ export default function ActiveGamePage() {
 
       {/* フィードバックモーダル */}
       {showFeedback && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">💬 フィードバック</h2>
@@ -2075,7 +2075,7 @@ export default function ActiveGamePage() {
 
       {/* 言語設定モーダル */}
       {showLanguageSettings && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">🌐 言語設定</h2>
@@ -2108,7 +2108,7 @@ export default function ActiveGamePage() {
 
       {/* アカウント設定モーダル */}
       {showAccountSettings && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">👤 アカウント設定</h2>
@@ -2158,7 +2158,7 @@ export default function ActiveGamePage() {
 
       {/* リバイモーダル */}
       {showRebuy && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">💰 チップ追加</h2>
@@ -2214,7 +2214,7 @@ export default function ActiveGamePage() {
 
       {/* プレイヤーリストモーダル */}
       {showPlayerList && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">👥 プレイヤーリスト</h2>
@@ -2276,7 +2276,7 @@ export default function ActiveGamePage() {
 
       {/* 統計モーダル */}
       {showStats && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">📊 統計</h2>
@@ -2357,7 +2357,7 @@ export default function ActiveGamePage() {
 
       {/* ルールモーダル */}
       {showRules && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">📖 ルール</h2>
@@ -2446,7 +2446,7 @@ export default function ActiveGamePage() {
 
       {/* 設定モーダル */}
       {showSettings && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">⚙️ 設定</h2>

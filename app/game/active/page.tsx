@@ -116,14 +116,14 @@ export default function ActiveGamePage() {
       }}
     >
       {/* 左上 - メニューアイコン */}
-      <div className="absolute top-6 left-6">
+      <div className="absolute top-4 left-4">
         <button className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
           <Menu className="w-6 h-6 text-white" />
         </button>
       </div>
 
       {/* 右上 - チャットアイコン */}
-      <div className="absolute top-6 right-6">
+      <div className="absolute top-4 right-4">
         <button className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
           <MessageCircle className="w-6 h-6 text-white" />
         </button>

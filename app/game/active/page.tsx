@@ -31,7 +31,7 @@ export default function ActiveGamePage() {
                   className="relative"
                   style={{
                     transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
-                    marginLeft: cardIndex === 1 ? '-35px' : '0',
+                    marginLeft: cardIndex === 1 ? '-50px' : '0',
                     zIndex: cardIndex,
                   }}
                 >

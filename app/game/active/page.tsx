@@ -12,6 +12,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { usePokerGame } from '@/hooks/usePokerGame';
 import { useSearchParams, useRouter } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 // CPUプレイヤーの名前リスト
 const CPU_NAMES = [
   'タケシ', 'ユウキ', 'ケンジ', 'マサヒロ', 'カズヤ',
@@ -2919,3 +2921,4 @@ export default function ActiveGamePage() {
     </div>
   );
 }
+export const runtime = "edge";

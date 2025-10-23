@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { db } from '@/server/db';
 import { games } from '@/shared/schema';
 import { desc, sql } from 'drizzle-orm';

@@ -20,6 +20,7 @@ interface Player {
   position: number;
   isDealer: boolean;
   hasActed: boolean;
+  avatar?: string;
 }
 
 interface Winner {
@@ -132,6 +133,7 @@ export function usePokerGame(gameId: string | null) {
         userId: user.id,
         username: user.username,
         chips,
+        avatar: (user as any).avatar,
       },
     });
   }, [socket, user, gameId]);

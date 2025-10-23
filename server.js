@@ -76,6 +76,7 @@ app.prepare().then(() => {
         folded: false,
         isAllIn: false,
         position: this.players.length,
+        avatar: player.avatar,
         isDealer: this.players.length === 0,
         hasActed: false,
       };

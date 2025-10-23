@@ -395,7 +395,8 @@ export default function ActiveGamePage() {
       id: idx + 1,
       name: p.username,
       chips: p.chips,
-      avatar: `https://i.pravatar.cc/150?img=${(idx + 1)}`,
+      // ユーザーのアバター画像を使用（なければランダム画像）
+      avatar: p.avatar || `https://i.pravatar.cc/150?img=${(idx + 1)}`,
       cardSide: (idx < 5 ? 'right' : 'left') as 'right' | 'left',
       showCards,
       position,

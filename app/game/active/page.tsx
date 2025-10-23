@@ -174,7 +174,7 @@ export default function ActiveGamePage() {
           <div className={`absolute top-0 ${
             player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
           } transform -translate-y-1/2`}>
-            <div className="relative bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-2 rounded-lg border-2 border-white/30 shadow-lg max-w-[120px]">
+            <div className="relative bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-1.5 rounded-md border-2 border-white/30 shadow-lg whitespace-nowrap">
               <p className="text-white text-[10px] font-semibold">{player.chatMessage}</p>
               {/* 吹き出しの三角形 */}
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${

@@ -38,6 +38,9 @@ export default function ActiveGamePage() {
   const [selectedLanguage, setSelectedLanguage] = useState('日本語');
   const [showShare, setShowShare] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showPlayerList, setShowPlayerList] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(1);
   const [dealingCards, setDealingCards] = useState(false);
   const [revealFlop, setRevealFlop] = useState(false);
@@ -520,11 +523,23 @@ export default function ActiveGamePage() {
                 </p>
               </button>
               
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+              <button 
+                onClick={() => {
+                  setShowPlayerList(true);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
                 <p className="text-white text-sm font-semibold">👥 プレイヤーリスト</p>
               </button>
               
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+              <button 
+                onClick={() => {
+                  setShowStats(true);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
                 <p className="text-white text-sm font-semibold">📊 統計</p>
               </button>
               
@@ -548,7 +563,13 @@ export default function ActiveGamePage() {
                 <p className="text-white text-sm font-semibold">⚙️ 設定</p>
               </button>
               
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+              <button 
+                onClick={() => {
+                  setShowRules(true);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
                 <p className="text-white text-sm font-semibold">📖 ルール</p>
               </button>
               
@@ -2078,6 +2099,232 @@ export default function ActiveGamePage() {
               >
                 <p className="text-white text-sm font-bold">購入する</p>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* プレイヤーリストモーダル */}
+      {showPlayerList && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">👥 プレイヤーリスト</h2>
+              <button 
+                onClick={() => setShowPlayerList(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {players.map((player, index) => (
+                <div key={player.id} className="bg-white/20 rounded-lg p-3 border border-white/40">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-bold">{player.name}</p>
+                        <p className="text-white/80 text-xs">席 #{index + 1}</p>
+                      </div>
+                    </div>
+                    {player.position && (
+                      <div className="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
+                        {player.position}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <div className="bg-white/10 rounded px-2 py-1">
+                      <p className="text-white/70 text-xs">チップ</p>
+                      <div className="flex items-center gap-1">
+                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+                        <p className="text-white text-sm font-semibold">{player.chips.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/10 rounded px-2 py-1">
+                      <p className="text-white/70 text-xs">ステータス</p>
+                      <p className="text-green-400 text-sm font-semibold">
+                        {player.folded ? '降りた' : player.bet > 0 ? 'ベット中' : 'アクティブ'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 統計モーダル */}
+      {showStats && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">📊 統計</h2>
+              <button 
+                onClick={() => setShowStats(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {/* 今日の統計 */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🗓️ 今日の統計</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/10 rounded px-2 py-2">
+                    <p className="text-white/70 text-xs">プレイハンド数</p>
+                    <p className="text-white text-xl font-bold">24</p>
+                  </div>
+                  <div className="bg-white/10 rounded px-2 py-2">
+                    <p className="text-white/70 text-xs">勝率</p>
+                    <p className="text-green-400 text-xl font-bold">62%</p>
+                  </div>
+                  <div className="bg-white/10 rounded px-2 py-2">
+                    <p className="text-white/70 text-xs">獲得チップ</p>
+                    <div className="flex items-center gap-1">
+                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                      <p className="text-white text-lg font-bold">+3,500</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/10 rounded px-2 py-2">
+                    <p className="text-white/70 text-xs">最大ポット</p>
+                    <div className="flex items-center gap-1">
+                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                      <p className="text-white text-lg font-bold">1,200</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 累計統計 */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">📈 累計統計</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-xs">総ハンド数</span>
+                    <span className="text-white text-sm font-bold">1,847</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-xs">総勝率</span>
+                    <span className="text-green-400 text-sm font-bold">58.3%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-xs">プリフロップ勝率</span>
+                    <span className="text-white text-sm font-bold">65%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-xs">ショーダウン勝率</span>
+                    <span className="text-white text-sm font-bold">48%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 最強ハンド */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🏆 最強ハンド</p>
+                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg p-3 text-center">
+                  <p className="text-white text-xs mb-1">ロイヤルフラッシュ</p>
+                  <p className="text-white text-2xl font-bold">A♠ K♠ Q♠ J♠ 10♠</p>
+                  <p className="text-white/90 text-xs mt-1">2024/10/15</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ルールモーダル */}
+      {showRules && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">📖 ルール</h2>
+              <button 
+                onClick={() => setShowRules(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {/* ゲーム概要 */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🎯 Texas Hold'em とは</p>
+                <p className="text-white text-xs leading-relaxed">
+                  テキサスホールデムは世界で最も人気のあるポーカーゲームです。2枚の手札と5枚のコミュニティカードで最高の5枚役を作ります。
+                </p>
+              </div>
+
+              {/* ゲームの流れ */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🔄 ゲームの流れ</p>
+                <div className="space-y-2 text-xs text-white">
+                  <div className="flex gap-2">
+                    <span className="font-bold text-yellow-400">1.</span>
+                    <span>プリフロップ: 2枚の手札が配られる</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="font-bold text-yellow-400">2.</span>
+                    <span>フロップ: 3枚のコミュニティカードが開く</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="font-bold text-yellow-400">3.</span>
+                    <span>ターン: 4枚目のカードが開く</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="font-bold text-yellow-400">4.</span>
+                    <span>リバー: 5枚目のカードが開く</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="font-bold text-yellow-400">5.</span>
+                    <span>ショーダウン: 手札を公開して勝敗決定</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* アクション */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🎮 アクション</p>
+                <div className="space-y-1 text-xs text-white">
+                  <div><span className="font-bold text-green-400">チェック:</span> ベットせずに次へ</div>
+                  <div><span className="font-bold text-blue-400">コール:</span> 相手のベットに同額を払う</div>
+                  <div><span className="font-bold text-yellow-400">レイズ:</span> 相手のベットより多く賭ける</div>
+                  <div><span className="font-bold text-red-400">フォールド:</span> 降りる（手札を捨てる）</div>
+                  <div><span className="font-bold text-purple-400">オールイン:</span> 全チップを賭ける</div>
+                </div>
+              </div>
+
+              {/* 役の強さ */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🃏 役の強さ（強い順）</p>
+                <div className="space-y-1 text-xs text-white">
+                  <div className="flex justify-between">
+                    <span>1. ロイヤルフラッシュ</span>
+                    <span className="text-yellow-400">A-K-Q-J-10 同じマーク</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>2. ストレートフラッシュ</span>
+                    <span className="text-yellow-400">連番・同マーク</span>
+                  </div>
+                  <div>3. フォーカード（4枚同じ数字）</div>
+                  <div>4. フルハウス（3枚+2枚）</div>
+                  <div>5. フラッシュ（5枚同マーク）</div>
+                  <div>6. ストレート（5枚連番）</div>
+                  <div>7. スリーカード（3枚同じ）</div>
+                  <div>8. ツーペア（2枚+2枚）</div>
+                  <div>9. ワンペア（2枚同じ）</div>
+                  <div>10. ハイカード（役なし）</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

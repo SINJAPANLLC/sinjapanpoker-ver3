@@ -51,7 +51,7 @@ interface AdminStats {
 
 function AdminDashboardContent() {
   const router = useRouter();
-  const { adminUser, logout } = useAdminStore();
+  const { adminUser, logout, adminToken } = useAdminStore();
   const { tournaments, getActiveTournaments, getTournamentsByAdmin } = useTournamentStore();
   const { settings, toggleRealMoney } = useSystemStore();
   const { activeGames } = useGameStore();
@@ -65,10 +65,18 @@ function AdminDashboardContent() {
   useEffect(() => {
     const fetchAdminStats = async () => {
       try {
-        const response = await fetch('/api/admin/stats');
+        const response = await fetch('/api/admin/stats', {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+          },
+        });
         const data = await response.json();
-        setAdminStats(data);
-        setActiveTournaments(data.activeTournaments.tournaments || []);
+        if (response.ok) {
+          setAdminStats(data);
+          setActiveTournaments(data.activeTournaments.tournaments || []);
+        } else {
+          console.error('Failed to fetch admin stats:', data);
+        }
       } catch (error) {
         console.error('Failed to fetch admin stats:', error);
       } finally {
@@ -76,13 +84,13 @@ function AdminDashboardContent() {
       }
     };
 
-    if (adminUser) {
+    if (adminUser && adminToken) {
       fetchAdminStats();
       // 30秒ごとに更新
       const interval = setInterval(fetchAdminStats, 30000);
       return () => clearInterval(interval);
     }
-  }, [adminUser]);
+  }, [adminUser, adminToken]);
 
   // Fallback: Zustand storeからもデータ取得
   useEffect(() => {
@@ -126,7 +134,7 @@ function AdminDashboardContent() {
     },
     {
       title: '賞金総額',
-      value: (adminStats?.activeTournaments.totalPrizePool || activeTournaments.reduce((sum, t) => sum + (t.prizePool || t.prize || 0), 0)).toLocaleString(),
+      value: (adminStats?.activeTournaments.totalPrizePool || activeTournaments.reduce((sum, t) => sum + ((t as any).prizePool || (t as any).prize || 0), 0)).toLocaleString(),
       icon: <DollarSign className="w-6 h-6 text-green-500" />,
       change: '+25%',
       changeType: 'positive'

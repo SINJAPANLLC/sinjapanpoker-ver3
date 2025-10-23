@@ -833,13 +833,16 @@ export default function ActiveGamePage() {
         )}
 
         {/* チャット吹き出し - カードと同じ側に表示 */}
-        {player.chatMessage && (
-          <div className={`absolute top-0 ${
-            player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
-          } transform -translate-y-1/2`}>
+        <AnimatePresence mode="wait">
+          {player.chatMessage && (
             <motion.div
+              key={`chat-${player.name}-${player.chatMessage}`}
+              className={`absolute top-0 ${
+                player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
+              } transform -translate-y-1/2`}
               initial={{ x: player.cardSide === 'right' ? -20 : 20, opacity: 0, scale: 0.8 }}
               animate={{ x: 0, opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <div className="relative bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-1.5 rounded-md border-2 border-white/30 shadow-lg whitespace-nowrap">
@@ -856,8 +859,8 @@ export default function ActiveGamePage() {
                 </div>
               </div>
             </motion.div>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
 
         {/* ユーザー情報（アバターの下部に被せる） */}
         <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(50%+10px)] bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10 ${player.folded ? 'opacity-40' : ''}`}>

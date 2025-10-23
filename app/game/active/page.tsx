@@ -119,8 +119,8 @@ export default function ActiveGamePage() {
         </div>
       </div>
 
-      {/* ポット - Qのカードの上 */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[200%]">
+      {/* ポット - 少し上 */}
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%]">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
           <p className="text-white text-xs font-bold text-center">POT</p>
           <p className="text-white text-sm font-semibold text-center">{pot.toLocaleString()}</p>

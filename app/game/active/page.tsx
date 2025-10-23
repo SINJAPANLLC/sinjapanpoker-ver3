@@ -9,6 +9,7 @@ import Image from 'next/image';
 export default function ActiveGamePage() {
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);
+  const [showRaiseSlider, setShowRaiseSlider] = useState(false);
   
   const callAmount = 200;
   const minRaise = 200;
@@ -328,34 +329,41 @@ export default function ActiveGamePage() {
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4">
         <div className="max-w-md mx-auto space-y-3">
           {/* レイズスライダー */}
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-white text-xs font-bold">レイズ額</p>
-              <div className="flex items-center gap-1">
-                <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
-                <p className="text-white text-sm font-bold">{raiseAmount}</p>
+          {showRaiseSlider && (
+            <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-white text-xs font-bold">
+                  {raiseAmount >= maxRaise ? 'ALL IN' : 'レイズ額'}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
+                  <p className="text-white text-sm font-bold">{raiseAmount}</p>
+                </div>
+              </div>
+              <input
+                type="range"
+                min={minRaise}
+                max={maxRaise}
+                value={raiseAmount}
+                onChange={(e) => setRaiseAmount(Number(e.target.value))}
+                className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #fbbf24 0%, #fbbf24 ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) 100%)`
+                }}
+              />
+              <div className="flex justify-between mt-1">
+                <p className="text-white text-[10px]">最小: {minRaise}</p>
+                <p className="text-white text-[10px]">最大: {maxRaise}</p>
               </div>
             </div>
-            <input
-              type="range"
-              min={minRaise}
-              max={maxRaise}
-              value={raiseAmount}
-              onChange={(e) => setRaiseAmount(Number(e.target.value))}
-              className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, #fbbf24 0%, #fbbf24 ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) 100%)`
-              }}
-            />
-            <div className="flex justify-between mt-1">
-              <p className="text-white text-[10px]">最小: {minRaise}</p>
-              <p className="text-white text-[10px]">最大: {maxRaise}</p>
-            </div>
-          </div>
+          )}
 
           {/* アクションボタン */}
           <div className="flex gap-2">
-            <button className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+            <button 
+              onClick={() => setShowRaiseSlider(false)}
+              className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+            >
               <p className="text-white text-sm font-bold">フォールド</p>
             </button>
             <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
@@ -363,8 +371,13 @@ export default function ActiveGamePage() {
                 コール {callAmount > 0 ? callAmount : ''}
               </p>
             </button>
-            <button className="bg-green-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
-              <p className="text-white text-sm font-bold">レイズ</p>
+            <button 
+              onClick={() => setShowRaiseSlider(!showRaiseSlider)}
+              className="bg-green-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+            >
+              <p className="text-white text-sm font-bold">
+                {showRaiseSlider ? (raiseAmount >= maxRaise ? 'ALL IN' : `レイズ ${raiseAmount}`) : 'レイズ'}
+              </p>
             </button>
           </div>
         </div>

@@ -455,7 +455,7 @@ export default function ActiveGamePage() {
         )}
 
         {/* ユーザー情報（アバターの下部に被せる） */}
-        <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10 ${player.folded ? 'opacity-40' : ''}`}>
+        <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(50%+10px)] bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10 ${player.folded ? 'opacity-40' : ''}`}>
           <p className="text-white text-[10px] font-bold text-center whitespace-nowrap">
             {player.name}
           </p>
@@ -466,7 +466,7 @@ export default function ActiveGamePage() {
 
         {/* 最後のアクション表示 - 所持チップの下 */}
         {player.lastAction && (
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(100%+24px)]">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(100%+34px)]">
             <div className={`px-2 py-0.5 rounded-md border border-white/50 shadow-md ${
               player.lastAction === 'FOLD' ? 'bg-red-500' : 
               player.lastAction === 'RAISE' ? 'bg-green-500' : 

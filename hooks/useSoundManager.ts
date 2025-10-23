@@ -102,14 +102,75 @@ export const useSoundManager = () => {
     });
   }, []);
 
+  const playChipSound = useCallback(async (intensity: number = 1) => {
+    if (!soundEnabledRef.current || !audioContextRef.current) return;
+
+    const ctx = audioContextRef.current;
+    if (ctx.state === 'suspended') await ctx.resume();
+
+    // ホワイトノイズでカチャカチャ感を出す
+    const bufferSize = ctx.sampleRate * 0.05;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.3;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = 3000 + Math.random() * 2000;
+    noiseFilter.Q.value = 3;
+
+    const noiseGain = ctx.createGain();
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+    noiseGain.gain.setValueAtTime(0.4 * intensity, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+
+    noise.start(now);
+    noise.stop(now + 0.05);
+
+    // プラスチック/セラミックの響き
+    const resonances = [1200, 2400, 3600, 4800];
+    resonances.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq + Math.random() * 100;
+
+      filter.type = 'bandpass';
+      filter.frequency.value = freq;
+      filter.Q.value = 10;
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      const volume = (0.15 / (i + 1)) * intensity;
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03 + i * 0.01);
+
+      osc.start(now);
+      osc.stop(now + 0.05);
+    });
+  }, []);
+
   const playSound = useCallback((effect: SoundEffect) => {
     if (!soundEnabledRef.current || !audioContextRef.current) return;
 
     switch (effect) {
       case 'bet':
-        // チップを置く音（カジノチップのクリック音）
-        playRichSound([800, 1200], 0.08, {attack: 0.001, decay: 0.02, sustain: 0.15, release: 0.05}, 2400);
-        setTimeout(() => playRichSound([700, 1050], 0.06, {attack: 0.001, decay: 0.015, sustain: 0.12, release: 0.04}, 2100), 40);
+        // チップを置く音（リアルなカジノチップ）
+        playChipSound(0.8);
+        setTimeout(() => playChipSound(0.6), 50);
         break;
 
       case 'fold':
@@ -119,16 +180,18 @@ export const useSoundManager = () => {
         break;
 
       case 'call':
-        // コール音（コイン落下音風）
-        playRichSound([880, 1320], 0.15, {attack: 0.002, decay: 0.08, sustain: 0.2, release: 0.06}, 2640);
-        setTimeout(() => playRichSound([660, 990], 0.12, {attack: 0.002, decay: 0.06, sustain: 0.15, release: 0.05}, 1980), 50);
+        // コール音（チップを押し出す）
+        playChipSound(1.0);
+        setTimeout(() => playChipSound(0.7), 60);
+        setTimeout(() => playChipSound(0.5), 110);
         break;
 
       case 'raise':
         // レイズ音（複数のチップ積み上げ）
-        playRichSound([523, 784], 0.1, {attack: 0.001, decay: 0.04, sustain: 0.2, release: 0.05}, 1568);
-        setTimeout(() => playRichSound([659, 988], 0.1, {attack: 0.001, decay: 0.04, sustain: 0.2, release: 0.05}, 1976), 70);
-        setTimeout(() => playRichSound([784, 1176], 0.12, {attack: 0.001, decay: 0.05, sustain: 0.25, release: 0.06}, 2352), 140);
+        playChipSound(0.9);
+        setTimeout(() => playChipSound(0.8), 70);
+        setTimeout(() => playChipSound(0.9), 140);
+        setTimeout(() => playChipSound(0.7), 200);
         break;
 
       case 'allIn':
@@ -177,11 +240,10 @@ export const useSoundManager = () => {
 
       case 'chipCollect':
         // チップ収集音（カシャカシャと集まる）
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 8; i++) {
           setTimeout(() => {
-            const freq = 700 + i * 80;
-            playRichSound([freq, freq * 1.5], 0.07, {attack: 0.001, decay: 0.025, sustain: 0.15, release: 0.035}, freq * 2);
-          }, i * 45);
+            playChipSound(0.7 + Math.random() * 0.3);
+          }, i * 50);
         }
         break;
 
@@ -224,7 +286,7 @@ export const useSoundManager = () => {
       default:
         break;
     }
-  }, [playRichSound]);
+  }, [playRichSound, playChipSound]);
 
   const setSoundEnabled = useCallback((enabled: boolean) => {
     soundEnabledRef.current = enabled;

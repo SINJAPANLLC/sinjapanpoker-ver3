@@ -6,8 +6,11 @@ import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSoundManager } from '@/hooks/useSoundManager';
 
 export default function ActiveGamePage() {
+  const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
+  
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);
   const [showRaiseSlider, setShowRaiseSlider] = useState(false);
@@ -80,12 +83,82 @@ export default function ActiveGamePage() {
         if (prev <= 1) {
           return 15;
         }
+        if (prev === 6) {
+          playSound('timerWarning');
+        } else if (prev <= 10) {
+          playSound('timerTick');
+        }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [playSound]);
+
+  useEffect(() => {
+    setSoundManagerEnabled(soundEnabled);
+  }, [soundEnabled, setSoundManagerEnabled]);
+
+  // アニメーションに応じたサウンド再生
+  useEffect(() => {
+    if (dealingCards) {
+      playSound('cardDeal');
+    }
+  }, [dealingCards, playSound]);
+
+  useEffect(() => {
+    if (revealFlop || revealTurn || revealRiver) {
+      playSound('cardFlip');
+    }
+  }, [revealFlop, revealTurn, revealRiver, playSound]);
+
+  useEffect(() => {
+    if (showWinnerChips) {
+      playSound('chipCollect');
+    }
+  }, [showWinnerChips, playSound]);
+
+  useEffect(() => {
+    if (showCelebration) {
+      playSound('win');
+    }
+  }, [showCelebration, playSound]);
+
+  useEffect(() => {
+    if (allInPlayer !== null) {
+      playSound('allIn');
+    }
+  }, [allInPlayer, playSound]);
+
+  useEffect(() => {
+    if (showShuffling) {
+      playSound('shuffle');
+    }
+  }, [showShuffling, playSound]);
+
+  useEffect(() => {
+    if (joiningPlayer !== null) {
+      playSound('playerJoin');
+    }
+  }, [joiningPlayer, playSound]);
+
+  useEffect(() => {
+    if (leavingPlayer !== null) {
+      playSound('playerLeave');
+    }
+  }, [leavingPlayer, playSound]);
+
+  useEffect(() => {
+    if (showLevelUp) {
+      playSound('levelUp');
+    }
+  }, [showLevelUp, playSound]);
+
+  useEffect(() => {
+    if (showBadBeat) {
+      playSound('lose');
+    }
+  }, [showBadBeat, playSound]);
   
   const communityCards: CardType[] = [
     { rank: 'A' as Rank, suit: 'spades' as Suit, id: 'comm-1' },
@@ -942,21 +1015,28 @@ export default function ActiveGamePage() {
           {/* アクションボタン */}
           <div className="flex gap-2 items-center">
             <button 
-              onClick={() => setShowRaiseSlider(false)}
+              onClick={() => {
+                playSound('fold');
+                setShowRaiseSlider(false);
+              }}
               className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
             >
               <p className="text-white text-sm font-bold">フォールド</p>
             </button>
             <button 
               onClick={() => {
-                console.log(`${callAmount > 0 ? 'コール' : 'チェック'}: ${callAmount}`);
                 if (callAmount > 0) {
+                  playSound('call');
+                  console.log(`コール: ${callAmount}`);
                   // チップアニメーションをトリガー
                   const newChipAnim = { id: Date.now(), playerId: 1 };
                   setChipAnimations([...chipAnimations, newChipAnim]);
                   setTimeout(() => {
                     setChipAnimations(prev => prev.filter(a => a.id !== newChipAnim.id));
                   }, 500);
+                } else {
+                  playSound('bet');
+                  console.log('チェック');
                 }
               }}
               className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
@@ -968,6 +1048,11 @@ export default function ActiveGamePage() {
             <button 
               onClick={() => {
                 if (showRaiseSlider) {
+                  if (raiseAmount >= maxRaise) {
+                    playSound('allIn');
+                  } else {
+                    playSound('raise');
+                  }
                   console.log(`レイズ: ${raiseAmount}`);
                   setShowRaiseSlider(false);
                   // チップアニメーションをトリガー

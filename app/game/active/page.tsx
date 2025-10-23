@@ -98,48 +98,48 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* プレイヤー1 - 中央下 */}
-      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+      {/* プレイヤー1 - 中央下（少し上） */}
+      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2">
         <PlayerComponent player={players[0]} />
       </div>
 
-      {/* プレイヤー2 - 左下 */}
-      <div className="absolute bottom-52 left-6">
+      {/* プレイヤー2 - 左下（少し上） */}
+      <div className="absolute bottom-60 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
-      {/* プレイヤー3 - 左中 (2の上) */}
-      <div className="absolute top-1/2 left-6 transform -translate-y-1/2">
+      {/* プレイヤー3 - 左中（少し上） */}
+      <div className="absolute top-[45%] left-6 transform -translate-y-1/2">
         <PlayerComponent player={players[2]} />
       </div>
 
-      {/* プレイヤー4 - 左上 (少し下に) */}
+      {/* プレイヤー4 - 左上 */}
       <div className="absolute top-44 left-6">
         <PlayerComponent player={players[3]} />
       </div>
 
-      {/* プレイヤー5 - 上左 (4の右上) */}
+      {/* プレイヤー5 - 上左 */}
       <div className="absolute top-6 left-1/4 transform -translate-x-1/2">
         <PlayerComponent player={players[4]} />
       </div>
 
-      {/* プレイヤー6 - 上右 (5の隣) */}
+      {/* プレイヤー6 - 上右 */}
       <div className="absolute top-6 right-1/4 transform translate-x-1/2">
         <PlayerComponent player={players[5]} />
       </div>
 
-      {/* プレイヤー7 - 右上 (少し下に) */}
+      {/* プレイヤー7 - 右上 */}
       <div className="absolute top-44 right-6">
         <PlayerComponent player={players[6]} />
       </div>
 
-      {/* プレイヤー8 - 右中 (3の反対) */}
-      <div className="absolute top-1/2 right-6 transform -translate-y-1/2">
+      {/* プレイヤー8 - 右中（少し上） */}
+      <div className="absolute top-[45%] right-6 transform -translate-y-1/2">
         <PlayerComponent player={players[7]} />
       </div>
 
-      {/* プレイヤー9 - 右下 (2の反対) */}
-      <div className="absolute bottom-52 right-6">
+      {/* プレイヤー9 - 右下（少し上） */}
+      <div className="absolute bottom-60 right-6">
         <PlayerComponent player={players[8]} />
       </div>
     </div>

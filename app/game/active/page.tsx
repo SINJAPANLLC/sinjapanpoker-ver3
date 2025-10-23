@@ -435,11 +435,8 @@ export default function ActiveGamePage() {
     const showCards = true;
     const showCardsFaceUp = gameState?.phase === 'showdown' || gameState?.phase === 'finished';
     
-    let lastAction = null;
-    if (p.folded) lastAction = 'FOLD';
-    else if (p.isAllIn) lastAction = 'ALL IN';
-    else if (p.hasActed && p.bet > 0) lastAction = 'RAISE';
-    else if (p.hasActed) lastAction = 'CHECK';
+    // サーバーから送られるlastActionをそのまま使用
+    const lastAction = p.lastAction || null;
     
     // 勝利ハイライトはゲーム終了時（finished/showdown）のみ表示
     const isWinner = (gameState?.phase === 'finished' || gameState?.phase === 'showdown') 

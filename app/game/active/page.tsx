@@ -260,30 +260,13 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* 左上 - メニューアイコン群 */}
-      <div className="absolute top-4 left-4 flex gap-2">
-        {/* メニューアイコン */}
+      {/* 左上 - メニューアイコン */}
+      <div className="absolute top-4 left-4">
         <button 
           onClick={() => setShowMenu(!showMenu)}
           className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
         >
           <Menu className="w-6 h-6 text-white" />
-        </button>
-        
-        {/* テーブル情報ボタン */}
-        <button 
-          onClick={() => setShowTableInfo(!showTableInfo)}
-          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-        >
-          <Info className="w-5 h-5 text-white" />
-        </button>
-        
-        {/* ハンド履歴ボタン */}
-        <button 
-          onClick={() => setShowHandHistory(!showHandHistory)}
-          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-        >
-          <History className="w-5 h-5 text-white" />
         </button>
       </div>
 
@@ -310,6 +293,30 @@ export default function ActiveGamePage() {
                 <p className="text-white text-sm font-semibold">🏠 ホームに戻る</p>
               </button>
               
+              <button 
+                onClick={() => {
+                  setShowTableInfo(!showTableInfo);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold flex items-center gap-2">
+                  <Info className="w-4 h-4" /> テーブル情報
+                </p>
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setShowHandHistory(!showHandHistory);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold flex items-center gap-2">
+                  <History className="w-4 h-4" /> ハンド履歴
+                </p>
+              </button>
+              
               <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
                 <p className="text-white text-sm font-semibold">👥 プレイヤーリスト</p>
               </button>
@@ -328,12 +335,58 @@ export default function ActiveGamePage() {
                 <p className="text-white text-sm font-semibold">📝 アクションログ</p>
               </button>
               
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-semibold">📖 ルール</p>
+              <button 
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold flex items-center gap-2">
+                  {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  サウンド {soundEnabled ? 'ON' : 'OFF'}
+                </p>
               </button>
               
+              <button 
+                onClick={() => setMusicEnabled(!musicEnabled)}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold flex items-center gap-2">
+                  <Music className="w-4 h-4" />
+                  音楽 {musicEnabled ? 'ON' : 'OFF'}
+                </p>
+              </button>
+              
+              <button 
+                onClick={() => {
+                  if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    setIsFullscreen(true);
+                  } else {
+                    document.exitFullscreen();
+                    setIsFullscreen(false);
+                  }
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold flex items-center gap-2">
+                  {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                  全画面 {isFullscreen ? 'ON' : 'OFF'}
+                </p>
+              </button>
+              
+              <div className="w-full bg-white/20 py-2.5 px-3 rounded-lg border border-white/40">
+                <p className="text-white text-sm font-semibold flex items-center gap-2">
+                  {connectionStatus === 'connected' ? (
+                    <><Wifi className="w-4 h-4 text-green-300" /> 接続中</>
+                  ) : connectionStatus === 'connecting' ? (
+                    <><Wifi className="w-4 h-4 text-yellow-300 animate-pulse" /> 接続中...</>
+                  ) : (
+                    <><WifiOff className="w-4 h-4 text-red-300" /> 切断</>
+                  )}
+                </p>
+              </div>
+              
               <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-semibold">⚙️ 設定</p>
+                <p className="text-white text-sm font-semibold">📖 ルール</p>
               </button>
               
               <div className="border-t border-white/30 my-2"></div>
@@ -371,40 +424,8 @@ export default function ActiveGamePage() {
         </div>
       )}
 
-      {/* 右上 - アイコン群 */}
-      <div className="absolute top-4 right-4 flex gap-2">
-        {/* 接続状態インジケーター */}
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg">
-          {connectionStatus === 'connected' ? (
-            <Wifi className="w-5 h-5 text-white" />
-          ) : connectionStatus === 'connecting' ? (
-            <Wifi className="w-5 h-5 text-yellow-300 animate-pulse" />
-          ) : (
-            <WifiOff className="w-5 h-5 text-red-300" />
-          )}
-        </div>
-        
-        {/* 全画面ボタン */}
-        <button 
-          onClick={() => {
-            if (!document.fullscreenElement) {
-              document.documentElement.requestFullscreen();
-              setIsFullscreen(true);
-            } else {
-              document.exitFullscreen();
-              setIsFullscreen(false);
-            }
-          }}
-          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-        >
-          {isFullscreen ? (
-            <Minimize className="w-5 h-5 text-white" />
-          ) : (
-            <Maximize className="w-5 h-5 text-white" />
-          )}
-        </button>
-        
-        {/* チャットアイコン */}
+      {/* 右上 - チャットアイコン */}
+      <div className="absolute top-4 right-4">
         <button 
           onClick={() => setShowChat(!showChat)}
           className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
@@ -415,8 +436,8 @@ export default function ActiveGamePage() {
 
       {/* チャットパネル */}
       {showChat && (
-        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
-          <div className="p-3">
+        <div className="absolute top-4 right-20 w-72 h-[calc(100vh-2rem)] max-h-[600px] bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50 flex flex-col">
+          <div className="p-3 flex-shrink-0">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-white" />
@@ -429,9 +450,11 @@ export default function ActiveGamePage() {
                 <p className="text-xs">✕</p>
               </button>
             </div>
+          </div>
 
+          <div className="px-3 pb-3 flex-1 flex flex-col min-h-0">
             {/* メッセージ履歴 */}
-            <div className="bg-white/10 rounded-lg p-2 h-48 overflow-y-auto mb-2 space-y-1.5">
+            <div className="bg-white/10 rounded-lg p-2 flex-1 overflow-y-auto mb-2 space-y-1.5">
               {chatMessages.map((msg) => (
                 <div key={msg.id} className="bg-white/20 rounded px-2 py-1.5 border border-white/30">
                   <div className="flex items-center justify-between mb-0.5">
@@ -466,7 +489,7 @@ export default function ActiveGamePage() {
             </div>
 
             {/* 入力フィールド */}
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 flex-shrink-0">
               <input
                 type="text"
                 value={chatMessage}
@@ -573,7 +596,7 @@ export default function ActiveGamePage() {
                 duration: 0.5,
                 ease: "easeOut"
               }}
-              className="absolute"
+              style={{ position: 'absolute' }}
             >
               <Image src="/chip-icon.png" alt="chip" width={24} height={24} className="drop-shadow-lg" />
             </motion.div>
@@ -582,7 +605,13 @@ export default function ActiveGamePage() {
         
         {/* メインポット */}
         <motion.div 
-          className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg"
+          style={{
+            background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.5rem',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+          }}
           animate={{ 
             scale: chipAnimations.length > 0 ? [1, 1.1, 1] : 1 
           }}
@@ -1115,28 +1144,6 @@ export default function ActiveGamePage() {
         </div>
       )}
 
-      {/* 右下 - サウンド/音楽設定 */}
-      <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-        {/* サウンドボタン */}
-        <button
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2.5 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
-        >
-          {soundEnabled ? (
-            <Volume2 className="w-5 h-5 text-white" />
-          ) : (
-            <VolumeX className="w-5 h-5 text-white" />
-          )}
-        </button>
-        
-        {/* 音楽ボタン */}
-        <button
-          onClick={() => setMusicEnabled(!musicEnabled)}
-          className={`bg-gradient-to-br from-cyan-400 to-blue-600 p-2.5 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity ${!musicEnabled && 'opacity-50'}`}
-        >
-          <Music className="w-5 h-5 text-white" />
-        </button>
-      </div>
     </div>
   );
 }

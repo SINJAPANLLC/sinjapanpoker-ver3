@@ -890,15 +890,18 @@ export default function ActiveGamePage() {
   };
 
   return (
-    <div 
-      className="relative w-full h-screen"
-      style={{
-        backgroundImage: 'url(/poker-table-bg.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: '55% 32%',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <>
+      <div className="relative w-full h-screen flex items-center justify-center bg-black">
+        {/* レスポンシブコンテナ - iPhone17基準（430px x 932px）で最適化 */}
+        <div 
+          className="relative w-full h-screen md:max-w-[430px] md:h-[932px] md:max-h-screen md:rounded-lg md:overflow-hidden md:shadow-2xl"
+          style={{
+            backgroundImage: 'url(/poker-table-bg.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: '55% 32%',
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
       {/* 左上 - メニューアイコン */}
       <div className="absolute top-4 left-4">
         <button 
@@ -2937,7 +2940,9 @@ export default function ActiveGamePage() {
         </div>
       )}
 
-    </div>
+        </div>
+      </div>
+    </>
   );
 }
 export const runtime = "edge";

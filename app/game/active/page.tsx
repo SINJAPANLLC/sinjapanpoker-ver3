@@ -290,59 +290,13 @@ export default function ActiveGamePage() {
 
       {/* チャット入力UI - プレイヤー1の左側 */}
       <div className="absolute bottom-32 left-8">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2 rounded-md border border-white/30 shadow-lg w-44">
-          <div className="flex items-center gap-1 mb-1.5">
-            <MessageCircle className="w-3 h-3 text-white" />
-            <p className="text-white text-[8px] font-bold">チャット</p>
-          </div>
-          
-          {/* プリセットメッセージ */}
-          <div className="grid grid-cols-2 gap-1 mb-1.5">
-            <button
-              onClick={() => setChatMessage('よろしく！')}
-              className="bg-white/20 hover:bg-white/30 py-1 px-1.5 rounded border border-white/40 transition-colors"
-            >
-              <p className="text-white text-[7px] font-semibold">よろしく！</p>
-            </button>
-            <button
-              onClick={() => setChatMessage('いい手だ！')}
-              className="bg-white/20 hover:bg-white/30 py-1 px-1.5 rounded border border-white/40 transition-colors"
-            >
-              <p className="text-white text-[7px] font-semibold">いい手だ！</p>
-            </button>
-            <button
-              onClick={() => setChatMessage('よし、勝負！')}
-              className="bg-white/20 hover:bg-white/30 py-1 px-1.5 rounded border border-white/40 transition-colors"
-            >
-              <p className="text-white text-[7px] font-semibold">よし、勝負！</p>
-            </button>
-            <button
-              onClick={() => setChatMessage('ナイス！')}
-              className="bg-white/20 hover:bg-white/30 py-1 px-1.5 rounded border border-white/40 transition-colors"
-            >
-              <p className="text-white text-[7px] font-semibold">ナイス！</p>
-            </button>
-            <button
-              onClick={() => setChatMessage('GG')}
-              className="bg-white/20 hover:bg-white/30 py-1 px-1.5 rounded border border-white/40 transition-colors"
-            >
-              <p className="text-white text-[7px] font-semibold">GG</p>
-            </button>
-            <button
-              onClick={() => setChatMessage('次は勝つ！')}
-              className="bg-white/20 hover:bg-white/30 py-1 px-1.5 rounded border border-white/40 transition-colors"
-            >
-              <p className="text-white text-[7px] font-semibold">次は勝つ！</p>
-            </button>
-          </div>
-
-          {/* カスタム入力 */}
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-1.5 rounded border border-white/30 shadow-lg w-36">
           <div className="flex gap-1">
             <input
               type="text"
               value={chatMessage}
               onChange={(e) => setChatMessage(e.target.value)}
-              placeholder="入力..."
+              placeholder="メッセージ..."
               className="flex-1 bg-white/20 text-white text-[8px] px-1.5 py-1 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30"
               maxLength={50}
             />

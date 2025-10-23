@@ -1,9 +1,19 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/server/db';
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/server/db-api';
 import { tournaments, games, users } from '@/shared/schema';
 import { eq, sql, and, gte } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth/admin-auth';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Admin認証チェック
+  const authResult = requireAdmin(request);
+  if ('error' in authResult) {
+    return NextResponse.json(
+      { error: authResult.error },
+      { status: authResult.status }
+    );
+  }
+
   try {
     // アクティブトーナメント取得
     const activeTournaments = await db

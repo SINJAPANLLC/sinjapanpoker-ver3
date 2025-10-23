@@ -266,11 +266,28 @@ app.prepare().then(() => {
       this.currentPlayerIndex = this.getNextActivePlayer((this.dealerIndex + 1) % this.players.length);
     }
 
+    calculateRake(potSize) {
+      // レーキ計算（5%、キャップあり）
+      const rakePercentage = 0.05;
+      const stakesLevel = this.blinds.big <= 10 ? 'micro' : 
+                         this.blinds.big <= 100 ? 'low' : 
+                         this.blinds.big <= 500 ? 'medium' : 'high';
+      const rakeCaps = { micro: 3, low: 5, medium: 10, high: 20 };
+      
+      if (potSize < 10) return 0; // 小さいポットはレーキなし
+      
+      const rakeAmount = potSize * rakePercentage;
+      return Math.min(rakeAmount, rakeCaps[stakesLevel]);
+    }
+
     showdown() {
       const activePlayers = this.players.filter(p => !p.folded);
       
       if (activePlayers.length === 1) {
-        const winAmount = this.pot;
+        // レーキ徴収
+        const rake = this.calculateRake(this.pot);
+        const winAmount = this.pot - rake;
+        
         activePlayers[0].chips += winAmount;
         this.pot = 0;
         this.winner = activePlayers[0].username;
@@ -281,6 +298,7 @@ app.prepare().then(() => {
           handDescription: 'フォールド勝ち',
         }];
         this.phase = 'finished';
+        console.log(`レーキ徴収: ${rake} チップ（ポット: ${this.pot + rake}）`);
         return;
       }
 
@@ -290,7 +308,19 @@ app.prepare().then(() => {
         folded: p.folded,
       }));
 
+      // レーキ徴収（全ポットから）
+      const totalPot = this.pot;
+      const rake = this.calculateRake(totalPot);
+      const potAfterRake = totalPot - rake;
+      
       this.sidePots = calculateSidePots(playerBets);
+      
+      // サイドポットからもレーキを按分して引く
+      const rakeRatio = rake / totalPot;
+      this.sidePots = this.sidePots.map(pot => ({
+        ...pot,
+        amount: Math.floor(pot.amount * (1 - rakeRatio))
+      }));
 
       const handsWithInfo = activePlayers.map(player => {
         const allCards = [...player.cards, ...this.communityCards];
@@ -326,6 +356,8 @@ app.prepare().then(() => {
           winningsMap.set(winner.playerId, currentWinnings + amountPerWinner + extraChip);
         }
       }
+      
+      console.log(`レーキ徴収: ${rake} チップ（ポット: ${totalPot}、配分後: ${potAfterRake}）`);
 
       const winners = [];
       for (const [playerId, amount] of winningsMap.entries()) {

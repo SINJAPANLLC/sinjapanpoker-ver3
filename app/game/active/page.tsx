@@ -13,6 +13,8 @@ export default function ActiveGamePage() {
     { rank: '10' as Rank, suit: 'spades' as Suit, id: 'comm-5' },
   ];
 
+  const pot = 15000;
+
   const players = [
     { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, cards: [
       { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
@@ -106,7 +108,7 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* コミュニティカード - 大きくした */}
+      {/* コミュニティカード */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-1">
           {communityCards.map((card) => (
@@ -114,6 +116,14 @@ export default function ActiveGamePage() {
               <Card card={card} faceUp={true} />
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ポット - Qのカードの上 */}
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[200%]">
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
+          <p className="text-white text-xs font-bold text-center">POT</p>
+          <p className="text-white text-sm font-semibold text-center">{pot.toLocaleString()}</p>
         </div>
       </div>
 

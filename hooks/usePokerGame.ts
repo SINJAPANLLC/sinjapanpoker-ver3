@@ -123,10 +123,10 @@ export function usePokerGame(gameId: string | null) {
     };
   }, [gameId, user]);
 
-  const joinGame = useCallback((chips: number = 1000) => {
+  const joinGame = useCallback((chips: number = 1000, blinds?: { small: number; big: number }) => {
     if (!socket || !user || !gameId) return;
 
-    console.log('Joining game:', { gameId, userId: user.id, username: user.username, chips });
+    console.log('Joining game:', { gameId, userId: user.id, username: user.username, chips, blinds });
     socket.emit('join-game', {
       gameId,
       player: {
@@ -135,6 +135,7 @@ export function usePokerGame(gameId: string | null) {
         chips,
         avatar: (user as any).avatar,
       },
+      blinds,
     });
   }, [socket, user, gameId]);
 

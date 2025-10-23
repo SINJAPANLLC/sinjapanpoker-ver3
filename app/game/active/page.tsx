@@ -363,14 +363,54 @@ export default function ActiveGamePage() {
         )}
 
         {/* アバターアイコン */}
-        <div className={`w-20 h-20 rounded-full border-3 border-white shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''}`}>
-          <Image
-            src={player.avatar}
-            alt={player.name}
-            width={80}
-            height={80}
-            className="w-full h-full object-cover"
-          />
+        <div className="relative">
+          {/* 勝利者の光るエフェクト */}
+          {player.isWinner && (
+            <>
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'linear-gradient(45deg, #FFD700, #FFA500, #FFD700)',
+                  filter: 'blur(8px)',
+                  zIndex: 0
+                }}
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.7, 1, 0.7],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              <motion.div
+                className="absolute inset-0 rounded-full border-4"
+                style={{
+                  borderColor: '#FFD700',
+                  boxShadow: '0 0 20px #FFD700, 0 0 40px #FFA500',
+                  zIndex: 1
+                }}
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                }}
+              />
+            </>
+          )}
+          <div className={`relative w-20 h-20 rounded-full border-3 ${player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
+            <Image
+              src={player.avatar}
+              alt={player.name}
+              width={80}
+              height={80}
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
 
         {/* ポジションマーカー（D, SB, BB） */}

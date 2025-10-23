@@ -7,9 +7,11 @@ import { Card as CardType, Suit, Rank } from '@/types';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundManager } from '@/hooks/useSoundManager';
+import { useMoneyModeStore } from '@/store/useMoneyModeStore';
 
 export default function ActiveGamePage() {
   const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
+  const { mode, isEnabled } = useMoneyModeStore();
   
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);
@@ -615,15 +617,17 @@ export default function ActiveGamePage() {
               
               <div className="border-t border-white/30 my-2"></div>
               
-              <button 
-                onClick={() => {
-                  setShowRebuy(true);
-                  setShowMenu(false);
-                }}
-                className="w-full bg-green-500/80 hover:bg-green-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-bold">💰 チップ追加</p>
-              </button>
+              {isEnabled && mode === 'real' && (
+                <button 
+                  onClick={() => {
+                    setShowRebuy(true);
+                    setShowMenu(false);
+                  }}
+                  className="w-full bg-green-500/80 hover:bg-green-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+                >
+                  <p className="text-white text-sm font-bold">💰 チップ追加</p>
+                </button>
+              )}
               
               <button 
                 onClick={() => setIsSpectator(!isSpectator)}

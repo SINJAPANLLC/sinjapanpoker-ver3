@@ -1,11 +1,40 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { User, Menu, MessageCircle } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
 import Image from 'next/image';
 
 export default function ActiveGamePage() {
+  const [raiseAmount, setRaiseAmount] = useState(200);
+  const [turnTimer, setTurnTimer] = useState(15);
+  
+  const callAmount = 200;
+  const minRaise = 200;
+  const maxRaise = 5000;
+
+  const actionLog = [
+    { player: 'プレイヤー2', action: 'レイズ 200', time: '12:34' },
+    { player: 'プレイヤー6', action: 'コール 200', time: '12:35' },
+    { player: 'プレイヤー9', action: 'コール 200', time: '12:35' },
+    { player: 'プレイヤー5', action: 'フォールド', time: '12:36' },
+    { player: 'プレイヤー7', action: 'フォールド', time: '12:36' },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTurnTimer((prev) => {
+        if (prev <= 1) {
+          return 15;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+  
   const communityCards: CardType[] = [
     { rank: 'A' as Rank, suit: 'spades' as Suit, id: 'comm-1' },
     { rank: 'K' as Rank, suit: 'hearts' as Suit, id: 'comm-2' },
@@ -15,103 +44,152 @@ export default function ActiveGamePage() {
   ];
 
   const pot = 15000;
+  const tableName = "SIN JAPAN TABLE #1";
+  const handNumber = 42;
+  const smallBlind = 50;
+  const bigBlind = 100;
 
   const player1HandCards: CardType[] = [
     { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-hand-1' },
     { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-hand-2' },
   ];
 
+  const activePlayerId = 3;
+
   const players = [
-    { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, showCards: false, position: null, cards: [
+    { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, showCards: false, position: null, bet: 0, lastAction: null, folded: false, cards: [
       { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
       { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
     ]},
-    { id: 2, name: 'プレイヤー2', chips: 8500, cardSide: 'right' as const, showCards: true, position: 'D', cards: [
+    { id: 2, name: 'プレイヤー2', chips: 8500, cardSide: 'right' as const, showCards: true, position: 'D', bet: 200, lastAction: 'RAISE', folded: false, cards: [
       { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
       { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
     ]},
-    { id: 3, name: 'プレイヤー3', chips: 12000, cardSide: 'right' as const, showCards: true, position: 'SB', cards: [
+    { id: 3, name: 'プレイヤー3', chips: 12000, cardSide: 'right' as const, showCards: true, position: 'SB', bet: 50, lastAction: null, folded: false, cards: [
       { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
       { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
     ]},
-    { id: 4, name: 'プレイヤー4', chips: 6200, cardSide: 'right' as const, showCards: true, position: 'BB', cards: [
+    { id: 4, name: 'プレイヤー4', chips: 6200, cardSide: 'right' as const, showCards: true, position: 'BB', bet: 100, lastAction: null, folded: false, cards: [
       { rank: '8' as Rank, suit: 'clubs' as Suit, id: 'p4-card-1' },
       { rank: '7' as Rank, suit: 'spades' as Suit, id: 'p4-card-2' },
     ]},
-    { id: 5, name: 'プレイヤー5', chips: 9800, cardSide: 'right' as const, showCards: true, position: null, cards: [
+    { id: 5, name: 'プレイヤー5', chips: 9800, cardSide: 'right' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, cards: [
       { rank: '6' as Rank, suit: 'hearts' as Suit, id: 'p5-card-1' },
       { rank: '5' as Rank, suit: 'diamonds' as Suit, id: 'p5-card-2' },
     ]},
-    { id: 6, name: 'プレイヤー6', chips: 7500, cardSide: 'left' as const, showCards: true, position: null, cards: [
+    { id: 6, name: 'プレイヤー6', chips: 7500, cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, cards: [
       { rank: '4' as Rank, suit: 'clubs' as Suit, id: 'p6-card-1' },
       { rank: '3' as Rank, suit: 'spades' as Suit, id: 'p6-card-2' },
     ]},
-    { id: 7, name: 'プレイヤー7', chips: 11000, cardSide: 'left' as const, showCards: true, position: null, cards: [
+    { id: 7, name: 'プレイヤー7', chips: 11000, cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, cards: [
       { rank: '2' as Rank, suit: 'hearts' as Suit, id: 'p7-card-1' },
       { rank: 'A' as Rank, suit: 'clubs' as Suit, id: 'p7-card-2' },
     ]},
-    { id: 8, name: 'プレイヤー8', chips: 4500, cardSide: 'left' as const, showCards: true, position: null, cards: [
+    { id: 8, name: 'プレイヤー8', chips: 4500, cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: null, folded: false, cards: [
       { rank: 'K' as Rank, suit: 'spades' as Suit, id: 'p8-card-1' },
       { rank: 'Q' as Rank, suit: 'hearts' as Suit, id: 'p8-card-2' },
     ]},
-    { id: 9, name: 'プレイヤー9', chips: 8200, cardSide: 'left' as const, showCards: true, position: null, cards: [
+    { id: 9, name: 'プレイヤー9', chips: 8200, cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, cards: [
       { rank: 'J' as Rank, suit: 'diamonds' as Suit, id: 'p9-card-1' },
       { rank: '10' as Rank, suit: 'clubs' as Suit, id: 'p9-card-2' },
     ]},
   ];
 
-  const PlayerComponent = ({ player }: { player: typeof players[0] }) => (
-    <div className="relative">
-      {/* ハンドカード - アバターに重ねる */}
-      {player.showCards && (
-        <div className={`absolute top-1/2 transform -translate-y-1/2 ${
-          player.cardSide === 'right' 
-            ? 'right-0 translate-x-1/2' 
-            : 'left-0 -translate-x-1/2'
-        }`}>
-          <div className="flex items-end" style={{ perspective: '400px' }}>
-            {player.cards.map((card, cardIndex) => (
-              <div
-                key={card.id}
-                className="relative"
-                style={{
-                  transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
-                  marginLeft: cardIndex === 1 ? '-60px' : '0',
-                  zIndex: cardIndex,
-                }}
-              >
-                <div className="scale-[0.35] origin-center">
-                  <Card card={card} faceUp={false} />
-                </div>
-              </div>
-            ))}
+  const PlayerComponent = ({ player }: { player: typeof players[0] }) => {
+    const isActive = player.id === activePlayerId;
+    
+    return (
+      <div className="relative">
+        {/* アクティブターンのハイライト */}
+        {isActive && (
+          <div className="absolute inset-0 -m-2">
+            <div className="w-24 h-24 rounded-full border-4 border-yellow-400 animate-pulse shadow-lg shadow-yellow-400/50"></div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* アバターアイコン */}
-      <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-3 border-white shadow-lg">
-        <User className="w-10 h-10 text-white" strokeWidth={2} />
-      </div>
+        {/* ハンドカード - アバターに重ねる */}
+        {player.showCards && (
+          <div className={`absolute top-1/2 transform -translate-y-1/2 ${
+            player.cardSide === 'right' 
+              ? 'right-0 translate-x-1/2' 
+              : 'left-0 -translate-x-1/2'
+          }`}>
+            <div className="flex items-end" style={{ perspective: '400px' }}>
+              {player.cards.map((card, cardIndex) => (
+                <div
+                  key={card.id}
+                  className="relative"
+                  style={{
+                    transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
+                    marginLeft: cardIndex === 1 ? '-60px' : '0',
+                    zIndex: cardIndex,
+                  }}
+                >
+                  <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
+                    <Card card={card} faceUp={false} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-      {/* ポジションマーカー（D, SB, BB） */}
-      {player.position && (
-        <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
-          <p className="text-white text-xs font-bold">{player.position}</p>
+        {/* アバターアイコン */}
+        <div className={`w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-3 border-white shadow-lg ${player.folded ? 'opacity-40' : ''}`}>
+          <User className="w-10 h-10 text-white" strokeWidth={2} />
         </div>
-      )}
-      
-      {/* ユーザー情報（アバターの下部に被せる） */}
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10">
-        <p className="text-white text-[10px] font-bold text-center whitespace-nowrap">
-          {player.name}
-        </p>
-        <p className="text-white text-[10px] font-semibold text-center whitespace-nowrap">
-          {player.chips.toLocaleString()}
-        </p>
+
+        {/* ポジションマーカー（D, SB, BB） */}
+        {player.position && (
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+            <p className="text-white text-xs font-bold">{player.position}</p>
+          </div>
+        )}
+
+        {/* ターンタイマー */}
+        {isActive && (
+          <div className="absolute -top-2 -left-2 w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+            <p className="text-black text-sm font-bold">{turnTimer}</p>
+          </div>
+        )}
+
+        {/* ベット額表示 */}
+        {player.bet > 0 && !player.folded && (
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-2">
+            <div className="bg-yellow-400 px-2 py-1 rounded-md border-2 border-white shadow-lg">
+              <div className="flex items-center gap-1">
+                <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                <p className="text-black text-xs font-bold">{player.bet}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 最後のアクション表示 */}
+        {player.lastAction && (
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1">
+            <div className={`px-2 py-0.5 rounded-md border border-white/50 shadow-md ${
+              player.lastAction === 'FOLD' ? 'bg-red-500' : 
+              player.lastAction === 'RAISE' ? 'bg-green-500' : 
+              'bg-blue-500'
+            }`}>
+              <p className="text-white text-[9px] font-bold">{player.lastAction}</p>
+            </div>
+          </div>
+        )}
+        
+        {/* ユーザー情報（アバターの下部に被せる） */}
+        <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10 ${player.folded ? 'opacity-40' : ''}`}>
+          <p className="text-white text-[10px] font-bold text-center whitespace-nowrap">
+            {player.name}
+          </p>
+          <p className="text-white text-[10px] font-semibold text-center whitespace-nowrap">
+            {player.chips.toLocaleString()}
+          </p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div 
@@ -135,6 +213,32 @@ export default function ActiveGamePage() {
         <button className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
           <MessageCircle className="w-6 h-6 text-white" />
         </button>
+      </div>
+
+      {/* テーブル情報ヘッダー */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
+          <p className="text-white text-xs font-bold text-center">{tableName}</p>
+          <div className="flex items-center justify-center gap-3 mt-1">
+            <p className="text-white text-xs">Hand #{handNumber}</p>
+            <p className="text-white text-xs">SB/BB: {smallBlind}/{bigBlind}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* アクションログ */}
+      <div className="absolute bottom-[180px] right-4 w-48">
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2 rounded-lg border-2 border-white/30 shadow-lg">
+          <p className="text-white text-xs font-bold mb-2">アクション履歴</p>
+          <div className="space-y-1 max-h-32 overflow-y-auto">
+            {actionLog.map((log, index) => (
+              <div key={index} className="bg-white/20 px-2 py-1 rounded text-[10px]">
+                <p className="text-white font-semibold">{log.player}</p>
+                <p className="text-white/90">{log.action}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* コミュニティカード */}
@@ -226,17 +330,48 @@ export default function ActiveGamePage() {
       </div>
 
       {/* アクションボタン - 画面下部 */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full px-4">
-        <div className="flex gap-3 max-w-md mx-auto">
-          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
-            <p className="text-white text-base font-bold">フォールド</p>
-          </button>
-          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
-            <p className="text-white text-base font-bold">チェック</p>
-          </button>
-          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
-            <p className="text-white text-base font-bold">レイズ</p>
-          </button>
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4">
+        <div className="max-w-md mx-auto space-y-3">
+          {/* レイズスライダー */}
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-white text-xs font-bold">レイズ額</p>
+              <div className="flex items-center gap-1">
+                <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
+                <p className="text-white text-sm font-bold">{raiseAmount}</p>
+              </div>
+            </div>
+            <input
+              type="range"
+              min={minRaise}
+              max={maxRaise}
+              value={raiseAmount}
+              onChange={(e) => setRaiseAmount(Number(e.target.value))}
+              className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #fbbf24 0%, #fbbf24 ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) ${((raiseAmount - minRaise) / (maxRaise - minRaise)) * 100}%, rgba(255,255,255,0.3) 100%)`
+              }}
+            />
+            <div className="flex justify-between mt-1">
+              <p className="text-white text-[10px]">最小: {minRaise}</p>
+              <p className="text-white text-[10px]">最大: {maxRaise}</p>
+            </div>
+          </div>
+
+          {/* アクションボタン */}
+          <div className="flex gap-2">
+            <button className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+              <p className="text-white text-sm font-bold">フォールド</p>
+            </button>
+            <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+              <p className="text-white text-sm font-bold">
+                コール {callAmount > 0 ? callAmount : ''}
+              </p>
+            </button>
+            <button className="bg-green-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+              <p className="text-white text-sm font-bold">レイズ</p>
+            </button>
+          </div>
         </div>
       </div>
     </div>

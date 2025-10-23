@@ -451,8 +451,8 @@ export default function ActiveGamePage() {
       chips: p.chips,
       // ユーザーのアバター画像を使用（なければランダム画像）
       avatar: p.avatar || `https://i.pravatar.cc/150?img=${(idx + 1)}`,
-      // position 0（下部中央）は'center'、1-4は右側、5-8は左側
-      cardSide: position === '0' || position === 0 ? 'center' : (Number(position || 0) <= 4 ? 'right' : 'left'),
+      // position 0（下部中央）は'center'、1-4は左側、5-8は右側
+      cardSide: position === '0' || position === 0 ? 'center' : (Number(position || 0) <= 4 ? 'left' : 'right'),
       showCards,
       showCardsFaceUp,
       position,

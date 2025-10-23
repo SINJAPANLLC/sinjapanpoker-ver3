@@ -275,10 +275,29 @@ export default function ActiveGamePage() {
   const sidePotTotal = gameState?.sidePots?.reduce((sum, sp) => sum + sp.amount, 0) || 0;
   const hasSidePots = sidePotTotal > 0;
   
-  const tableName = gameState?.id || "SIN JAPAN TABLE #1";
+  // ロビーで設定したテーブル情報を取得（useEffectで処理）
+  const [tableInfo, setTableInfo] = useState<any>(null);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined' || !tableId) return;
+    try {
+      const savedTables = localStorage.getItem('poker_tables');
+      if (savedTables) {
+        const tables = JSON.parse(savedTables);
+        const found = tables.find((t: any) => t.id === tableId);
+        if (found) {
+          setTableInfo(found);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load table info:', error);
+    }
+  }, [tableId]);
+  
+  const tableName = tableInfo?.name || gameState?.id || "SIN JAPAN TABLE #1";
   const handNumber = 42;
-  const smallBlind = gameState?.blinds?.small || 10;
-  const bigBlind = gameState?.blinds?.big || 20;
+  const smallBlind = tableInfo?.blinds?.small || gameState?.blinds?.small || 10;
+  const bigBlind = tableInfo?.blinds?.big || gameState?.blinds?.big || 20;
   const gamePhase = gameState?.phase.toUpperCase() || "WAITING";
 
   const currentPlayerData = getCurrentPlayer();

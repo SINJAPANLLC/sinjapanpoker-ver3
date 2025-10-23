@@ -540,6 +540,28 @@ app.prepare().then(() => {
           
           io.to(gameId).emit('game-state', this.getState());
           
+          // ゲームが終了していたら次のハンドを開始
+          if (this.phase === 'finished') {
+            setTimeout(async () => {
+              // 練習モードでない場合のみデータベースに保存
+              if (this.id !== 'practice-game') {
+                // await saveGameToDatabase(this);
+              }
+              
+              const canContinue = this.startNextHand();
+              if (canContinue) {
+                io.to(gameId).emit('game-state', this.getState());
+                
+                // 次のハンドでCPUがスタートする場合
+                const firstPlayer = this.players[this.currentPlayerIndex];
+                if (firstPlayer && this.isCPUPlayer(firstPlayer)) {
+                  this.executeCPUAction(io, gameId);
+                }
+              }
+            }, 3000);
+            return;
+          }
+          
           // 次のプレイヤーもCPU/離席中なら再帰的に実行
           if (this.phase !== 'finished' && this.phase !== 'showdown') {
             const nextPlayer = this.players[this.currentPlayerIndex];

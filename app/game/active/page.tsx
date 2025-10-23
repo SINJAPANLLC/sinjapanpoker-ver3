@@ -22,8 +22,8 @@ export default function ActiveGamePage() {
       {/* アバターアイコン - 画面中央下 */}
       <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
         <div className="relative">
-          {/* ハンドカード - アバターの右側 */}
-          <div className="absolute right-0 top-1/2 transform translate-x-full -translate-y-1/2 -mr-4">
+          {/* ハンドカード - アバターに重ねる */}
+          <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2">
             <div className="flex items-end" style={{ perspective: '400px' }}>
               {playerCards.map((card, cardIndex) => (
                 <div

@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from 'lucide-react';
+import { User, Menu, MessageCircle } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
 
@@ -115,6 +115,20 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
+      {/* 左上 - メニューアイコン */}
+      <div className="absolute top-6 left-6">
+        <button className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+          <Menu className="w-6 h-6 text-white" />
+        </button>
+      </div>
+
+      {/* 右上 - チャットアイコン */}
+      <div className="absolute top-6 right-6">
+        <button className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+          <MessageCircle className="w-6 h-6 text-white" />
+        </button>
+      </div>
+
       {/* コミュニティカード */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-1">

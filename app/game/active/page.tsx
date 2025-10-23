@@ -107,7 +107,7 @@ export default function ActiveGamePage() {
     { id: 3, player: 'プレイヤー9', message: 'よし、勝負！', time: '12:34' },
   ]);
   const [playerBubbles, setPlayerBubbles] = useState<Record<string, { message: string; timestamp: number }>>({});
-  const [processedMessageCount, setProcessedMessageCount] = useState(0);
+  const [lastProcessedTimestamp, setLastProcessedTimestamp] = useState(0);
   
   // 動的な値として計算
   const currentPlayer = getCurrentPlayer();
@@ -197,32 +197,33 @@ export default function ActiveGamePage() {
         time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
       })));
       
-      // 新しいメッセージだけを処理（重複防止）
-      if (socketMessages.length > processedMessageCount) {
-        const latestMsg = socketMessages[socketMessages.length - 1];
-        if (latestMsg) {
-          const username = latestMsg.username;
-          const bubbleId = `${username}-${latestMsg.timestamp}`;
-          
-          setPlayerBubbles(prev => ({
-            ...prev,
-            [username]: { message: latestMsg.message, timestamp: Date.now() }
-          }));
-          
-          // 3秒後に吹き出しを消す
-          setTimeout(() => {
-            setPlayerBubbles(prev => {
+      // 新しいメッセージだけを処理（タイムスタンプで重複防止）
+      const latestMsg = socketMessages[socketMessages.length - 1];
+      if (latestMsg && latestMsg.timestamp > lastProcessedTimestamp) {
+        const username = latestMsg.username;
+        
+        setPlayerBubbles(prev => ({
+          ...prev,
+          [username]: { message: latestMsg.message, timestamp: latestMsg.timestamp }
+        }));
+        
+        // 3秒後に吹き出しを消す（このメッセージのタイムスタンプと一致する場合のみ）
+        const msgTimestamp = latestMsg.timestamp;
+        setTimeout(() => {
+          setPlayerBubbles(prev => {
+            if (prev[username]?.timestamp === msgTimestamp) {
               const newBubbles = { ...prev };
               delete newBubbles[username];
               return newBubbles;
-            });
-          }, 3000);
-        }
+            }
+            return prev;
+          });
+        }, 3000);
         
-        setProcessedMessageCount(socketMessages.length);
+        setLastProcessedTimestamp(latestMsg.timestamp);
       }
     }
-  }, [socketMessages, processedMessageCount]);
+  }, [socketMessages, lastProcessedTimestamp]);
 
   // アニメーションに応じたサウンド再生
   useEffect(() => {

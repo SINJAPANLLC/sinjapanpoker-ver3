@@ -25,8 +25,8 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* プレイヤー2 - 画面上左（もっと下で少し左） */}
-      <div className="absolute top-40 left-10">
+      {/* プレイヤー2 - 画面左（もっともっと下） */}
+      <div className="absolute top-64 left-10">
         <div className="relative">
           {/* ハンドカード - アバターに重ねる */}
           <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2">

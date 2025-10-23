@@ -481,8 +481,8 @@ export default function ActiveGamePage() {
       chips: p.chips,
       // ユーザーのアバター画像を使用（なければnull）
       avatar: p.avatar || null,
-      // プレイヤー2は右側、それ以外は左側
-      cardSide: idx === 1 ? 'right' : 'left',
+      // プレイヤー2、3、4、5（左側）はカードを右側に表示、それ以外は左側
+      cardSide: (idx === 1 || idx === 2 || idx === 3 || idx === 4) ? 'right' : 'left',
       showCards,
       showCardsFaceUp,
       position,

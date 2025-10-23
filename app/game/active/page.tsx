@@ -229,21 +229,6 @@ export default function ActiveGamePage() {
         </div>
       </div>
 
-      {/* アクションログ */}
-      <div className="absolute bottom-[180px] right-4 w-48">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2 rounded-lg border-2 border-white/30 shadow-lg">
-          <p className="text-white text-xs font-bold mb-2">アクション履歴</p>
-          <div className="space-y-1 max-h-32 overflow-y-auto">
-            {actionLog.map((log, index) => (
-              <div key={index} className="text-[10px]">
-                <p className="text-white font-semibold">{log.player}</p>
-                <p className="text-white/90">{log.action}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* コミュニティカード */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-3">

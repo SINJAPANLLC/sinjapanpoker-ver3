@@ -267,16 +267,16 @@ app.prepare().then(() => {
     }
 
     calculateRake(potSize) {
-      // レーキ計算（5%、キャップあり）
+      // レーキ計算（5%、キャップあり）1チップ=1円
       const rakePercentage = 0.05;
       const stakesLevel = this.blinds.big <= 10 ? 'micro' : 
                          this.blinds.big <= 100 ? 'low' : 
                          this.blinds.big <= 500 ? 'medium' : 'high';
-      const rakeCaps = { micro: 3, low: 5, medium: 10, high: 20 };
+      const rakeCaps = { micro: 300, low: 500, medium: 1000, high: 2000 };
       
-      if (potSize < 10) return 0; // 小さいポットはレーキなし
+      if (potSize < 100) return 0; // 100円未満のポットはレーキなし
       
-      const rakeAmount = potSize * rakePercentage;
+      const rakeAmount = Math.floor(potSize * rakePercentage);
       return Math.min(rakeAmount, rakeCaps[stakesLevel]);
     }
 

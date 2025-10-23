@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePokerGame } from '@/hooks/usePokerGame';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
@@ -8,10 +8,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ActiveGamePage() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const authUser = useAuthStore((state) => state.user);
   const [gameId] = useState('test-game-1');
   const [raiseAmount, setRaiseAmount] = useState(0);
   const [showRaiseInput, setShowRaiseInput] = useState(false);
+  
+  // デモユーザー（認証なしでテスト）
+  const user = authUser || {
+    id: `demo-${Math.random().toString(36).substring(7)}`,
+    username: `プレイヤー${Math.floor(Math.random() * 100)}`,
+    email: 'demo@test.com',
+  };
   
   const {
     gameState,
@@ -28,11 +35,6 @@ export default function ActiveGamePage() {
     getCallAmount,
     getMinRaise,
   } = usePokerGame(gameId);
-
-  if (!user) {
-    router.push('/login');
-    return null;
-  }
 
   const currentPlayer = getCurrentPlayer();
   const myTurn = isMyTurn();

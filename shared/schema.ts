@@ -13,7 +13,7 @@ export const users = pgTable('users', {
   username: varchar('username', { length: 100 }).notNull().unique(),
   password: text('password').notNull(),
   avatar: text('avatar'),
-  chips: integer('chips').notNull().default(10000),
+  chips: integer('chips').notNull().default(0),
   level: integer('level').notNull().default(1),
   experience: integer('experience').notNull().default(0),
   clubs: jsonb('clubs').$type<string[]>().default([]),

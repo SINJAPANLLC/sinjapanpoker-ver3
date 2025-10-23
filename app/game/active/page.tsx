@@ -48,6 +48,7 @@ export default function ActiveGamePage() {
   const handNumber = 42;
   const smallBlind = 50;
   const bigBlind = 100;
+  const gamePhase = "FLOP"; // PREFLOP, FLOP, TURN, RIVER, SHOWDOWN
 
   const player1HandCards: CardType[] = [
     { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-hand-1' },
@@ -249,6 +250,13 @@ export default function ActiveGamePage() {
               <Card card={card} faceUp={true} />
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ゲームフェーズ */}
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[350%]">
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1 rounded-md border border-white/30 shadow-md">
+          <p className="text-white text-xs font-bold text-center">{gamePhase}</p>
         </div>
       </div>
 

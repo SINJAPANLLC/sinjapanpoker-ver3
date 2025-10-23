@@ -910,19 +910,55 @@ export default function ActiveGamePage() {
       <div className="absolute bottom-24 left-[45%] transform translate-x-[80px]">
         <div className="flex items-end">
           {player1HandCards.map((card, cardIndex) => (
-            <div
+            <motion.div
               key={card.id}
-              className="relative"
+              initial={{
+                x: -300,
+                y: -300,
+                rotate: 0,
+                opacity: 0,
+                scale: 0.5
+              }}
+              animate={{
+                x: 0,
+                y: 0,
+                rotate: cardIndex === 0 ? -10 : 10,
+                opacity: 1,
+                scale: 1
+              }}
+              transition={{
+                duration: 0.6,
+                delay: cardIndex * 0.15,
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+              }}
               style={{
-                transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
+                position: 'relative',
                 marginLeft: cardIndex === 1 ? '-30px' : '0',
                 zIndex: cardIndex,
               }}
+              onAnimationStart={() => {
+                if (soundEnabled) {
+                  setTimeout(() => playSound('cardDeal'), cardIndex * 150);
+                }
+              }}
             >
-              <div className="scale-110">
+              <motion.div 
+                whileHover={{ 
+                  scale: 1.15, 
+                  y: -10,
+                  rotate: 0,
+                  transition: { duration: 0.2 }
+                }}
+                style={{
+                  transform: 'scale(1.1)',
+                  transformOrigin: 'center center'
+                }}
+              >
                 <Card card={card} faceUp={true} />
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           ))}
         </div>
       </div>

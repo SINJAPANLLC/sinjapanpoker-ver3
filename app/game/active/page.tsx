@@ -368,7 +368,7 @@ export default function ActiveGamePage() {
             </button>
             <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
               <p className="text-white text-sm font-bold">
-                コール {callAmount > 0 ? callAmount : ''}
+                {callAmount > 0 ? `コール ${callAmount}` : 'チェック'}
               </p>
             </button>
             <button 

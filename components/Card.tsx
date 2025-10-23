@@ -31,7 +31,7 @@ function getCardImagePath(card: CardType): string {
 export default function Card({ card, faceUp = false, className = '' }: CardProps) {
   if (!faceUp) {
     return (
-      <div className={`relative w-20 h-28 ${className}`}>
+      <div className={`relative w-20 h-28 bg-white rounded-lg ${className}`}>
         <Image
           src="/cards/back.png"
           alt="Card back"
@@ -43,7 +43,7 @@ export default function Card({ card, faceUp = false, className = '' }: CardProps
   }
 
   return (
-    <div className={`relative w-20 h-28 ${className}`}>
+    <div className={`relative w-20 h-28 bg-white rounded-lg ${className}`}>
       <Image
         src={getCardImagePath(card)}
         alt={`${card.rank} of ${card.suit}`}

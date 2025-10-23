@@ -104,7 +104,7 @@ export default function ActiveGamePage() {
         {/* アクティブターンのハイライト */}
         {isActive && (
           <div className="absolute inset-0 -m-2">
-            <div className="w-24 h-24 rounded-full border-4 border-yellow-400 animate-pulse shadow-lg shadow-yellow-400/50"></div>
+            <div className="w-24 h-24 rounded-full border-4 border-cyan-400 animate-pulse shadow-lg shadow-cyan-400/50"></div>
           </div>
         )}
 

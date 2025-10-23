@@ -647,7 +647,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* 自分の役表示 - プレイヤー1の左 */}
-      <div className="absolute bottom-36 left-[45%] transform -translate-x-1/2 -translate-x-64">
+      <div className="absolute bottom-36 left-[45%] transform -translate-x-1/2 -translate-x-56">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
           <p className="text-white text-xs font-bold">ロイヤルフラッシュ</p>
         </div>

@@ -265,7 +265,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー1のハンドカード - 右側に大きく扇形で表示 */}
-      <div className="absolute bottom-32 left-[45%] transform translate-x-[80px]">
+      <div className="absolute bottom-24 left-[45%] transform translate-x-[80px]">
         <div className="flex items-end">
           {player1HandCards.map((card, cardIndex) => (
             <div

@@ -361,6 +361,35 @@ export default function ActiveGamePage() {
                   <p className="text-white text-sm font-bold">{raiseAmount}</p>
                 </div>
               </div>
+              
+              {/* クイックベットボタン */}
+              <div className="grid grid-cols-4 gap-1.5 mb-2">
+                <button
+                  onClick={() => setRaiseAmount(Math.floor(potAmount / 3))}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">1/3 POT</p>
+                </button>
+                <button
+                  onClick={() => setRaiseAmount(Math.floor(potAmount * 2 / 3))}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">2/3 POT</p>
+                </button>
+                <button
+                  onClick={() => setRaiseAmount(potAmount)}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">POT</p>
+                </button>
+                <button
+                  onClick={() => setRaiseAmount(maxRaise)}
+                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
+                >
+                  <p className="text-white text-[9px] font-bold">MAX</p>
+                </button>
+              </div>
+
               <input
                 type="range"
                 min={minRaise}

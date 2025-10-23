@@ -20,34 +20,20 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      // 実際のAdmin認証
-      if (email === 'info@sinjapan.jp' && password === 'Kazuya8008') {
-        const adminUser = {
-          id: 'admin_sinjapan',
-          email: 'info@sinjapan.jp',
-          username: 'SIN JAPAN Admin',
-          role: 'admin' as const,
-          permissions: ['tournament.create', 'tournament.edit', 'tournament.delete', 'user.manage', 'analytics.view', 'currency.manage', 'revenue.view', 'monitor.view', 'table.manage', 'realmoney.manage', 'settings.manage']
-        };
-        const token = 'admin_token_' + Date.now();
-        login(adminUser, token);
-        router.push('/admin/dashboard');
-        return;
-      }
-
-      // 他のAdminユーザーの場合はAPI経由で認証
+      // API経由でAdmin認証
       const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'ログインに失敗しました');
+        throw new Error(data.error || 'ログインに失敗しました');
       }
 
-      const { adminUser, token } = await response.json();
+      const { adminUser, token } = data;
       login(adminUser, token);
       router.push('/admin/dashboard');
     } catch (err: any) {

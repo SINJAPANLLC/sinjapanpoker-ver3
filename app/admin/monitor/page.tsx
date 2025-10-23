@@ -71,7 +71,7 @@ interface GameSession {
 
 function GameMonitorContent() {
   const router = useRouter();
-  const { adminUser } = useAdminStore();
+  const { adminUser, adminToken } = useAdminStore();
   
   const [games, setGames] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,244 +79,87 @@ function GameMonitorContent() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // モックゲームデータ
-    const mockGames: GameSession[] = [
-      {
-        id: 'game_1',
-        type: 'cash',
-        tableId: 'table_1',
-        players: [
-          {
-            id: 'user_1',
-            name: 'Player1',
-            chips: 15000,
-            status: 'active',
-            joinTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
-            lastAction: new Date(Date.now() - 30 * 1000),
-            position: 1,
-            holeCards: [
-              { rank: 'A', suit: '♠', visible: true },
-              { rank: 'K', suit: '♥', visible: true }
-            ],
-            currentBet: 100,
-            totalBet: 300,
-            isDealer: false,
-            isSmallBlind: false,
-            isBigBlind: true,
-            isAllIn: false,
-            hasFolded: false
-          },
-          {
-            id: 'user_2',
-            name: 'Player2',
-            chips: 8500,
-            status: 'active',
-            joinTime: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
-            lastAction: new Date(Date.now() - 10 * 1000),
-            position: 2,
-            holeCards: [
-              { rank: 'Q', suit: '♣', visible: true },
-              { rank: 'Q', suit: '♦', visible: true }
-            ],
-            currentBet: 200,
-            totalBet: 400,
-            isDealer: true,
-            isSmallBlind: true,
-            isBigBlind: false,
-            isAllIn: false,
-            hasFolded: false
-          },
-          {
-            id: 'user_3',
-            name: 'Player3',
-            chips: 22000,
-            status: 'sitting_out',
-            joinTime: new Date(Date.now() - 3 * 60 * 60 * 1000),
-            lastAction: new Date(Date.now() - 5 * 60 * 1000),
-            position: 3,
-            holeCards: [
-              { rank: 'J', suit: '♠', visible: true },
-              { rank: '10', suit: '♠', visible: true }
-            ],
-            currentBet: 0,
-            totalBet: 200,
-            isDealer: false,
-            isSmallBlind: false,
-            isBigBlind: false,
-            isAllIn: false,
-            hasFolded: true
-          }
-        ],
-        pot: 3500,
-        currentHand: 127,
-        status: 'playing',
-        startedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        updatedAt: new Date(),
-        rakeCollected: 875,
-        handsPlayed: 127,
-        avgPot: 2800,
-        communityCards: [
-          { rank: 'A', suit: '♣', visible: true },
-          { rank: '7', suit: '♦', visible: true },
-          { rank: '2', suit: '♠', visible: true },
-          { rank: 'K', suit: '♣', visible: true },
-          { rank: 'Q', suit: '♥', visible: false }
-        ],
-        currentStage: 'turn',
-        currentBet: 200,
-        smallBlind: 10,
-        bigBlind: 20,
-        dealerPosition: 2
-      },
-      {
-        id: 'game_2',
-        type: 'tournament',
-        tournamentId: 'tournament_1',
-        players: [
-          {
-            id: 'user_4',
-            name: 'Player4',
-            chips: 45000,
-            status: 'active',
-            joinTime: new Date(Date.now() - 30 * 60 * 1000),
-            lastAction: new Date(Date.now() - 5 * 1000),
-            position: 1,
-            holeCards: [
-              { rank: 'K', suit: '♠', visible: true },
-              { rank: 'K', suit: '♣', visible: true }
-            ],
-            currentBet: 100,
-            totalBet: 300,
-            isDealer: false,
-            isSmallBlind: false,
-            isBigBlind: true,
-            isAllIn: false,
-            hasFolded: false
-          },
-          {
-            id: 'user_5',
-            name: 'Player5',
-            chips: 32000,
-            status: 'active',
-            joinTime: new Date(Date.now() - 30 * 60 * 1000),
-            lastAction: new Date(Date.now() - 15 * 1000),
-            position: 2,
-            holeCards: [
-              { rank: 'A', suit: '♥', visible: true },
-              { rank: 'Q', suit: '♦', visible: true }
-            ],
-            currentBet: 200,
-            totalBet: 400,
-            isDealer: true,
-            isSmallBlind: true,
-            isBigBlind: false,
-            isAllIn: false,
-            hasFolded: false
-          }
-        ],
-        pot: 12000,
-        currentHand: 45,
-        status: 'playing',
-        startedAt: new Date(Date.now() - 45 * 60 * 1000),
-        updatedAt: new Date(),
-        rakeCollected: 600,
-        handsPlayed: 45,
-        avgPot: 8000,
-        communityCards: [
-          { rank: 'Q', suit: '♠', visible: true },
-          { rank: '8', suit: '♣', visible: true },
-          { rank: '4', suit: '♥', visible: true },
-          { rank: 'A', suit: '♦', visible: false },
-          { rank: 'K', suit: '♠', visible: false }
-        ],
-        currentStage: 'flop',
-        currentBet: 200,
-        smallBlind: 50,
-        bigBlind: 100,
-        dealerPosition: 2
-      },
-      {
-        id: 'game_3',
-        type: 'sit-and-go',
-        tableId: 'table_3',
-        players: [
-          {
-            id: 'user_6',
-            name: 'Player6',
-            chips: 25000,
-            status: 'active',
-            joinTime: new Date(Date.now() - 15 * 60 * 1000),
-            lastAction: new Date(Date.now() - 20 * 1000),
-            position: 1,
-            holeCards: [
-              { rank: 'J', suit: '♠', visible: true },
-              { rank: '10', suit: '♠', visible: true }
-            ],
-            currentBet: 500,
-            totalBet: 1500,
-            isDealer: false,
-            isSmallBlind: false,
-            isBigBlind: true,
-            isAllIn: false,
-            hasFolded: false
-          },
-          {
-            id: 'user_7',
-            name: 'Player7',
-            chips: 18000,
-            status: 'disconnected',
-            joinTime: new Date(Date.now() - 15 * 60 * 1000),
-            lastAction: new Date(Date.now() - 2 * 60 * 1000),
-            position: 2,
-            holeCards: [
-              { rank: 'A', suit: '♣', visible: true },
-              { rank: 'A', suit: '♦', visible: true }
-            ],
-            currentBet: 0,
-            totalBet: 1000,
-            isDealer: true,
-            isSmallBlind: true,
-            isBigBlind: false,
-            isAllIn: false,
-            hasFolded: true
-          }
-        ],
-        pot: 8000,
-        currentHand: 23,
-        status: 'playing',
-        startedAt: new Date(Date.now() - 20 * 60 * 1000),
-        updatedAt: new Date(),
-        rakeCollected: 400,
-        handsPlayed: 23,
-        avgPot: 5500,
-        communityCards: [
-          { rank: '9', suit: '♠', visible: true },
-          { rank: '8', suit: '♥', visible: true },
-          { rank: '7', suit: '♣', visible: true },
-          { rank: '6', suit: '♦', visible: false },
-          { rank: '5', suit: '♠', visible: false }
-        ],
-        currentStage: 'river',
-        currentBet: 500,
-        smallBlind: 100,
-        bigBlind: 200,
-        dealerPosition: 2
-      }
-    ];
+  // 実際のゲームデータを取得
+  const fetchGames = async () => {
+    if (!adminToken) return;
     
-    setGames(mockGames);
-    setLoading(false);
-  }, []);
+    try {
+      const response = await fetch('/api/admin/games?active=true&limit=20', {
+        headers: {
+          'Authorization': `Bearer ${adminToken}`,
+        },
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch games');
+        return;
+      }
+      
+      const data = await response.json();
+      
+      // データを GameSession フォーマットに変換
+      const formattedGames: GameSession[] = data.games.map((game: any) => ({
+        id: game.id,
+        type: 'cash' as const,
+        players: (game.playersData || []).map((p: any, index: number) => ({
+          id: p.userId || p.id,
+          name: p.username,
+          chips: p.chips || 0,
+          status: 'active' as const,
+          joinTime: new Date(game.createdAt),
+          lastAction: new Date(game.updatedAt || game.createdAt),
+          position: p.position || index + 1,
+          holeCards: (p.cards || []).map((card: any) => ({
+            rank: card.rank,
+            suit: card.suit,
+            visible: true,
+          })),
+          currentBet: p.bet || 0,
+          totalBet: p.bet || 0,
+          isDealer: p.isDealer || false,
+          isSmallBlind: p.position === 1,
+          isBigBlind: p.position === 2,
+          isAllIn: p.isAllIn || false,
+          hasFolded: p.folded || false,
+        })),
+        pot: game.pot || 0,
+        currentHand: game.handsPlayed || 0,
+        status: game.phase === 'ended' ? 'finished' : 'playing',
+        startedAt: new Date(game.createdAt),
+        updatedAt: new Date(game.updatedAt || game.createdAt),
+        rakeCollected: game.totalRake || 0,
+        handsPlayed: game.handsPlayed || 0,
+        avgPot: game.pot || 0,
+        communityCards: (game.communityCards || []).map((card: any) => ({
+          rank: card.rank,
+          suit: card.suit,
+          visible: true,
+        })),
+        currentStage: game.phase as any || 'preflop',
+        currentBet: game.currentBet || 0,
+        smallBlind: game.smallBlind || 10,
+        bigBlind: game.bigBlind || 20,
+        dealerPosition: game.dealerIndex || 0,
+      }));
+      
+      setGames(formattedGames);
+    } catch (error) {
+      console.error('Error fetching games:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGames();
+  }, [adminToken]);
+
 
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(() => {
-        // 実際の実装では、リアルタイムでゲームデータを取得
-        setGames(prev => prev.map(game => ({
-          ...game,
-          updatedAt: new Date()
-        })));
+        // リアルタイムでゲームデータを取得
+        fetchGames();
       }, 5000); // 5秒ごとに更新
       
       setRefreshInterval(interval);
@@ -330,7 +173,7 @@ function GameMonitorContent() {
         setRefreshInterval(null);
       }
     }
-  }, [autoRefresh, refreshInterval]);
+  }, [autoRefresh]);
 
   const handleGameAction = (gameId: string, action: 'pause' | 'resume' | 'stop') => {
     setGames(prev => prev.map(game => {

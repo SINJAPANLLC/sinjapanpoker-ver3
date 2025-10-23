@@ -276,15 +276,50 @@ export default function ActiveGamePage() {
 
   const currentPlayerData = getCurrentPlayer();
   const player1HandCards: CardType[] = currentPlayerData?.cards.map(convertSocketCard) || [];
-  const activePlayerId = gameState ? gameState.currentPlayerIndex + 1 : 0;
 
-  // 実際のゲームステートからプレイヤーデータを生成
-  const players = (gameState?.players || []).map((p, idx) => {
-    const playerPosition = p.position;
-    const isDealer = p.isDealer;
+  // プレイヤーリストを自分を基準に並び替え（自分が常にプレイヤー1の位置）
+  const getRotatedPlayers = () => {
+    if (!gameState || gameState.players.length === 0) return [];
+    
+    // 自分のインデックスを見つける
+    const myIndex = gameState.players.findIndex(p => p.userId === user?.id);
+    if (myIndex === -1) return gameState.players;
+    
+    // 自分を先頭にしてプレイヤーリストを回転
+    const rotatedPlayers = [
+      ...gameState.players.slice(myIndex),
+      ...gameState.players.slice(0, myIndex)
+    ];
+    
+    return rotatedPlayers;
+  };
+
+  const rotatedPlayers = getRotatedPlayers();
+  
+  // activePlayerIdを回転後のインデックスに変換
+  const getActivePlayerIdInRotatedList = () => {
+    if (!gameState) return 0;
+    const myIndex = gameState.players.findIndex(p => p.userId === user?.id);
+    if (myIndex === -1) return gameState.currentPlayerIndex + 1;
+    
+    // 実際のcurrentPlayerIndexから自分のインデックスを引いて回転後の位置を計算
+    const rotatedIndex = (gameState.currentPlayerIndex - myIndex + gameState.players.length) % gameState.players.length;
+    return rotatedIndex + 1;
+  };
+  
+  const activePlayerId = getActivePlayerIdInRotatedList();
+
+  // 実際のゲームステートからプレイヤーデータを生成（自分を基準に並び替え済み）
+  const players = rotatedPlayers.map((p, idx) => {
     const dealerIndex = gameState?.dealerIndex || 0;
-    const isSmallBlind = idx === (dealerIndex + 1) % (gameState?.players.length || 1);
-    const isBigBlind = idx === (dealerIndex + 2) % (gameState?.players.length || 1);
+    const myIndex = gameState?.players.findIndex(pl => pl.userId === user?.id) || 0;
+    
+    // 元のインデックスを計算
+    const originalIndex = (idx + myIndex) % rotatedPlayers.length;
+    
+    const isDealer = p.isDealer;
+    const isSmallBlind = originalIndex === (dealerIndex + 1) % rotatedPlayers.length;
+    const isBigBlind = originalIndex === (dealerIndex + 2) % rotatedPlayers.length;
     
     let position = null;
     if (isDealer) position = 'D';
@@ -307,7 +342,7 @@ export default function ActiveGamePage() {
       name: p.username,
       chips: p.chips,
       avatar: `https://i.pravatar.cc/150?img=${(idx + 1)}`,
-      cardSide: (idx < 5 ? 'right' : 'left') as const,
+      cardSide: (idx < 5 ? 'right' : 'left') as 'right' | 'left',
       showCards,
       position,
       bet: p.bet,

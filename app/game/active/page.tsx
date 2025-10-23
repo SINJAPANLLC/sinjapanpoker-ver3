@@ -642,22 +642,22 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー4 - 左上 */}
-      <div className="absolute top-44 left-6">
+      <div className="absolute top-52 left-6">
         <PlayerComponent player={players[3]} />
       </div>
 
       {/* プレイヤー5 - 上左 */}
-      <div className="absolute top-6 left-1/4 transform -translate-x-1/2">
+      <div className="absolute top-16 left-1/4 transform -translate-x-1/2">
         <PlayerComponent player={players[4]} />
       </div>
 
       {/* プレイヤー6 - 上右 */}
-      <div className="absolute top-6 right-1/4 transform translate-x-1/2">
+      <div className="absolute top-16 right-1/4 transform translate-x-1/2">
         <PlayerComponent player={players[5]} />
       </div>
 
       {/* プレイヤー7 - 右上 */}
-      <div className="absolute top-44 right-6">
+      <div className="absolute top-52 right-6">
         <PlayerComponent player={players[6]} />
       </div>
 

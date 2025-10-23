@@ -42,6 +42,20 @@ export default function ActiveGamePage() {
   const [showHandRank, setShowHandRank] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [allInPlayer, setAllInPlayer] = useState<number | null>(null);
+  const [dealerButtonMoving, setDealerButtonMoving] = useState(false);
+  const [showShuffling, setShowShuffling] = useState(false);
+  const [winningCards, setWinningCards] = useState<string[]>([]);
+  const [showPlayerTurn, setShowPlayerTurn] = useState(false);
+  const [currentTurnPlayer, setCurrentTurnPlayer] = useState<string>('');
+  const [joiningPlayer, setJoiningPlayer] = useState<number | null>(null);
+  const [leavingPlayer, setLeavingPlayer] = useState<number | null>(null);
+  const [betIncrease, setBetIncrease] = useState<{playerId: number, amount: number} | null>(null);
+  const [showBadBeat, setShowBadBeat] = useState(false);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [winStreak, setWinStreak] = useState(0);
+  const [showRebuyNotification, setShowRebuyNotification] = useState(false);
+  const [rebuyAmount, setRebuyAmount] = useState(0);
+  const [tableAtmosphere, setTableAtmosphere] = useState<'normal' | 'final'>('normal');
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -137,13 +151,42 @@ export default function ActiveGamePage() {
 
   const PlayerComponent = ({ player }: { player: typeof players[0] }) => {
     const isActive = player.id === activePlayerId;
+    const isJoining = joiningPlayer === player.id;
+    const isLeaving = leavingPlayer === player.id;
+    const hasWinningCards = player.isWinner && winningCards.length > 0;
     
     return (
-      <div className="relative">
+      <motion.div 
+        style={{ position: 'relative' }}
+        initial={isJoining ? { scale: 0, opacity: 0 } : false}
+        animate={isLeaving ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         {/* アクティブターンのハイライト */}
         {isActive && (
           <div className="absolute inset-0 -m-2">
             <div className="w-24 h-24 rounded-full border-4 border-cyan-400 animate-pulse shadow-lg shadow-cyan-400/50"></div>
+          </div>
+        )}
+        
+        {/* 勝者のカードハイライト */}
+        {hasWinningCards && (
+          <div className="absolute inset-0 -m-4 pointer-events-none">
+            <motion.div
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '9999px'
+              }}
+              animate={{
+                boxShadow: [
+                  '0 0 20px 5px rgba(251, 191, 36, 0.5)',
+                  '0 0 40px 10px rgba(251, 191, 36, 0.8)',
+                  '0 0 20px 5px rgba(251, 191, 36, 0.5)'
+                ]
+              }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
           </div>
         )}
 
@@ -187,12 +230,37 @@ export default function ActiveGamePage() {
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${
                 player.cardSide === 'right' ? '-right-12' : '-left-12'
               }`}>
-                <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded-md border-2 border-white shadow-lg">
-                  <div className="flex items-center gap-1">
-                    <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
-                    <p className="text-white text-xs font-bold">{player.bet}</p>
+                <motion.div
+                  initial={{ scale: 0.5, y: -20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ type: "spring", duration: 0.5 }}
+                >
+                  <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded-md border-2 border-white shadow-lg">
+                    <div className="flex items-center gap-1">
+                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                      <p className="text-white text-xs font-bold">{player.bet}</p>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
+                {/* ベット増加表示 */}
+                {betIncrease && betIncrease.playerId === player.id && (
+                  <motion.div
+                    initial={{ y: 0, opacity: 1 }}
+                    animate={{ y: -40, opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    onAnimationComplete={() => setBetIncrease(null)}
+                    style={{
+                      position: 'absolute',
+                      top: '-20px',
+                      left: '50%',
+                      transform: 'translateX(-50%)'
+                    }}
+                  >
+                    <p className="text-green-400 text-sm font-bold whitespace-nowrap">
+                      +{betIncrease.amount}
+                    </p>
+                  </motion.div>
+                )}
               </div>
             )}
           </div>
@@ -306,7 +374,7 @@ export default function ActiveGamePage() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -1308,7 +1376,12 @@ export default function ActiveGamePage() {
       {/* オールイン演出 - 画面フラッシュ */}
       {allInPlayer !== null && (
         <motion.div
-          className="absolute inset-0 pointer-events-none z-40"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 40
+          }}
           initial={{ opacity: 0 }}
           animate={{ 
             opacity: [0, 0.3, 0],
@@ -1333,6 +1406,290 @@ export default function ActiveGamePage() {
             </motion.div>
           </div>
         </motion.div>
+      )}
+
+      {/* ターン開始プレイヤー名表示 */}
+      {showPlayerTurn && currentTurnPlayer && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0, 1.2, 1], opacity: [1, 1, 0] }}
+            transition={{ duration: 1.5 }}
+            onAnimationComplete={() => setShowPlayerTurn(false)}
+            style={{
+              background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
+              padding: '1.5rem 3rem',
+              borderRadius: '1rem',
+              border: '3px solid white',
+              boxShadow: '0 0 40px rgba(34, 211, 238, 0.8)'
+            }}
+          >
+            <p className="text-white text-2xl font-bold text-center">{currentTurnPlayer}のターン</p>
+          </motion.div>
+        </div>
+      )}
+
+      {/* カードシャッフル演出 */}
+      {showShuffling && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50">
+          <motion.div
+            animate={{ 
+              rotate: [0, 360],
+              scale: [1, 1.2, 1]
+            }}
+            transition={{ 
+              duration: 1,
+              repeat: 3
+            }}
+            onAnimationComplete={() => setShowShuffling(false)}
+          >
+            <div className="flex gap-2">
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    x: [(i - 2) * 20, 0, (i - 2) * 20],
+                    opacity: [0.5, 1, 0.5]
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    delay: i * 0.1,
+                    repeat: 6
+                  }}
+                  style={{
+                    width: '40px',
+                    height: '60px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '4px',
+                    border: '2px solid white'
+                  }}
+                />
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* バッドビート演出 */}
+      {showBadBeat && (
+        <div className="absolute inset-0 pointer-events-none z-50">
+          <motion.div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'black'
+            }}
+            animate={{
+              opacity: [0, 0.8, 0, 0.8, 0]
+            }}
+            transition={{ duration: 0.8 }}
+            onAnimationComplete={() => setShowBadBeat(false)}
+          />
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '4px',
+                height: '100%',
+                background: 'linear-gradient(to bottom, transparent, #fbbf24, transparent)',
+                transformOrigin: 'top center'
+              }}
+              animate={{
+                rotate: [i * 60, i * 60],
+                opacity: [0, 1, 0]
+              }}
+              transition={{
+                duration: 0.3,
+                delay: i * 0.1,
+                repeat: 2
+              }}
+            />
+          ))}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 1.5 }}
+              style={{
+                fontSize: '3rem',
+                fontWeight: 'bold',
+                color: '#ef4444',
+                textShadow: '0 0 30px rgba(239, 68, 68, 1)'
+              }}
+            >
+              BAD BEAT!
+            </motion.div>
+          </div>
+        </div>
+      )}
+
+      {/* レベルアップ・アチーブメント */}
+      {showLevelUp && (
+        <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center">
+          <motion.div
+            initial={{ scale: 0, rotate: -180, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ duration: 0.8, type: "spring" }}
+            onAnimationComplete={() => setTimeout(() => setShowLevelUp(false), 2000)}
+          >
+            <div className="relative">
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '30px',
+                    height: '30px'
+                  }}
+                  animate={{
+                    x: Math.cos(i * 45 * Math.PI / 180) * 100,
+                    y: Math.sin(i * 45 * Math.PI / 180) * 100,
+                    opacity: [0, 1, 0],
+                    scale: [0, 1.5, 0]
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    delay: 0.3
+                  }}
+                >
+                  <div className="text-4xl">⭐</div>
+                </motion.div>
+              ))}
+              <div style={{
+                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                padding: '2rem',
+                borderRadius: '1rem',
+                border: '4px solid white',
+                boxShadow: '0 0 60px rgba(251, 191, 36, 0.8)'
+              }}>
+                <p className="text-white text-4xl font-bold text-center mb-2">🏆</p>
+                <p className="text-white text-2xl font-bold text-center">LEVEL UP!</p>
+                <p className="text-white text-lg text-center mt-2">レベル 5 達成</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* 連勝ストリーク */}
+      {winStreak >= 3 && (
+        <div className="absolute top-32 right-8 z-40">
+          <motion.div
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            style={{
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+              padding: '1rem 2rem',
+              borderRadius: '0.5rem',
+              border: '3px solid #fbbf24',
+              boxShadow: '0 0 30px rgba(239, 68, 68, 0.6)'
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <motion.div
+                style={{ fontSize: '1.875rem' }}
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+              >
+                🔥
+              </motion.div>
+              <div>
+                <p className="text-white text-xs font-bold">HOT RUN!</p>
+                <p className="text-yellow-300 text-lg font-bold">{winStreak}連勝</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* リバイ/アドオン通知 */}
+      {showRebuyNotification && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring" }}
+            onAnimationComplete={() => setTimeout(() => setShowRebuyNotification(false), 2000)}
+          >
+            <div style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              padding: '2rem 3rem',
+              borderRadius: '1rem',
+              border: '3px solid white',
+              boxShadow: '0 0 50px rgba(16, 185, 129, 0.8)'
+            }}>
+              <motion.div
+                style={{ textAlign: 'center', marginBottom: '1rem' }}
+                animate={{ y: [-20, 0, -20] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                {[...Array(10)].map((_, i) => (
+                  <motion.span
+                    key={i}
+                    style={{ display: 'inline-block', fontSize: '1.875rem', marginLeft: '0.25rem', marginRight: '0.25rem' }}
+                    initial={{ y: -100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    💰
+                  </motion.span>
+                ))}
+              </motion.div>
+              <p className="text-white text-3xl font-bold text-center">チップ追加！</p>
+              <p className="text-yellow-300 text-4xl font-bold text-center mt-2">+{rebuyAmount.toLocaleString()}</p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* テーブルの雰囲気切り替え - ファイナルテーブル */}
+      {tableAtmosphere === 'final' && (
+        <>
+          <div className="absolute inset-0 pointer-events-none z-10">
+            <motion.div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'radial-gradient(circle at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%)'
+              }}
+              animate={{
+                opacity: [0.3, 0.6, 0.3]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+          </div>
+          {[...Array(4)].map((_, i) => (
+            <motion.div
+              key={i}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '200px',
+                height: '200px',
+                background: 'radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%)',
+                borderRadius: '50%',
+                transform: `translate(-50%, -50%) rotate(${i * 90}deg) translateY(-300px)`,
+                pointerEvents: 'none',
+                zIndex: 5
+              }}
+              animate={{
+                opacity: [0, 1, 0],
+                scale: [0.8, 1.2, 0.8]
+              }}
+              transition={{
+                duration: 2,
+                delay: i * 0.5,
+                repeat: Infinity
+              }}
+            />
+          ))}
+        </>
       )}
 
     </div>

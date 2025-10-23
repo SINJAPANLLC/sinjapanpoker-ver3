@@ -34,6 +34,14 @@ export default function ActiveGamePage() {
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('日本語');
   const [showShare, setShowShare] = useState(false);
+  const [dealingCards, setDealingCards] = useState(false);
+  const [revealFlop, setRevealFlop] = useState(false);
+  const [revealTurn, setRevealTurn] = useState(false);
+  const [revealRiver, setRevealRiver] = useState(false);
+  const [showWinnerChips, setShowWinnerChips] = useState(false);
+  const [showHandRank, setShowHandRank] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [allInPlayer, setAllInPlayer] = useState<number | null>(null);
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -157,9 +165,19 @@ export default function ActiveGamePage() {
                     zIndex: cardIndex,
                   }}
                 >
-                  <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
-                    <Card card={card} faceUp={false} />
-                  </div>
+                  <motion.div
+                    initial={dealingCards ? { x: 0, y: -200, opacity: 0, scale: 0.5 } : false}
+                    animate={{ x: 0, y: 0, opacity: player.folded ? 0 : 1, scale: 1 }}
+                    transition={{ 
+                      duration: 0.5, 
+                      delay: dealingCards ? (player.id - 1) * 0.1 + cardIndex * 0.05 : 0,
+                      ease: "easeOut"
+                    }}
+                  >
+                    <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
+                      <Card card={card} faceUp={false} />
+                    </div>
+                  </motion.div>
                 </div>
               ))}
             </div>
@@ -195,15 +213,46 @@ export default function ActiveGamePage() {
         {/* ターンタイマーとプログレスバー */}
         {isActive && (
           <>
-            <div className="absolute -top-2 -left-2 w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+            <motion.div 
+              style={{
+                position: 'absolute',
+                top: '-0.5rem',
+                left: '-0.5rem',
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid white',
+                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                zIndex: 20
+              }}
+              animate={{
+                background: turnTimer <= 5 
+                  ? ['linear-gradient(to bottom right, rgb(239, 68, 68), rgb(185, 28, 28))', 'linear-gradient(to bottom right, rgb(220, 38, 38), rgb(153, 27, 27))']
+                  : turnTimer <= 10
+                  ? ['linear-gradient(to bottom right, rgb(234, 179, 8), rgb(202, 138, 4))']
+                  : ['linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))'],
+                scale: turnTimer <= 5 ? [1, 1.1, 1] : 1
+              }}
+              transition={{
+                duration: turnTimer <= 5 ? 0.5 : 1,
+                repeat: turnTimer <= 5 ? Infinity : 0
+              }}
+            >
               <p className="text-white text-sm font-bold">{turnTimer}</p>
-            </div>
+            </motion.div>
             {/* タイマープログレスバー */}
             <div className="absolute -bottom-3 left-0 right-0 h-1 bg-white/30 rounded-full overflow-hidden">
-              <div 
-                className={`h-full transition-all duration-1000 ${turnTimer <= 5 ? 'bg-red-500' : 'bg-cyan-400'}`}
-                style={{ width: `${(turnTimer / 15) * 100}%` }}
-              ></div>
+              <motion.div 
+                style={{ height: '100%' }}
+                animate={{
+                  width: `${(turnTimer / 15) * 100}%`,
+                  backgroundColor: turnTimer <= 5 ? 'rgb(239, 68, 68)' : turnTimer <= 10 ? 'rgb(234, 179, 8)' : 'rgb(34, 211, 238)'
+                }}
+                transition={{ duration: 1 }}
+              />
             </div>
           </>
         )}
@@ -213,19 +262,25 @@ export default function ActiveGamePage() {
           <div className={`absolute top-0 ${
             player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
           } transform -translate-y-1/2`}>
-            <div className="relative bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-1.5 rounded-md border-2 border-white/30 shadow-lg whitespace-nowrap">
-              <p className="text-white text-[10px] font-semibold">{player.chatMessage}</p>
-              {/* 吹き出しの三角形 */}
-              <div className={`absolute top-1/2 transform -translate-y-1/2 ${
-                player.cardSide === 'right' ? '-left-2' : '-right-2'
-              }`}>
-                <div className={`w-0 h-0 ${
-                  player.cardSide === 'right' 
-                    ? 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-cyan-400'
-                    : 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[8px] border-l-cyan-400'
-                }`}></div>
+            <motion.div
+              initial={{ x: player.cardSide === 'right' ? -20 : 20, opacity: 0, scale: 0.8 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <div className="relative bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-1.5 rounded-md border-2 border-white/30 shadow-lg whitespace-nowrap">
+                <p className="text-white text-[10px] font-semibold">{player.chatMessage}</p>
+                {/* 吹き出しの三角形 */}
+                <div className={`absolute top-1/2 transform -translate-y-1/2 ${
+                  player.cardSide === 'right' ? '-left-2' : '-right-2'
+                }`}>
+                  <div className={`w-0 h-0 ${
+                    player.cardSide === 'right' 
+                      ? 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-cyan-400'
+                      : 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[8px] border-l-cyan-400'
+                  }`}></div>
+                </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
 
@@ -559,9 +614,28 @@ export default function ActiveGamePage() {
       {/* コミュニティカード */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-3">
-          {communityCards.map((card) => (
-            <div key={card.id} className="scale-110">
-              <Card card={card} faceUp={true} />
+          {communityCards.map((card, index) => (
+            <div key={card.id}>
+              <motion.div 
+                initial={{ 
+                  rotateY: 180, 
+                  scale: 0.5,
+                  y: -50
+                }}
+                animate={{ 
+                  rotateY: 0, 
+                  scale: 1.1,
+                  y: 0
+                }}
+                transition={{ 
+                  duration: 0.6,
+                  delay: index < 3 ? index * 0.15 : (index === 3 ? 1.5 : 2.5),
+                  ease: "easeOut"
+                }}
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <Card card={card} faceUp={true} />
+              </motion.div>
             </div>
           ))}
         </div>
@@ -648,9 +722,30 @@ export default function ActiveGamePage() {
 
       {/* 自分の役表示 - プレイヤー1の左 */}
       <div className="absolute bottom-36 left-[45%] transform -translate-x-1/2 -translate-x-52">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
-          <p className="text-white text-xs font-bold">ロイヤルフラッシュ</p>
-        </div>
+        <motion.div 
+          initial={{ x: -100, opacity: 0, scale: 0.8 }}
+          animate={{ x: 0, opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <motion.div 
+            animate={{ 
+              boxShadow: [
+                '0 0 20px rgba(34, 211, 238, 0.5)',
+                '0 0 40px rgba(34, 211, 238, 0.8)',
+                '0 0 20px rgba(34, 211, 238, 0.5)'
+              ]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+            style={{
+              background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: '2px solid rgba(255, 255, 255, 0.3)'
+            }}
+          >
+            <p className="text-white text-xs font-bold">ロイヤルフラッシュ</p>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* プレイヤー1のハンドカード - 右側に大きく扇形で表示 */}
@@ -1177,6 +1272,67 @@ export default function ActiveGamePage() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* 勝利セレブレーション - 紙吹雪 */}
+      {showCelebration && (
+        <div className="absolute inset-0 pointer-events-none z-50">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <motion.div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: `${Math.random() * 100}%`,
+                top: '-20px',
+                width: '10px',
+                height: '10px',
+                backgroundColor: ['#fbbf24', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#06b6d4'][Math.floor(Math.random() * 6)],
+                borderRadius: Math.random() > 0.5 ? '50%' : '0',
+              }}
+              animate={{
+                y: [0, window.innerHeight + 100],
+                x: [0, (Math.random() - 0.5) * 200],
+                rotate: [0, Math.random() * 360],
+                opacity: [1, 0]
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                delay: Math.random() * 0.5,
+                ease: "easeIn"
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* オールイン演出 - 画面フラッシュ */}
+      {allInPlayer !== null && (
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-40"
+          initial={{ opacity: 0 }}
+          animate={{ 
+            opacity: [0, 0.3, 0],
+            backgroundColor: ['rgba(255, 215, 0, 0)', 'rgba(255, 215, 0, 0.5)', 'rgba(255, 215, 0, 0)']
+          }}
+          transition={{ duration: 0.6 }}
+          onAnimationComplete={() => setAllInPlayer(null)}
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 0.8 }}
+              style={{
+                fontSize: '4rem',
+                fontWeight: 'bold',
+                color: '#ffd700',
+                textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)'
+              }}
+            >
+              ALL IN!
+            </motion.div>
+          </div>
+        </motion.div>
       )}
 
     </div>

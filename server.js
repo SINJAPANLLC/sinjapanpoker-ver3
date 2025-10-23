@@ -387,11 +387,14 @@ app.prepare().then(() => {
 
     socket.on('join-game', ({ gameId, player, blinds }) => {
       try {
+        console.log('join-game受信:', { gameId, player, blinds });
         let game = games.get(gameId);
         
         if (!game) {
           const gameBlinds = blinds || { small: 10, big: 20 };
+          console.log('新規ゲーム作成:', { gameId, gameBlinds });
           game = new PokerGame(gameId, 'cash', gameBlinds);
+          console.log('作成されたゲームのブラインド:', game.blinds);
           games.set(gameId, game);
         }
 

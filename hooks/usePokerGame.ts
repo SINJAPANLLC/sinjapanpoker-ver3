@@ -64,7 +64,7 @@ export function usePokerGame(gameId: string | null) {
   useEffect(() => {
     if (!gameId || !user) return;
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin;
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || (typeof window !== 'undefined' ? window.location.origin : '');
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,

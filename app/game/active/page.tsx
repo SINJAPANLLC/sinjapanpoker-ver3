@@ -132,6 +132,20 @@ export default function ActiveGamePage() {
                 </div>
               ))}
             </div>
+            
+            {/* ベット額表示 - カードの横 */}
+            {player.bet > 0 && !player.folded && (
+              <div className={`absolute top-1/2 transform -translate-y-1/2 ${
+                player.cardSide === 'right' ? '-left-12' : '-right-12'
+              }`}>
+                <div className="bg-yellow-400 px-2 py-1 rounded-md border-2 border-white shadow-lg">
+                  <div className="flex items-center gap-1">
+                    <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                    <p className="text-black text-xs font-bold">{player.bet}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -151,18 +165,6 @@ export default function ActiveGamePage() {
         {isActive && (
           <div className="absolute -top-2 -left-2 w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
             <p className="text-black text-sm font-bold">{turnTimer}</p>
-          </div>
-        )}
-
-        {/* ベット額表示 */}
-        {player.bet > 0 && !player.folded && (
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-2">
-            <div className="bg-yellow-400 px-2 py-1 rounded-md border-2 border-white shadow-lg">
-              <div className="flex items-center gap-1">
-                <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
-                <p className="text-black text-xs font-bold">{player.bet}</p>
-              </div>
-            </div>
           </div>
         )}
 

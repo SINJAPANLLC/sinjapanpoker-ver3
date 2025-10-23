@@ -183,7 +183,7 @@ export default function ActiveGamePage() {
       // tableInfoが読み込まれるのを少し待つ
       setTimeout(() => {
         const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
-        joinGame(user.chips || 1000, blinds);
+        joinGame(user.chips || 10000, blinds);
       }, 100);
     }
   }, [connected, user, gameState, joinGame]);

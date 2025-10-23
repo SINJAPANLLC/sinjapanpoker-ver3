@@ -98,18 +98,18 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* プレイヤー1 - 中央下（少し上） */}
-      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2">
+      {/* プレイヤー1 - 中央下（さらに上） */}
+      <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
         <PlayerComponent player={players[0]} />
       </div>
 
-      {/* プレイヤー2 - 左下（少し上） */}
-      <div className="absolute bottom-60 left-6">
+      {/* プレイヤー2 - 左下（さらに上） */}
+      <div className="absolute bottom-72 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
-      {/* プレイヤー3 - 左中（少し上） */}
-      <div className="absolute top-[45%] left-6 transform -translate-y-1/2">
+      {/* プレイヤー3 - 左中（さらに上） */}
+      <div className="absolute top-[40%] left-6 transform -translate-y-1/2">
         <PlayerComponent player={players[2]} />
       </div>
 
@@ -133,13 +133,13 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[6]} />
       </div>
 
-      {/* プレイヤー8 - 右中（少し上） */}
-      <div className="absolute top-[45%] right-6 transform -translate-y-1/2">
+      {/* プレイヤー8 - 右中（さらに上） */}
+      <div className="absolute top-[40%] right-6 transform -translate-y-1/2">
         <PlayerComponent player={players[7]} />
       </div>
 
-      {/* プレイヤー9 - 右下（少し上） */}
-      <div className="absolute bottom-60 right-6">
+      {/* プレイヤー9 - 右下（さらに上） */}
+      <div className="absolute bottom-72 right-6">
         <PlayerComponent player={players[8]} />
       </div>
     </div>

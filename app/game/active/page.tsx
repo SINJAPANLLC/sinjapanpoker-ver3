@@ -548,8 +548,8 @@ export default function ActiveGamePage() {
           </div>
         )}
 
-        {/* ハンドカード - アバターに重ねる（position 0は表示しない） */}
-        {player.showCards && player.cards && player.cards.length > 0 && player.position !== null && player.position !== '0' && (
+        {/* ハンドカード - すべてのプレイヤーのカードを表示 */}
+        {player.cards && player.cards.length > 0 && (
           <div className={`absolute top-1/2 transform -translate-y-1/2 ${
             player.cardSide === 'right' 
               ? 'right-0 translate-x-1/2' 
@@ -567,14 +567,22 @@ export default function ActiveGamePage() {
                   }}
                 >
                   <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
-                    <Card card={card} faceUp={player.showCardsFaceUp || false} />
+                    <Card 
+                      card={card} 
+                      faceUp={
+                        (typeof player.position === 'number' && player.position === 0) || 
+                        (typeof player.position === 'string' && player.position === '0') ||
+                        gameState?.phase === 'showdown' || 
+                        gameState?.phase === 'finished'
+                      } 
+                    />
                   </div>
                 </div>
               ))}
             </div>
             
-            {/* ベット額表示 - カードの横（position 0は表示しない） */}
-            {player.bet > 0 && !player.folded && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && player.position !== null && player.position !== '0' && (
+            {/* ベット額表示 - カードの横 */}
+            {player.bet > 0 && !player.folded && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && (
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${
                 player.cardSide === 'right' ? '-right-12' : '-left-12'
               }`}>

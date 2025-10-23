@@ -22,39 +22,39 @@ export default function ActiveGamePage() {
   ];
 
   const players = [
-    { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, showCards: false, cards: [
+    { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, showCards: false, position: null, cards: [
       { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
       { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
     ]},
-    { id: 2, name: 'プレイヤー2', chips: 8500, cardSide: 'right' as const, showCards: true, cards: [
+    { id: 2, name: 'プレイヤー2', chips: 8500, cardSide: 'right' as const, showCards: true, position: 'D', cards: [
       { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
       { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
     ]},
-    { id: 3, name: 'プレイヤー3', chips: 12000, cardSide: 'right' as const, showCards: true, cards: [
+    { id: 3, name: 'プレイヤー3', chips: 12000, cardSide: 'right' as const, showCards: true, position: 'SB', cards: [
       { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
       { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
     ]},
-    { id: 4, name: 'プレイヤー4', chips: 6200, cardSide: 'right' as const, showCards: true, cards: [
+    { id: 4, name: 'プレイヤー4', chips: 6200, cardSide: 'right' as const, showCards: true, position: 'BB', cards: [
       { rank: '8' as Rank, suit: 'clubs' as Suit, id: 'p4-card-1' },
       { rank: '7' as Rank, suit: 'spades' as Suit, id: 'p4-card-2' },
     ]},
-    { id: 5, name: 'プレイヤー5', chips: 9800, cardSide: 'right' as const, showCards: true, cards: [
+    { id: 5, name: 'プレイヤー5', chips: 9800, cardSide: 'right' as const, showCards: true, position: null, cards: [
       { rank: '6' as Rank, suit: 'hearts' as Suit, id: 'p5-card-1' },
       { rank: '5' as Rank, suit: 'diamonds' as Suit, id: 'p5-card-2' },
     ]},
-    { id: 6, name: 'プレイヤー6', chips: 7500, cardSide: 'left' as const, showCards: true, cards: [
+    { id: 6, name: 'プレイヤー6', chips: 7500, cardSide: 'left' as const, showCards: true, position: null, cards: [
       { rank: '4' as Rank, suit: 'clubs' as Suit, id: 'p6-card-1' },
       { rank: '3' as Rank, suit: 'spades' as Suit, id: 'p6-card-2' },
     ]},
-    { id: 7, name: 'プレイヤー7', chips: 11000, cardSide: 'left' as const, showCards: true, cards: [
+    { id: 7, name: 'プレイヤー7', chips: 11000, cardSide: 'left' as const, showCards: true, position: null, cards: [
       { rank: '2' as Rank, suit: 'hearts' as Suit, id: 'p7-card-1' },
       { rank: 'A' as Rank, suit: 'clubs' as Suit, id: 'p7-card-2' },
     ]},
-    { id: 8, name: 'プレイヤー8', chips: 4500, cardSide: 'left' as const, showCards: true, cards: [
+    { id: 8, name: 'プレイヤー8', chips: 4500, cardSide: 'left' as const, showCards: true, position: null, cards: [
       { rank: 'K' as Rank, suit: 'spades' as Suit, id: 'p8-card-1' },
       { rank: 'Q' as Rank, suit: 'hearts' as Suit, id: 'p8-card-2' },
     ]},
-    { id: 9, name: 'プレイヤー9', chips: 8200, cardSide: 'left' as const, showCards: true, cards: [
+    { id: 9, name: 'プレイヤー9', chips: 8200, cardSide: 'left' as const, showCards: true, position: null, cards: [
       { rank: 'J' as Rank, suit: 'diamonds' as Suit, id: 'p9-card-1' },
       { rank: '10' as Rank, suit: 'clubs' as Suit, id: 'p9-card-2' },
     ]},
@@ -93,6 +93,13 @@ export default function ActiveGamePage() {
       <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-3 border-white shadow-lg">
         <User className="w-10 h-10 text-white" strokeWidth={2} />
       </div>
+
+      {/* ポジションマーカー（D, SB, BB） */}
+      {player.position && (
+        <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+          <p className="text-black text-xs font-bold">{player.position}</p>
+        </div>
+      )}
       
       {/* ユーザー情報（アバターの下部に被せる） */}
       <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10">

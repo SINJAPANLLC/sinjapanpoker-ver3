@@ -19,8 +19,8 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* アバターアイコン - 画面中央下 */}
-      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+      {/* アバターアイコン - 画面中央下（少し上に） */}
+      <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
         <div className="relative">
           {/* ハンドカード - アバターに重ねる */}
           <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2">

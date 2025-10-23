@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Menu, MessageCircle, Volume2, VolumeX, Music, Wifi, WifiOff, Maximize, Minimize, Info, History, Eye } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
@@ -122,7 +122,7 @@ export default function ActiveGamePage() {
     { id: 3, player: 'プレイヤー9', message: 'よし、勝負！', time: '12:34' },
   ]);
   const [playerBubbles, setPlayerBubbles] = useState<Record<string, { message: string; timestamp: number }>>({});
-  const [lastProcessedTimestamp, setLastProcessedTimestamp] = useState(0);
+  const lastProcessedTimestampRef = useRef(0);
   
   // 動的な値として計算
   const currentPlayer = getCurrentPlayer();
@@ -231,7 +231,7 @@ export default function ActiveGamePage() {
       
       // 新しいメッセージだけを処理（タイムスタンプで重複防止）
       const latestMsg = socketMessages[socketMessages.length - 1];
-      if (latestMsg && latestMsg.timestamp > lastProcessedTimestamp) {
+      if (latestMsg && latestMsg.timestamp > lastProcessedTimestampRef.current) {
         const username = latestMsg.username;
         
         setPlayerBubbles(prev => ({
@@ -252,10 +252,10 @@ export default function ActiveGamePage() {
           });
         }, 3000);
         
-        setLastProcessedTimestamp(latestMsg.timestamp);
+        lastProcessedTimestampRef.current = latestMsg.timestamp;
       }
     }
-  }, [socketMessages, lastProcessedTimestamp]);
+  }, [socketMessages]);
 
   // アニメーションに応じたサウンド再生
   useEffect(() => {

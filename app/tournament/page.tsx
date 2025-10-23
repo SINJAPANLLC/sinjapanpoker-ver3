@@ -114,9 +114,8 @@ export default function TournamentPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {tournaments.map((tournament) => (
               <Link key={tournament.id} href={`/tournament/${tournament.id}`}>
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-gradient-to-br from-cyan-400/20 to-blue-600/20 backdrop-blur-sm p-6 rounded-lg border-2 border-white/30 cursor-pointer hover:border-cyan-400 transition-all"
+                <div
+                  className="bg-gradient-to-br from-cyan-400/20 to-blue-600/20 backdrop-blur-sm p-6 rounded-lg border-2 border-white/30 cursor-pointer hover:border-cyan-400 transition-all hover:scale-[1.02]"
                 >
                   {/* ステータスバッジ */}
                   <div className="flex justify-between items-start mb-3">
@@ -177,7 +176,7 @@ export default function TournamentPage() {
                       style={{ width: `${(tournament.currentPlayers / tournament.maxPlayers) * 100}%` }}
                     />
                   </div>
-                </motion.div>
+                </div>
               </Link>
             ))}
           </div>

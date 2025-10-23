@@ -2015,7 +2015,7 @@ export default function ActiveGamePage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/80 text-xs">ゲーム種別:</span>
-                    <span className="text-white text-xs font-semibold">Texas Hold'em</span>
+                    <span className="text-white text-xs font-semibold">Texas Hold&apos;em</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/80 text-xs">SB/BB:</span>
@@ -2468,7 +2468,7 @@ export default function ActiveGamePage() {
             <div className="space-y-3">
               {/* ゲーム概要 */}
               <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🎯 Texas Hold'em とは</p>
+                <p className="text-white text-sm font-bold mb-2">🎯 Texas Hold&apos;em とは</p>
                 <p className="text-white text-xs leading-relaxed">
                   テキサスホールデムは世界で最も人気のあるポーカーゲームです。2枚の手札と5枚のコミュニティカードで最高の5枚役を作ります。
                 </p>

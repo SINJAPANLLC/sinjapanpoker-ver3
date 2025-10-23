@@ -5,6 +5,7 @@ import { User, Menu, MessageCircle, Volume2, VolumeX, Music, Wifi, WifiOff, Maxi
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ActiveGamePage() {
   const [raiseAmount, setRaiseAmount] = useState(200);
@@ -25,6 +26,9 @@ export default function ActiveGamePage() {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
   const [showActionLog, setShowActionLog] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [winnerPlayerId, setWinnerPlayerId] = useState<number | null>(null);
+  const [showWinnerAnimation, setShowWinnerAnimation] = useState(false);
+  const [chipAnimations, setChipAnimations] = useState<Array<{ id: number; playerId: number }>>([]);
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -80,39 +84,39 @@ export default function ActiveGamePage() {
   const activePlayerId = 3;
 
   const players = [
-    { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, showCards: false, position: null, bet: 0, lastAction: null, folded: false, chatMessage: null, cards: [
+    { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, showCards: false, position: null, bet: 0, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
       { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
       { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
     ]},
-    { id: 2, name: 'プレイヤー2', chips: 8500, cardSide: 'right' as const, showCards: true, position: 'D', bet: 200, lastAction: 'RAISE', folded: false, chatMessage: 'いい手だ！', cards: [
+    { id: 2, name: 'プレイヤー2', chips: 8500, cardSide: 'right' as const, showCards: true, position: 'D', bet: 200, lastAction: 'RAISE', folded: false, chatMessage: 'いい手だ！', isWinner: true, cards: [
       { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
       { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
     ]},
-    { id: 3, name: 'プレイヤー3', chips: 12000, cardSide: 'right' as const, showCards: true, position: 'SB', bet: 50, lastAction: null, folded: false, chatMessage: null, cards: [
+    { id: 3, name: 'プレイヤー3', chips: 12000, cardSide: 'right' as const, showCards: true, position: 'SB', bet: 50, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
       { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
       { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
     ]},
-    { id: 4, name: 'プレイヤー4', chips: 6200, cardSide: 'right' as const, showCards: true, position: 'BB', bet: 100, lastAction: null, folded: false, chatMessage: null, cards: [
+    { id: 4, name: 'プレイヤー4', chips: 6200, cardSide: 'right' as const, showCards: true, position: 'BB', bet: 100, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
       { rank: '8' as Rank, suit: 'clubs' as Suit, id: 'p4-card-1' },
       { rank: '7' as Rank, suit: 'spades' as Suit, id: 'p4-card-2' },
     ]},
-    { id: 5, name: 'プレイヤー5', chips: 9800, cardSide: 'right' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, cards: [
+    { id: 5, name: 'プレイヤー5', chips: 9800, cardSide: 'right' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, isWinner: false, cards: [
       { rank: '6' as Rank, suit: 'hearts' as Suit, id: 'p5-card-1' },
       { rank: '5' as Rank, suit: 'diamonds' as Suit, id: 'p5-card-2' },
     ]},
-    { id: 6, name: 'プレイヤー6', chips: 7500, cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: 'よし、勝負！', cards: [
+    { id: 6, name: 'プレイヤー6', chips: 7500, cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: 'よし、勝負！', isWinner: false, cards: [
       { rank: '4' as Rank, suit: 'clubs' as Suit, id: 'p6-card-1' },
       { rank: '3' as Rank, suit: 'spades' as Suit, id: 'p6-card-2' },
     ]},
-    { id: 7, name: 'プレイヤー7', chips: 11000, cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, cards: [
+    { id: 7, name: 'プレイヤー7', chips: 11000, cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, isWinner: false, cards: [
       { rank: '2' as Rank, suit: 'hearts' as Suit, id: 'p7-card-1' },
       { rank: 'A' as Rank, suit: 'clubs' as Suit, id: 'p7-card-2' },
     ]},
-    { id: 8, name: 'プレイヤー8', chips: 4500, cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: null, folded: false, chatMessage: null, cards: [
+    { id: 8, name: 'プレイヤー8', chips: 4500, cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
       { rank: 'K' as Rank, suit: 'spades' as Suit, id: 'p8-card-1' },
       { rank: 'Q' as Rank, suit: 'hearts' as Suit, id: 'p8-card-2' },
     ]},
-    { id: 9, name: 'プレイヤー9', chips: 8200, cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: null, cards: [
+    { id: 9, name: 'プレイヤー9', chips: 8200, cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: null, isWinner: false, cards: [
       { rank: 'J' as Rank, suit: 'diamonds' as Suit, id: 'p9-card-1' },
       { rank: '10' as Rank, suit: 'clubs' as Suit, id: 'p9-card-2' },
     ]},
@@ -544,14 +548,52 @@ export default function ActiveGamePage() {
 
       {/* ポット */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%] flex flex-col gap-1 items-center">
+        {/* チップアニメーション */}
+        <AnimatePresence>
+          {chipAnimations.map((anim) => (
+            <motion.div
+              key={anim.id}
+              initial={{ 
+                x: 0, 
+                y: 0, 
+                scale: 0.5,
+                opacity: 0 
+              }}
+              animate={{ 
+                x: 0, 
+                y: 0, 
+                scale: 1,
+                opacity: 1 
+              }}
+              exit={{ 
+                scale: 0,
+                opacity: 0 
+              }}
+              transition={{ 
+                duration: 0.5,
+                ease: "easeOut"
+              }}
+              className="absolute"
+            >
+              <Image src="/chip-icon.png" alt="chip" width={24} height={24} className="drop-shadow-lg" />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
         {/* メインポット */}
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
+        <motion.div 
+          className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg"
+          animate={{ 
+            scale: chipAnimations.length > 0 ? [1, 1.1, 1] : 1 
+          }}
+          transition={{ duration: 0.3 }}
+        >
           <p className="text-white text-xs font-bold text-center">POT</p>
           <div className="flex items-center justify-center gap-1">
             <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
             <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
           </div>
-        </div>
+        </motion.div>
         
         {/* サイドポット（複数オールインがある場合） */}
         <div className="bg-gradient-to-br from-yellow-400 to-orange-500 px-3 py-1.5 rounded border border-white/30 shadow-md">
@@ -755,13 +797,39 @@ export default function ActiveGamePage() {
             >
               <p className="text-white text-sm font-bold">フォールド</p>
             </button>
-            <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+            <button 
+              onClick={() => {
+                console.log(`${callAmount > 0 ? 'コール' : 'チェック'}: ${callAmount}`);
+                if (callAmount > 0) {
+                  // チップアニメーションをトリガー
+                  const newChipAnim = { id: Date.now(), playerId: 1 };
+                  setChipAnimations([...chipAnimations, newChipAnim]);
+                  setTimeout(() => {
+                    setChipAnimations(prev => prev.filter(a => a.id !== newChipAnim.id));
+                  }, 500);
+                }
+              }}
+              className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+            >
               <p className="text-white text-sm font-bold">
                 {callAmount > 0 ? `コール ${callAmount}` : 'チェック'}
               </p>
             </button>
             <button 
-              onClick={() => setShowRaiseSlider(!showRaiseSlider)}
+              onClick={() => {
+                if (showRaiseSlider) {
+                  console.log(`レイズ: ${raiseAmount}`);
+                  setShowRaiseSlider(false);
+                  // チップアニメーションをトリガー
+                  const newChipAnim = { id: Date.now(), playerId: 1 };
+                  setChipAnimations([...chipAnimations, newChipAnim]);
+                  setTimeout(() => {
+                    setChipAnimations(prev => prev.filter(a => a.id !== newChipAnim.id));
+                  }, 500);
+                } else {
+                  setShowRaiseSlider(true);
+                }
+              }}
               className="bg-green-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
             >
               <p className="text-white text-sm font-bold">

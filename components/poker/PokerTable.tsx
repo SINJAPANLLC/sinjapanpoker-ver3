@@ -148,7 +148,8 @@ export default function PokerTable({ players, communityCards, pot, currentPlayer
                   )}
 
                   <div className="flex gap-1 mt-3 justify-center">
-                    {player.cards.map((card, cardIndex) => {
+                    {/* プレイヤー3、4、5（index 2、3、4）はカードを反転表示 */}
+                    {(index === 2 || index === 3 || index === 4 ? [...player.cards].reverse() : player.cards).map((card, cardIndex) => {
                       const showCard = isMe || player.id === myPlayerId;
                       return (
                         <div

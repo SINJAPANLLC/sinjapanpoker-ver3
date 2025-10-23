@@ -221,41 +221,49 @@ export default function ActiveGamePage() {
 
   // チャットメッセージの同期
   useEffect(() => {
-    if (socketMessages.length > 0) {
-      setChatMessages(socketMessages.map((msg, idx) => ({
-        id: idx,
-        player: msg.username,
-        message: msg.message,
-        time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
-      })));
-      
-      // 新しいメッセージだけを処理（タイムスタンプで重複防止）
-      const latestMsg = socketMessages[socketMessages.length - 1];
-      if (latestMsg && latestMsg.timestamp > lastProcessedTimestampRef.current) {
-        const username = latestMsg.username;
-        
-        setPlayerBubbles(prev => ({
-          ...prev,
-          [username]: { message: latestMsg.message, timestamp: latestMsg.timestamp }
-        }));
-        
-        // 3秒後に吹き出しを消す（このメッセージのタイムスタンプと一致する場合のみ）
-        const msgTimestamp = latestMsg.timestamp;
-        setTimeout(() => {
-          setPlayerBubbles(prev => {
-            if (prev[username]?.timestamp === msgTimestamp) {
-              const newBubbles = { ...prev };
-              delete newBubbles[username];
-              return newBubbles;
-            }
-            return prev;
-          });
-        }, 3000);
-        
-        lastProcessedTimestampRef.current = latestMsg.timestamp;
-      }
+    if (socketMessages.length === 0) return;
+    
+    // チャット履歴を更新
+    setChatMessages(socketMessages.map((msg, idx) => ({
+      id: idx,
+      player: msg.username,
+      message: msg.message,
+      time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+    })));
+    
+    // 最新メッセージのみ処理
+    const latestMsg = socketMessages[socketMessages.length - 1];
+    if (!latestMsg || latestMsg.timestamp <= lastProcessedTimestampRef.current) {
+      return;
     }
-  }, [socketMessages]);
+    
+    const username = latestMsg.username;
+    const msgTimestamp = latestMsg.timestamp;
+    
+    // 吹き出しを表示
+    setPlayerBubbles(prev => ({
+      ...prev,
+      [username]: { message: latestMsg.message, timestamp: msgTimestamp }
+    }));
+    
+    // タイムアウトIDを保存して後でクリアできるようにする
+    const timeoutId = setTimeout(() => {
+      setPlayerBubbles(prev => {
+        // このタイムスタンプのメッセージのみ削除
+        if (prev[username]?.timestamp === msgTimestamp) {
+          const newBubbles = { ...prev };
+          delete newBubbles[username];
+          return newBubbles;
+        }
+        return prev;
+      });
+    }, 3000);
+    
+    lastProcessedTimestampRef.current = msgTimestamp;
+    
+    // クリーンアップ
+    return () => clearTimeout(timeoutId);
+  }, [socketMessages.length]);
 
   // アニメーションに応じたサウンド再生
   useEffect(() => {

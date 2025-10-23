@@ -1,98 +1,204 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Trophy, Users, Clock, Coins, Crown, AlertCircle, DollarSign } from 'lucide-react';
+import { ArrowLeft, Trophy, Users, Clock, Coins, Crown, AlertCircle, DollarSign, Play, X } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useTournamentStore } from '@/store/useTournamentStore';
+import { useRouter } from 'next/navigation';
 
 interface TournamentDetail {
   id: string;
   name: string;
+  description?: string;
+  type: 'sit-n-go' | 'scheduled' | 'bounty';
   buyIn: number;
-  fee: number;
-  guarantee: number;
-  players: number;
-  maxPlayers: number;
-  startTime: string;
-  status: 'registering' | 'upcoming' | 'running' | 'finished';
   prizePool: number;
-  blindLevels: { level: number; smallBlind: number; bigBlind: number; ante: number; duration: number; }[];
-  payouts: { position: number; prize: number; percentage: number; }[];
-  registeredPlayers: { name: string; chips: number; rank?: number; }[];
+  maxPlayers: number;
+  currentPlayers: number;
+  status: 'registering' | 'in-progress' | 'completed' | 'cancelled';
+  startTime?: string;
+  endTime?: string;
+  players: Array<{
+    userId: string;
+    username: string;
+    chips: number;
+    position?: number;
+    prize?: number;
+  }>;
+  createdAt: string;
 }
 
 function TournamentDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { user } = useAuthStore();
-  const { joinTournament } = useTournamentStore();
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [tournament, setTournament] = useState<TournamentDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // モックデータ（実際はAPIから取得）
-  const tournament: TournamentDetail = {
-    id,
-    name: 'Daily Main Event',
-    buyIn: 100,
-    fee: 10,
-    guarantee: 25000,
-    players: 256,
-    maxPlayers: 500,
-    startTime: '20:00 JST',
-    status: 'registering',
-    prizePool: 28000,
-    blindLevels: [
-      { level: 1, smallBlind: 10, bigBlind: 20, ante: 0, duration: 10 },
-      { level: 2, smallBlind: 15, bigBlind: 30, ante: 0, duration: 10 },
-      { level: 3, smallBlind: 25, bigBlind: 50, ante: 5, duration: 10 },
-      { level: 4, smallBlind: 50, bigBlind: 100, ante: 10, duration: 10 },
-      { level: 5, smallBlind: 75, bigBlind: 150, ante: 15, duration: 10 },
-    ],
-    payouts: [
-      { position: 1, prize: 8400, percentage: 30 },
-      { position: 2, prize: 5600, percentage: 20 },
-      { position: 3, prize: 3920, percentage: 14 },
-      { position: 4, prize: 2800, percentage: 10 },
-      { position: 5, prize: 2240, percentage: 8 },
-      { position: 6, prize: 1680, percentage: 6 },
-      { position: 7, prize: 1400, percentage: 5 },
-      { position: 8, prize: 1120, percentage: 4 },
-      { position: 9, prize: 840, percentage: 3 },
-    ],
-    registeredPlayers: [
-      { name: 'Player1', chips: 5000 },
-      { name: 'Player2', chips: 5000 },
-      { name: 'Player3', chips: 5000 },
-    ]
+  useEffect(() => {
+    fetchTournament();
+  }, [id]);
+
+  const fetchTournament = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/tournament/${id}`);
+      const data = await response.json();
+      setTournament(data);
+    } catch (error) {
+      console.error('トーナメント取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRegister = () => {
-    if (!user) {
-      alert('ログインが必要です');
-      return;
-    }
-    
-    const success = joinTournament(tournament.id, user.id, user.username);
-    if (success) {
-      setIsRegistered(true);
-      alert('トーナメントに登録しました！');
-    } else {
+  const handleRegister = async () => {
+    if (!user || !tournament) return;
+
+    try {
+      setActionLoading(true);
+      const response = await fetch(`/api/tournament/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register',
+          userId: user.id,
+          username: user.username,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('トーナメントに登録しました！');
+        fetchTournament();
+      } else {
+        alert(data.error || '登録に失敗しました');
+      }
+    } catch (error) {
+      console.error('登録エラー:', error);
       alert('登録に失敗しました');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleStart = async () => {
+    if (!user || !tournament) return;
+
+    try {
+      setActionLoading(true);
+      const response = await fetch(`/api/tournament/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start' }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('トーナメントを開始しました！');
+        fetchTournament();
+        // ゲームページにリダイレクト
+        router.push(`/game/active?tournament=${id}`);
+      } else {
+        alert(data.error || '開始に失敗しました');
+      }
+    } catch (error) {
+      console.error('開始エラー:', error);
+      alert('開始に失敗しました');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!user || !tournament) return;
+    if (!confirm('トーナメントをキャンセルしますか？参加費は全員に返金されます。')) return;
+
+    try {
+      setActionLoading(true);
+      const response = await fetch(`/api/tournament/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel' }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('トーナメントをキャンセルしました');
+        fetchTournament();
+      } else {
+        alert(data.error || 'キャンセルに失敗しました');
+      }
+    } catch (error) {
+      console.error('キャンセルエラー:', error);
+      alert('キャンセルに失敗しました');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const getStatusBadge = () => {
+    if (!tournament) return null;
+    
     switch (tournament.status) {
       case 'registering':
         return <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-sm font-semibold">登録受付中</span>;
-      case 'upcoming':
-        return <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-semibold">開催予定</span>;
-      case 'running':
+      case 'in-progress':
         return <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-lg text-sm font-semibold animate-pulse">進行中</span>;
-      case 'finished':
+      case 'completed':
         return <span className="px-3 py-1 bg-gray-500/20 text-gray-400 rounded-lg text-sm font-semibold">終了</span>;
+      case 'cancelled':
+        return <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold">キャンセル</span>;
     }
   };
+
+  const calculatePrizes = () => {
+    if (!tournament) return [];
+    
+    const distribution = [
+      { position: 1, percentage: 50 },
+      { position: 2, percentage: 30 },
+      { position: 3, percentage: 20 },
+    ];
+
+    return distribution.map(d => ({
+      ...d,
+      prize: Math.floor((tournament.prizePool * d.percentage) / 100),
+    }));
+  };
+
+  const isRegistered = tournament?.players.some(p => p.userId === user?.id) || false;
+  const isAdmin = user?.isAdmin || false;
+
+  if (loading) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-[#1a0a0a] to-black">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+          <p className="text-gray-400 mt-4">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tournament) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-[#1a0a0a] to-black">
+        <div className="text-center glass-strong rounded-2xl p-8">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-white text-xl mb-4">トーナメントが見つかりません</p>
+          <Link href="/tournaments" className="text-cyan-400 hover:text-cyan-300">
+            トーナメント一覧に戻る
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden page-transition">
@@ -123,150 +229,176 @@ function TournamentDetailContent({ params }: { params: Promise<{ id: string }> }
 
       {/* メインコンテンツ */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 py-8 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 左カラム - 詳細情報 */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* 左カラム */}
           <div className="lg:col-span-2 space-y-6">
-            {/* 基本情報 */}
-            <div className="card animate-fade-in">
-              <h2 className="text-2xl font-bold text-white mb-6">トーナメント情報</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <DollarSign className="w-5 h-5 text-blue-400" />
-                    <span className="text-gray-400 text-sm">バイイン</span>
-                  </div>
-                  <div className="text-white font-bold text-xl">{tournament.buyIn + tournament.fee}</div>
-                  <div className="text-gray-500 text-xs">{tournament.buyIn} + {tournament.fee}</div>
+            {/* トーナメント情報 */}
+            <div className="glass-strong rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <Trophy className="w-6 h-6 text-yellow-400 mr-2" />
+                トーナメント情報
+              </h2>
+              {tournament.description && (
+                <p className="text-gray-300 mb-4">{tournament.description}</p>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 rounded-lg p-4">
+                  <p className="text-gray-400 text-sm mb-1">バイイン</p>
+                  <p className="text-white text-2xl font-bold">{tournament.buyIn.toLocaleString()}<span className="text-sm ml-1">チップ</span></p>
                 </div>
-                
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Trophy className="w-5 h-5 text-yellow-400" />
-                    <span className="text-gray-400 text-sm">賞金総額</span>
-                  </div>
-                  <div className="text-yellow-400 font-bold text-xl">{tournament.prizePool.toLocaleString()}</div>
-                  <div className="text-gray-500 text-xs">GTD: {tournament.guarantee.toLocaleString()}</div>
+                <div className="bg-white/5 rounded-lg p-4">
+                  <p className="text-gray-400 text-sm mb-1">賞金プール</p>
+                  <p className="text-cyan-400 text-2xl font-bold">{tournament.prizePool.toLocaleString()}<span className="text-sm ml-1">チップ</span></p>
                 </div>
-                
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Users className="w-5 h-5 text-green-400" />
-                    <span className="text-gray-400 text-sm">参加者</span>
-                  </div>
-                  <div className="text-white font-bold text-xl">{tournament.players}/{tournament.maxPlayers}</div>
-                  <div className="text-gray-500 text-xs">最大{tournament.maxPlayers}名</div>
+                <div className="bg-white/5 rounded-lg p-4">
+                  <p className="text-gray-400 text-sm mb-1">参加者</p>
+                  <p className="text-white text-2xl font-bold">{tournament.currentPlayers} / {tournament.maxPlayers}</p>
                 </div>
-                
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Clock className="w-5 h-5 text-purple-400" />
-                    <span className="text-gray-400 text-sm">開始時刻</span>
-                  </div>
-                  <div className="text-white font-bold text-lg">{tournament.startTime}</div>
+                <div className="bg-white/5 rounded-lg p-4">
+                  <p className="text-gray-400 text-sm mb-1">タイプ</p>
+                  <p className="text-white text-lg font-bold">
+                    {tournament.type === 'sit-n-go' ? 'シット＆ゴー' : tournament.type === 'scheduled' ? 'スケジュール' : 'バウンティ'}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* ブラインド構造 */}
-            <div className="card animate-slide-in-up" style={{ animationDelay: '0.1s' }}>
-              <h2 className="text-2xl font-bold text-white mb-6">ブラインド構造</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="text-left text-gray-400 pb-3">レベル</th>
-                      <th className="text-left text-gray-400 pb-3">スモールブラインド</th>
-                      <th className="text-left text-gray-400 pb-3">ビッグブラインド</th>
-                      <th className="text-left text-gray-400 pb-3">アンティ</th>
-                      <th className="text-left text-gray-400 pb-3">時間</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tournament.blindLevels.map((level) => (
-                      <tr key={level.level} className="border-b border-gray-800">
-                        <td className="py-3 text-white font-semibold">{level.level}</td>
-                        <td className="py-3 text-gray-300">{level.smallBlind}</td>
-                        <td className="py-3 text-gray-300">{level.bigBlind}</td>
-                        <td className="py-3 text-gray-300">{level.ante}</td>
-                        <td className="py-3 text-gray-300">{level.duration}分</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* 賞金配分 */}
-            <div className="card animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
-              <h2 className="text-2xl font-bold text-white mb-6">賞金配分</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {tournament.payouts.map((payout) => (
-                  <div key={payout.position} className={`bg-gray-800/50 rounded-lg p-4 ${payout.position <= 3 ? 'border-2 border-yellow-500/30' : ''}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-400 text-sm">{payout.position}位</span>
-                      <span className="text-gray-500 text-xs">{payout.percentage}%</span>
+            {/* 賞金分配 */}
+            <div className="glass-strong rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <DollarSign className="w-6 h-6 text-green-400 mr-2" />
+                賞金分配
+              </h2>
+              <div className="space-y-3">
+                {calculatePrizes().map((prize) => (
+                  <div key={prize.position} className="flex items-center justify-between bg-white/5 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
+                      {prize.position === 1 && <Crown className="w-6 h-6 text-yellow-400" />}
+                      {prize.position === 2 && <Crown className="w-6 h-6 text-gray-300" />}
+                      {prize.position === 3 && <Crown className="w-6 h-6 text-orange-400" />}
+                      <span className="text-white font-semibold">{prize.position}位</span>
                     </div>
-                    <div className="text-yellow-400 font-bold text-xl">{payout.prize.toLocaleString()}</div>
+                    <div className="text-right">
+                      <p className="text-white font-bold text-lg">{prize.prize.toLocaleString()}チップ</p>
+                      <p className="text-gray-400 text-sm">{prize.percentage}%</p>
+                    </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* 参加者一覧 */}
+            <div className="glass-strong rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <Users className="w-6 h-6 text-blue-400 mr-2" />
+                参加者一覧 ({tournament.currentPlayers}人)
+              </h2>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {tournament.players.length === 0 ? (
+                  <p className="text-gray-400 text-center py-4">まだ参加者がいません</p>
+                ) : (
+                  tournament.players.map((player, index) => (
+                    <div key={player.userId} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-gray-400 font-mono w-8">{index + 1}</span>
+                        <span className="text-white font-semibold">{player.username}</span>
+                        {player.userId === user?.id && (
+                          <span className="px-2 py-0.5 bg-cyan-400/20 text-cyan-400 rounded text-xs">あなた</span>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white">{player.chips.toLocaleString()}チップ</p>
+                        {player.position && (
+                          <p className="text-gray-400 text-sm">{player.position}位</p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
 
-          {/* 右カラム - 登録 */}
+          {/* 右カラム */}
           <div className="space-y-6">
-            {/* 登録ボタン */}
-            <div className="card animate-scale-in">
-              <div className="text-center mb-4">
-                <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">トーナメント登録</h3>
-                <p className="text-gray-400 text-sm">今すぐ登録して参加しよう！</p>
-              </div>
-              
-              {isRegistered ? (
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-4">
-                  <div className="flex items-center space-x-2 text-green-400">
-                    <AlertCircle />
-                    <span className="font-semibold">登録済み</span>
+            {/* アクションパネル */}
+            <div className="glass-strong rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-4">アクション</h2>
+              <div className="space-y-3">
+                {tournament.status === 'registering' && !isRegistered && (
+                  <button
+                    onClick={handleRegister}
+                    disabled={actionLoading}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 text-white py-4 rounded-lg font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {actionLoading ? '処理中...' : '登録する'}
+                  </button>
+                )}
+                {tournament.status === 'registering' && isRegistered && (
+                  <div className="bg-green-500/20 text-green-400 py-4 rounded-lg text-center font-semibold">
+                    ✓ 登録済み
                   </div>
-                </div>
-              ) : (
-                <button
-                  onClick={handleRegister}
-                  disabled={tournament.status !== 'registering'}
-                  className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {tournament.status === 'registering' ? '登録する' : '受付終了'}
-                </button>
-              )}
-              
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between text-gray-400">
-                  <span>バイイン</span>
-                  <span className="text-white font-semibold">{tournament.buyIn + tournament.fee} チップ</span>
-                </div>
-                <div className="flex justify-between text-gray-400">
-                  <span>開始チップ</span>
-                  <span className="text-white font-semibold">5,000</span>
-                </div>
+                )}
+                {tournament.status === 'registering' && isAdmin && tournament.currentPlayers >= 2 && (
+                  <button
+                    onClick={handleStart}
+                    disabled={actionLoading}
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                  >
+                    <Play className="w-5 h-5" />
+                    <span>{actionLoading ? '処理中...' : 'トーナメント開始'}</span>
+                  </button>
+                )}
+                {tournament.status === 'registering' && isAdmin && (
+                  <button
+                    onClick={handleCancel}
+                    disabled={actionLoading}
+                    className="w-full bg-gradient-to-r from-red-500 to-rose-400 hover:from-red-600 hover:to-rose-500 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                  >
+                    <X className="w-5 h-5" />
+                    <span>{actionLoading ? '処理中...' : 'キャンセル'}</span>
+                  </button>
+                )}
+                {tournament.status === 'in-progress' && isRegistered && (
+                  <button
+                    onClick={() => router.push(`/game/active?tournament=${id}`)}
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white py-4 rounded-lg font-bold text-lg transition-all animate-pulse"
+                  >
+                    ゲームに参加
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* 登録プレイヤー */}
-            <div className="card animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
-              <h3 className="text-lg font-bold text-white mb-4">登録プレイヤー</h3>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {tournament.registeredPlayers.map((player, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">{player.name[0]}</span>
-                      </div>
-                      <span className="text-white font-semibold">{player.name}</span>
-                    </div>
-                    <span className="text-gray-400 text-sm">{player.chips.toLocaleString()}</span>
+            {/* タイムライン */}
+            <div className="glass-strong rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                <Clock className="w-6 h-6 text-cyan-400 mr-2" />
+                スケジュール
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-gray-400 text-sm">作成日時</p>
+                  <p className="text-white">
+                    {new Date(tournament.createdAt).toLocaleString('ja-JP')}
+                  </p>
+                </div>
+                {tournament.startTime && (
+                  <div>
+                    <p className="text-gray-400 text-sm">開始日時</p>
+                    <p className="text-white">
+                      {new Date(tournament.startTime).toLocaleString('ja-JP')}
+                    </p>
                   </div>
-                ))}
+                )}
+                {tournament.endTime && (
+                  <div>
+                    <p className="text-gray-400 text-sm">終了日時</p>
+                    <p className="text-white">
+                      {new Date(tournament.endTime).toLocaleString('ja-JP')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -283,4 +415,3 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
     </ProtectedRoute>
   );
 }
-

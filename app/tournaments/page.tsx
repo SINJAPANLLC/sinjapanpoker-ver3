@@ -1,64 +1,73 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Trophy, Crown, Users, Clock, Coins } from 'lucide-react';
+import { ArrowLeft, Trophy, Crown, Users, Clock, Coins, Plus } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useRouter } from 'next/navigation';
+
+interface Tournament {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'sit-n-go' | 'scheduled' | 'bounty';
+  buyIn: number;
+  prizePool: number;
+  maxPlayers: number;
+  currentPlayers: number;
+  status: 'registering' | 'in-progress' | 'completed' | 'cancelled';
+  startTime?: string;
+  createdAt: string;
+}
 
 function TournamentsContent() {
-  const [filter, setFilter] = useState('all');
+  const router = useRouter();
+  const [filter, setFilter] = useState<string>('all');
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const tournaments = [
-    {
-      id: '1',
-      name: 'Daily Main Event',
-      buyIn: 100,
-      fee: 10,
-      guarantee: 25000,
-      players: 256,
-      maxPlayers: 500,
-      startTime: '20:00 JST',
-      status: 'registering',
-      type: 'featured'
-    },
-    {
-      id: '2',
-      name: 'Turbo Knockout',
-      buyIn: 50,
-      fee: 5,
-      guarantee: 10000,
-      players: 128,
-      maxPlayers: 200,
-      startTime: '21:00 JST',
-      status: 'registering',
-      type: 'turbo'
-    },
-    {
-      id: '3',
-      name: 'Sunday Million',
-      buyIn: 500,
-      fee: 50,
-      guarantee: 1000000,
-      players: 1845,
-      maxPlayers: 10000,
-      startTime: '日曜 19:00 JST',
-      status: 'upcoming',
-      type: 'featured'
-    },
-    {
-      id: '4',
-      name: 'Freeroll Tournament',
-      buyIn: 0,
-      fee: 0,
-      guarantee: 500,
-      players: 512,
-      maxPlayers: 1000,
-      startTime: '毎時00分',
-      status: 'running',
-      type: 'freeroll'
+  useEffect(() => {
+    fetchTournaments();
+  }, [filter]);
+
+  const fetchTournaments = async () => {
+    try {
+      setLoading(true);
+      const status = filter === 'all' ? '' : filter === 'active' ? 'registering,in-progress' : filter;
+      const response = await fetch(`/api/tournament${status ? `?status=${status}` : ''}`);
+      const data = await response.json();
+      setTournaments(data);
+    } catch (error) {
+      console.error('トーナメント一覧の取得に失敗:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const getStatusBadge = (status: Tournament['status']) => {
+    switch (status) {
+      case 'registering':
+        return <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-sm font-semibold">登録受付中</span>;
+      case 'in-progress':
+        return <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-lg text-sm font-semibold animate-pulse">進行中</span>;
+      case 'completed':
+        return <span className="px-3 py-1 bg-gray-500/20 text-gray-400 rounded-lg text-sm font-semibold">終了</span>;
+      case 'cancelled':
+        return <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold">キャンセル</span>;
+    }
+  };
+
+  const getTypeLabel = (type: Tournament['type']) => {
+    switch (type) {
+      case 'sit-n-go':
+        return 'シットアンドゴー';
+      case 'scheduled':
+        return 'スケジュール';
+      case 'bounty':
+        return 'バウンティ';
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden page-transition">
@@ -76,7 +85,7 @@ function TournamentsContent() {
       <header className="relative z-10 glass-strong border-b border-white/10 p-4 animate-slide-in-down">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link href="/lobby" className="text-blue-400 hover:text-cyan-300">
+            <Link href="/lobby" className="text-blue-400 hover:text-cyan-300 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <Image
@@ -88,6 +97,13 @@ function TournamentsContent() {
             />
             <h1 className="text-2xl font-bold text-gradient-blue">トーナメント</h1>
           </div>
+          <Link
+            href="/admin/tournaments/create"
+            className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>トーナメント作成</span>
+          </Link>
         </div>
       </header>
 
@@ -96,9 +112,9 @@ function TournamentsContent() {
         <div className="flex justify-center space-x-4 glass-strong rounded-2xl p-2">
           {[
             { id: 'all', label: 'すべて' },
-            { id: 'featured', label: '注目' },
-            { id: 'turbo', label: 'ターボ' },
-            { id: 'freeroll', label: 'フリーロール' }
+            { id: 'registering', label: '登録受付中' },
+            { id: 'in-progress', label: '進行中' },
+            { id: 'completed', label: '終了' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -117,66 +133,94 @@ function TournamentsContent() {
 
       {/* トーナメント一覧 */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 pb-24">
-        <div className="space-y-4">
-          {tournaments
-            .filter(t => filter === 'all' || t.type === filter)
-            .map((tournament, index) => (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+            <p className="text-gray-400 mt-4">読み込み中...</p>
+          </div>
+        ) : tournaments.length === 0 ? (
+          <div className="text-center py-12 glass-strong rounded-2xl">
+            <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400 text-lg">トーナメントがありません</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {tournaments.map((tournament, index) => (
               <div
                 key={tournament.id}
-                className="card hover-lift neon-border animate-slide-in-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
+                className="glass-strong rounded-2xl p-6 hover:bg-white/5 transition-all cursor-pointer animate-slide-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
+                onClick={() => router.push(`/tournaments/${tournament.id}`)}
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <Crown className="text-yellow-500 text-2xl" />
-                      <h3 className="text-2xl font-bold text-white">{tournament.name}</h3>
-                      {tournament.type === 'featured' && (
-                        <span className="badge-primary">注目</span>
-                      )}
-                      {tournament.status === 'running' && (
-                        <span className="badge bg-blue-500 text-white animate-pulse">進行中</span>
-                      )}
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Trophy className="w-6 h-6 text-yellow-400" />
+                      <h3 className="text-xl font-bold text-white">{tournament.name}</h3>
+                      {getStatusBadge(tournament.status)}
+                      <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-sm">
+                        {getTypeLabel(tournament.type)}
+                      </span>
                     </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <div className="text-gray-500 mb-1">バイイン</div>
-                        <div className="text-white font-semibold">
-                          ${tournament.buyIn} + ${tournament.fee}
+                    {tournament.description && (
+                      <p className="text-gray-400 text-sm mb-4">{tournament.description}</p>
+                    )}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Coins className="w-5 h-5 text-yellow-400" />
+                        <div>
+                          <p className="text-xs text-gray-400">バイイン</p>
+                          <p className="text-white font-semibold">{tournament.buyIn.toLocaleString()}チップ</p>
                         </div>
                       </div>
-                      <div>
-                        <div className="text-gray-500 mb-1">賞金保証</div>
-                        <div className="text-yellow-400 font-semibold">
-                          ${tournament.guarantee.toLocaleString()}
+                      <div className="flex items-center space-x-2">
+                        <Trophy className="w-5 h-5 text-cyan-400" />
+                        <div>
+                          <p className="text-xs text-gray-400">賞金プール</p>
+                          <p className="text-white font-semibold">{tournament.prizePool.toLocaleString()}チップ</p>
                         </div>
                       </div>
-                      <div>
-                        <div className="text-gray-500 mb-1">参加者</div>
-                        <div className="text-white font-semibold">
-                          {tournament.players} / {tournament.maxPlayers}
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-5 h-5 text-green-400" />
+                        <div>
+                          <p className="text-xs text-gray-400">参加者</p>
+                          <p className="text-white font-semibold">{tournament.currentPlayers} / {tournament.maxPlayers}</p>
                         </div>
                       </div>
-                      <div>
-                        <div className="text-gray-500 mb-1">開始時刻</div>
-                        <div className="text-white font-semibold">{tournament.startTime}</div>
-                      </div>
+                      {tournament.startTime && (
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-5 h-5 text-blue-400" />
+                          <div>
+                            <p className="text-xs text-gray-400">開始時刻</p>
+                            <p className="text-white font-semibold">
+                              {new Date(tournament.startTime).toLocaleString('ja-JP', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex-shrink-0">
+                  {tournament.status === 'registering' && (
                     <button
-                      className="btn-primary px-8 py-3 w-full md:w-auto"
-                      onClick={() => alert('トーナメント参加機能は実装中です')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/tournaments/${tournament.id}`);
+                      }}
+                      className="bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold transition-all ml-4"
                     >
-                      参加する
+                      登録する
                     </button>
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
-        </div>
+          </div>
+        )}
       </main>
     </div>
   );

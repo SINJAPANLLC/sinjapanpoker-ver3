@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { tournaments, users } from '@/shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { calculateTournamentFee } from '@/lib/rake-system';
 
 export async function GET(
@@ -158,6 +158,93 @@ export async function POST(
       return NextResponse.json({
         tournament: updatedTournament[0],
         message: 'トーナメントを開始しました'
+      });
+    }
+
+    if (action === 'complete') {
+      if (currentTournament.status !== 'in-progress') {
+        return NextResponse.json(
+          { error: 'トーナメントは進行中ではありません' },
+          { status: 400 }
+        );
+      }
+
+      const { completeTournament } = await import('@/lib/tournament-system');
+      
+      const result = completeTournament(
+        currentTournament.players || [],
+        currentTournament.prizePool
+      );
+
+      // 賞金をプレイヤーに分配
+      for (const prize of result.prizes) {
+        await db
+          .update(users)
+          .set({
+            chips: sql`chips + ${prize.prize}`
+          })
+          .where(eq(users.id, prize.userId));
+      }
+
+      // トーナメントを完了状態に更新
+      const updatedPlayers = result.finalRankings.map(rank => {
+        const prize = result.prizes.find(p => p.userId === rank.userId);
+        return {
+          userId: rank.userId,
+          username: rank.username,
+          chips: rank.chips,
+          position: rank.position,
+          prize: prize?.prize || 0,
+        };
+      });
+
+      const updatedTournament = await db
+        .update(tournaments)
+        .set({
+          status: 'completed',
+          endTime: new Date(),
+          players: updatedPlayers,
+        })
+        .where(eq(tournaments.id, params.id))
+        .returning();
+
+      return NextResponse.json({
+        tournament: updatedTournament[0],
+        result,
+        message: 'トーナメントが完了しました'
+      });
+    }
+
+    if (action === 'cancel') {
+      if (currentTournament.status === 'completed') {
+        return NextResponse.json(
+          { error: '完了したトーナメントはキャンセルできません' },
+          { status: 400 }
+        );
+      }
+
+      // プレイヤーに参加費を返金
+      for (const player of currentTournament.players || []) {
+        const feeCalc = calculateTournamentFee(currentTournament.buyIn);
+        await db
+          .update(users)
+          .set({
+            chips: sql`chips + ${feeCalc.totalCost}`
+          })
+          .where(eq(users.id, player.userId));
+      }
+
+      const updatedTournament = await db
+        .update(tournaments)
+        .set({
+          status: 'cancelled',
+        })
+        .where(eq(tournaments.id, params.id))
+        .returning();
+
+      return NextResponse.json({
+        tournament: updatedTournament[0],
+        message: 'トーナメントをキャンセルしました'
       });
     }
 

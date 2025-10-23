@@ -598,7 +598,7 @@ export default function ActiveGamePage() {
               }`}>
                 <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded-md border-2 border-white shadow-lg">
                   <div className="flex items-center gap-1">
-                    <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                    <Image src="/chip-icon.png" alt="chip" width={14} height={14} unoptimized />
                     <p className="text-white text-xs font-bold">{player.bet}</p>
                   </div>
                 </div>
@@ -764,10 +764,13 @@ export default function ActiveGamePage() {
           <div className={`relative w-20 h-20 rounded-full border-3 ${player.isAllIn ? 'border-red-500' : player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
             {player.avatar ? (
               <Image
+                key={`avatar-${player.id}-${player.avatar}`}
                 src={player.avatar}
                 alt={player.name}
                 width={80}
                 height={80}
+                unoptimized
+                priority
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -839,9 +842,14 @@ export default function ActiveGamePage() {
           {player.chatMessage && (
             <motion.div
               key={`chat-${player.name}-${player.chatMessage}`}
-              className={`absolute top-0 transform -translate-y-1/2 ${
-                player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
-              }`}
+              style={{
+                position: 'absolute',
+                top: 0,
+                transform: 'translateY(-50%)',
+                ...(player.cardSide === 'right' 
+                  ? { left: '100%', marginLeft: '8px' } 
+                  : { right: '100%', marginRight: '8px' })
+              }}
               initial={{ x: player.cardSide === 'right' ? -20 : 20, opacity: 0, scale: 0.8 }}
               animate={{ x: 0, opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -1272,7 +1280,7 @@ export default function ActiveGamePage() {
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
             <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
             <div className="flex items-center justify-center gap-0.5">
-              <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+              <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
               <p className="text-white text-[10px] font-semibold">{sidePotTotal.toLocaleString()}</p>
             </div>
           </div>
@@ -1307,7 +1315,7 @@ export default function ActiveGamePage() {
                 }}
                 style={{ position: 'absolute' }}
               >
-                <Image src="/chip-icon.png" alt="chip" width={24} height={24} className="drop-shadow-lg" />
+                <Image src="/chip-icon.png" alt="chip" width={24} height={24} unoptimized className="drop-shadow-lg" />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -1327,7 +1335,7 @@ export default function ActiveGamePage() {
           >
             <p className="text-white text-xs font-bold text-center">POT</p>
             <div className="flex items-center justify-center gap-1">
-              <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
+              <Image src="/chip-icon.png" alt="chip" width={16} height={16} unoptimized />
               <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
             </div>
           </motion.div>
@@ -1472,7 +1480,7 @@ export default function ActiveGamePage() {
             <div className="flex items-center justify-between">
               <p className="text-white text-xs font-semibold">所持チップ</p>
               <div className="flex items-center gap-2">
-                <Image src="/chip-icon.png" alt="chip" width={20} height={20} />
+                <Image src="/chip-icon.png" alt="chip" width={20} height={20} unoptimized />
                 <p className="text-white text-lg font-bold">{(user?.chips || 0).toLocaleString()}</p>
               </div>
             </div>
@@ -1486,7 +1494,7 @@ export default function ActiveGamePage() {
                   {raiseAmount >= maxRaise ? 'ALL IN' : 'レイズ額'}
                 </p>
                 <div className="flex items-center gap-1">
-                  <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
+                  <Image src="/chip-icon.png" alt="chip" width={16} height={16} unoptimized />
                   <p className="text-white text-sm font-bold">{raiseAmount}</p>
                 </div>
               </div>
@@ -2368,7 +2376,7 @@ export default function ActiveGamePage() {
                         )}
                       </div>
                       <div className="flex items-center gap-1">
-                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
                         <span className="text-white text-xs font-semibold">{player.chips.toLocaleString()}</span>
                       </div>
                     </div>
@@ -2407,7 +2415,7 @@ export default function ActiveGamePage() {
                     <span className="text-white text-xs font-bold">ハンド {record.hand}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-white/80 text-xs">ポット:</span>
-                      <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+                      <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
                       <span className="text-white text-xs font-semibold">{record.pot}</span>
                     </div>
                   </div>
@@ -2590,7 +2598,7 @@ export default function ActiveGamePage() {
               <div className="bg-white/20 rounded-lg p-3 border border-white/40">
                 <p className="text-white/80 text-xs mb-1">現在のチップ</p>
                 <div className="flex items-center gap-2">
-                  <Image src="/chip-icon.png" alt="chip" width={20} height={20} />
+                  <Image src="/chip-icon.png" alt="chip" width={20} height={20} unoptimized />
                   <p className="text-white text-2xl font-bold">{(user?.chips || 0).toLocaleString()}</p>
                 </div>
               </div>
@@ -2653,6 +2661,8 @@ export default function ActiveGamePage() {
                           alt={player.name}
                           width={40}
                           height={40}
+                          unoptimized
+                          priority
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -2672,7 +2682,7 @@ export default function ActiveGamePage() {
                     <div className="bg-white/10 rounded px-2 py-1">
                       <p className="text-white/70 text-xs">チップ</p>
                       <div className="flex items-center gap-1">
-                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
                         <p className="text-white text-sm font-semibold">{player.chips.toLocaleString()}</p>
                       </div>
                     </div>
@@ -2720,14 +2730,14 @@ export default function ActiveGamePage() {
                   <div className="bg-white/10 rounded px-2 py-2">
                     <p className="text-white/70 text-xs">獲得チップ</p>
                     <div className="flex items-center gap-1">
-                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} unoptimized />
                       <p className="text-white text-lg font-bold">+3,500</p>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded px-2 py-2">
                     <p className="text-white/70 text-xs">最大ポット</p>
                     <div className="flex items-center gap-1">
-                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} unoptimized />
                       <p className="text-white text-lg font-bold">1,200</p>
                     </div>
                   </div>

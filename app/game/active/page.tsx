@@ -433,9 +433,9 @@ export default function ActiveGamePage() {
     else if (isBigBlind) position = 'BB';
     
     const isCurrentUser = p.userId === user?.id || p.username === user?.username;
-    // アバター横のカードは全員裏向き（showdownとfinishedでは表向き）
+    // アバター横のカードは全員裏向き（showdownとfinishedでは表向き、ただしフォールドしたプレイヤーは常に裏向き）
     const showCards = true;
-    const showCardsFaceUp = gameState?.phase === 'showdown' || gameState?.phase === 'finished';
+    const showCardsFaceUp = !p.folded && (gameState?.phase === 'showdown' || gameState?.phase === 'finished');
     
     // サーバーから送られるlastActionをそのまま使用
     const lastAction = p.lastAction || null;

@@ -139,12 +139,22 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[0]} />
       </div>
 
-      {/* プレイヤー1のハンドカード - 右側に大きく表示 */}
+      {/* プレイヤー1のハンドカード - 右側に大きく扇形で表示 */}
       <div className="absolute bottom-32 left-[45%] transform translate-x-[80px]">
-        <div className="flex gap-2">
-          {player1HandCards.map((card) => (
-            <div key={card.id} className="scale-110">
-              <Card card={card} faceUp={true} />
+        <div className="flex items-end">
+          {player1HandCards.map((card, cardIndex) => (
+            <div
+              key={card.id}
+              className="relative"
+              style={{
+                transform: `rotate(${cardIndex === 0 ? '-10deg' : '10deg'})`,
+                marginLeft: cardIndex === 1 ? '-60px' : '0',
+                zIndex: cardIndex,
+              }}
+            >
+              <div className="scale-110">
+                <Card card={card} faceUp={true} />
+              </div>
             </div>
           ))}
         </div>

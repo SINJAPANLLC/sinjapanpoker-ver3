@@ -136,12 +136,12 @@ export default function ActiveGamePage() {
             {/* ベット額表示 - カードの横 */}
             {player.bet > 0 && !player.folded && (
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${
-                player.cardSide === 'right' ? '-left-12' : '-right-12'
+                player.cardSide === 'right' ? '-right-12' : '-left-12'
               }`}>
-                <div className="bg-yellow-400 px-2 py-1 rounded-md border-2 border-white shadow-lg">
+                <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded-md border-2 border-white shadow-lg">
                   <div className="flex items-center gap-1">
                     <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
-                    <p className="text-black text-xs font-bold">{player.bet}</p>
+                    <p className="text-white text-xs font-bold">{player.bet}</p>
                   </div>
                 </div>
               </div>

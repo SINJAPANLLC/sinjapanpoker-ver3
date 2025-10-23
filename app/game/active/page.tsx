@@ -451,8 +451,8 @@ export default function ActiveGamePage() {
       chips: p.chips,
       // ユーザーのアバター画像を使用（なければランダム画像）
       avatar: p.avatar || `https://i.pravatar.cc/150?img=${(idx + 1)}`,
-      // 全員左側にカード表示（アバターの横）
-      cardSide: 'left',
+      // プレイヤー2は右側、それ以外は左側
+      cardSide: idx === 1 ? 'right' : 'left',
       showCards,
       showCardsFaceUp,
       position,

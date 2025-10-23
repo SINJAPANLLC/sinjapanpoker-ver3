@@ -6,42 +6,42 @@ import { Card as CardType, Suit, Rank } from '@/types';
 
 export default function ActiveGamePage() {
   const players = [
-    {
-      id: 1,
-      name: 'プレイヤー1',
-      chips: 5000,
-      cards: [
-        { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
-        { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
-      ]
-    },
-    {
-      id: 2,
-      name: 'プレイヤー2',
-      chips: 8500,
-      cards: [
-        { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
-        { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
-      ]
-    },
-    {
-      id: 3,
-      name: 'プレイヤー3',
-      chips: 12000,
-      cards: [
-        { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
-        { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
-      ]
-    },
-    {
-      id: 4,
-      name: 'プレイヤー4',
-      chips: 6200,
-      cards: [
-        { rank: '8' as Rank, suit: 'clubs' as Suit, id: 'p4-card-1' },
-        { rank: '7' as Rank, suit: 'spades' as Suit, id: 'p4-card-2' },
-      ]
-    },
+    { id: 1, name: 'プレイヤー1', chips: 5000, cards: [
+      { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
+      { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
+    ]},
+    { id: 2, name: 'プレイヤー2', chips: 8500, cards: [
+      { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
+      { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
+    ]},
+    { id: 3, name: 'プレイヤー3', chips: 12000, cards: [
+      { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
+      { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
+    ]},
+    { id: 4, name: 'プレイヤー4', chips: 6200, cards: [
+      { rank: '8' as Rank, suit: 'clubs' as Suit, id: 'p4-card-1' },
+      { rank: '7' as Rank, suit: 'spades' as Suit, id: 'p4-card-2' },
+    ]},
+    { id: 5, name: 'プレイヤー5', chips: 9800, cards: [
+      { rank: '6' as Rank, suit: 'hearts' as Suit, id: 'p5-card-1' },
+      { rank: '5' as Rank, suit: 'diamonds' as Suit, id: 'p5-card-2' },
+    ]},
+    { id: 6, name: 'プレイヤー6', chips: 7500, cards: [
+      { rank: '4' as Rank, suit: 'clubs' as Suit, id: 'p6-card-1' },
+      { rank: '3' as Rank, suit: 'spades' as Suit, id: 'p6-card-2' },
+    ]},
+    { id: 7, name: 'プレイヤー7', chips: 11000, cards: [
+      { rank: '2' as Rank, suit: 'hearts' as Suit, id: 'p7-card-1' },
+      { rank: 'A' as Rank, suit: 'clubs' as Suit, id: 'p7-card-2' },
+    ]},
+    { id: 8, name: 'プレイヤー8', chips: 4500, cards: [
+      { rank: 'K' as Rank, suit: 'spades' as Suit, id: 'p8-card-1' },
+      { rank: 'Q' as Rank, suit: 'hearts' as Suit, id: 'p8-card-2' },
+    ]},
+    { id: 9, name: 'プレイヤー9', chips: 8200, cards: [
+      { rank: 'J' as Rank, suit: 'diamonds' as Suit, id: 'p9-card-1' },
+      { rank: '10' as Rank, suit: 'clubs' as Suit, id: 'p9-card-2' },
+    ]},
   ];
 
   const PlayerComponent = ({ player }: { player: typeof players[0] }) => (
@@ -68,17 +68,17 @@ export default function ActiveGamePage() {
       </div>
 
       {/* アバターアイコン */}
-      <div className="w-24 h-24 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-        <User className="w-12 h-12 text-white" strokeWidth={2} />
+      <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-3 border-white shadow-lg">
+        <User className="w-10 h-10 text-white" strokeWidth={2} />
       </div>
       
       {/* ユーザー情報（アバターの下部に被せる） */}
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-3 py-1.5 rounded-lg border-2 border-white/30 shadow-lg min-w-[100px] z-10">
-        <p className="text-white text-xs font-bold text-center whitespace-nowrap">
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10">
+        <p className="text-white text-[10px] font-bold text-center whitespace-nowrap">
           {player.name}
         </p>
-        <p className="text-white text-xs font-semibold text-center whitespace-nowrap">
-          {player.chips.toLocaleString()} チップ
+        <p className="text-white text-[10px] font-semibold text-center whitespace-nowrap">
+          {player.chips.toLocaleString()}
         </p>
       </div>
     </div>
@@ -99,19 +99,44 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[0]} />
       </div>
 
-      {/* プレイヤー2 - 左上 */}
-      <div className="absolute top-64 left-10">
+      {/* プレイヤー2 - 左下 */}
+      <div className="absolute bottom-52 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
-      {/* プレイヤー3 - 2の上 */}
-      <div className="absolute top-40 left-10">
+      {/* プレイヤー3 - 左中 (2の上) */}
+      <div className="absolute top-1/2 left-6 transform -translate-y-1/2">
         <PlayerComponent player={players[2]} />
       </div>
 
-      {/* プレイヤー4 - 3の上 */}
-      <div className="absolute top-16 left-10">
+      {/* プレイヤー4 - 左上 (3の上) */}
+      <div className="absolute top-32 left-6">
         <PlayerComponent player={players[3]} />
+      </div>
+
+      {/* プレイヤー5 - 上左 (4の右上) */}
+      <div className="absolute top-6 left-1/4 transform -translate-x-1/2">
+        <PlayerComponent player={players[4]} />
+      </div>
+
+      {/* プレイヤー6 - 上右 (5の隣) */}
+      <div className="absolute top-6 right-1/4 transform translate-x-1/2">
+        <PlayerComponent player={players[5]} />
+      </div>
+
+      {/* プレイヤー7 - 右上 (4の反対) */}
+      <div className="absolute top-32 right-6">
+        <PlayerComponent player={players[6]} />
+      </div>
+
+      {/* プレイヤー8 - 右中 (3の反対) */}
+      <div className="absolute top-1/2 right-6 transform -translate-y-1/2">
+        <PlayerComponent player={players[7]} />
+      </div>
+
+      {/* プレイヤー9 - 右下 (2の反対) */}
+      <div className="absolute bottom-52 right-6">
+        <PlayerComponent player={players[8]} />
       </div>
     </div>
   );

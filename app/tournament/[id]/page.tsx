@@ -273,11 +273,8 @@ export default function TournamentDetailPage({ params }: { params: { id: string 
               
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {tournament.players.map((player, index) => (
-                  <motion.div
+                  <div
                     key={player.userId}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
                     className="flex items-center justify-between bg-white/10 p-3 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
@@ -294,7 +291,7 @@ export default function TournamentDetailPage({ params }: { params: { id: string 
                         {player.position}位
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 

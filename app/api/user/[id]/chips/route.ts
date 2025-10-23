@@ -8,11 +8,11 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = parseInt(params.id);
+    const userId = params.id;
     const body = await request.json();
     const { chips } = body;
 
-    if (isNaN(userId)) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Invalid user ID' },
         { status: 400 }
@@ -39,7 +39,7 @@ export async function PATCH(
     }
 
     return NextResponse.json({
-      id: updatedUser.id.toString(),
+      id: updatedUser.id,
       username: updatedUser.username,
       chips: updatedUser.chips,
     });
@@ -57,9 +57,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = parseInt(params.id);
+    const userId = params.id;
     
-    if (isNaN(userId)) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Invalid user ID' },
         { status: 400 }
@@ -76,7 +76,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      id: user.id.toString(),
+      id: user.id,
       username: user.username,
       chips: user.chips,
     });

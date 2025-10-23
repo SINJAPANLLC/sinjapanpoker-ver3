@@ -64,12 +64,7 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
   return (
     <div className="glass-strong p-6 rounded-2xl space-y-4">
       {showRaiseInput && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="flex items-center gap-3"
-        >
+        <div className="flex items-center gap-3">
           <button onClick={decrementRaise} className="btn-secondary-small">
             <Minus className="w-4 h-4" />
           </button>
@@ -86,47 +81,43 @@ export default function ActionButtons({ currentBet, myChips, myBet, onAction, di
           <button onClick={incrementRaise} className="btn-secondary-small">
             <Plus className="w-4 h-4" />
           </button>
-        </motion.div>
+        </div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={handleFold}
-          className="px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl font-bold shadow-lg transition-all"
+          className="px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl font-bold shadow-lg transition-all hover:scale-105 active:scale-95"
         >
           フォールド
-        </motion.button>
+        </button>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={handleCheckOrCall}
-          className="px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white rounded-xl font-bold shadow-lg transition-all"
+          className="px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white rounded-xl font-bold shadow-lg transition-all hover:scale-105 active:scale-95"
         >
           {canCheck ? 'チェック' : `コール (${callAmount.toLocaleString()})`}
-        </motion.button>
+        </button>
 
         {canRaise && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
+            
+            
             onClick={handleRaise}
             className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-bold shadow-lg transition-all"
           >
             {showRaiseInput ? `レイズ (${raiseAmount.toLocaleString()})` : 'レイズ'}
-          </motion.button>
+          </button>
         )}
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <button
+          
+          
           onClick={handleAllIn}
           className="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-bold shadow-lg transition-all"
         >
           オールイン ({myChips.toLocaleString()})
-        </motion.button>
+        </button>
       </div>
 
       <div className="flex justify-between text-sm text-gray-300">

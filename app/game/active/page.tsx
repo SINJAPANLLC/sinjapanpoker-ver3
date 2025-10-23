@@ -476,7 +476,7 @@ export default function ActiveGamePage() {
     const showCardsFaceUp = !p.folded && (gameState?.phase === 'showdown' || gameState?.phase === 'finished');
     
     // サーバーから送られるlastActionをそのまま使用
-    const lastAction = p.lastAction || null;
+    const lastAction = (p as any).lastAction || null;
     
     // 勝利ハイライトはゲーム終了時（finished/showdown）のみ表示
     const isWinner = (gameState?.phase === 'finished' || gameState?.phase === 'showdown') 
@@ -547,7 +547,7 @@ export default function ActiveGamePage() {
         )}
 
         {/* ハンドカード - アバターに重ねる（position 0は表示しない） */}
-        {player.showCards && player.cards && player.cards.length > 0 && player.position !== 0 && player.position !== '0' && (
+        {player.showCards && player.cards && player.cards.length > 0 && player.position !== null && player.position !== '0' && (
           <div className={`absolute top-1/2 transform -translate-y-1/2 ${
             player.cardSide === 'right' 
               ? 'right-0 translate-x-1/2' 
@@ -572,7 +572,7 @@ export default function ActiveGamePage() {
             </div>
             
             {/* ベット額表示 - カードの横（position 0は表示しない） */}
-            {player.bet > 0 && !player.folded && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && player.position !== 0 && player.position !== '0' && (
+            {player.bet > 0 && !player.folded && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && player.position !== null && player.position !== '0' && (
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${
                 player.cardSide === 'right' ? '-right-12' : '-left-12'
               }`}>
@@ -2275,7 +2275,7 @@ export default function ActiveGamePage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/80 text-xs">ゲーム種別:</span>
-                    <span className="text-white text-xs font-semibold">Texas Hold'em</span>
+                    <span className="text-white text-xs font-semibold">Texas Hold&apos;em</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/80 text-xs">SB/BB:</span>
@@ -2480,7 +2480,7 @@ export default function ActiveGamePage() {
               <div className="bg-white/20 rounded-lg p-4 border border-white/40 text-center">
                 <div className="w-20 h-20 mx-auto rounded-full border-4 border-white mb-2 overflow-hidden">
                   <Image
-                    src={players[0].avatar}
+                    src={players[0].avatar || '/default-avatar.png'}
                     alt={players[0].name}
                     width={80}
                     height={80}
@@ -2589,7 +2589,7 @@ export default function ActiveGamePage() {
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden">
                         <Image
-                          src={player.avatar}
+                          src={player.avatar || '/default-avatar.png'}
                           alt={player.name}
                           width={40}
                           height={40}
@@ -2728,7 +2728,7 @@ export default function ActiveGamePage() {
             <div className="space-y-3">
               {/* ゲーム概要 */}
               <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🎯 Texas Hold'em とは</p>
+                <p className="text-white text-sm font-bold mb-2">🎯 Texas Hold&apos;em とは</p>
                 <p className="text-white text-xs leading-relaxed">
                   テキサスホールデムは世界で最も人気のあるポーカーゲームです。2枚の手札と5枚のコミュニティカードで最高の5枚役を作ります。
                 </p>

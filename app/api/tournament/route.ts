@@ -9,13 +9,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
 
-    let query = db.select().from(tournaments);
-    
-    if (status) {
-      query = query.where(eq(tournaments.status, status as any));
-    }
-
-    const allTournaments = await query.orderBy(desc(tournaments.createdAt));
+    const allTournaments = status
+      ? await db.select().from(tournaments).where(eq(tournaments.status, status as any)).orderBy(desc(tournaments.createdAt))
+      : await db.select().from(tournaments).orderBy(desc(tournaments.createdAt));
 
     return NextResponse.json(allTournaments);
   } catch (error) {

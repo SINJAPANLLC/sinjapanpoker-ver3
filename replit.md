@@ -8,6 +8,8 @@ The application serves as a full-featured poker platform with both play money an
 
 **Security Status (2025-10-23):** Comprehensive security implementation complete - Rate limiting, Zod validation, XSS/CSRF protection, security headers, and input sanitization fully deployed.
 
+**Deployment Status (2025-10-23):** Production-ready deployment configuration complete. MongoDB dependencies removed, PostgreSQL-only architecture. Build optimizations applied. Ready for deployment to VM target.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

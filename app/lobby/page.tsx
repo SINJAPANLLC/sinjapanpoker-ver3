@@ -41,7 +41,7 @@ function LobbyContent() {
   const [selectedTableId, setSelectedTableId] = useState<string>('');
   const [passwordInput, setPasswordInput] = useState('');
 
-  // LocalStorageからデータを読み込む
+  // LocalStorageとAPIからデータを読み込む
   useEffect(() => {
     // テーブルデータを読み込み
     const savedTables = loadTables();
@@ -54,23 +54,37 @@ function LobbyContent() {
       setTables(parsedTables);
     }
 
-    // トーナメントデータを読み込み（Zustand storeからとLocalStorageの両方をマージ）
-    const activeTournaments = getActiveTournaments();
-    const savedTournaments = loadTournaments();
-    
-    // IDでマージ（重複を避ける）
-    const mergedTournaments = [...activeTournaments];
-    savedTournaments.forEach(saved => {
-      if (!mergedTournaments.find(t => t.id === saved.id)) {
-        mergedTournaments.push({
-          ...saved,
-          startTime: saved.startTime ? new Date(saved.startTime) : undefined
-        });
+    // トーナメントデータをAPIから取得
+    fetchTournaments();
+  }, []);
+
+  const fetchTournaments = async () => {
+    try {
+      const response = await fetch('/api/tournament?status=registering');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setTournaments(data.map(t => ({
+          ...t,
+          startTime: t.startTime ? new Date(t.startTime) : undefined,
+        })));
       }
-    });
-    
-    setTournaments(mergedTournaments);
-  }, [getActiveTournaments]);
+    } catch (error) {
+      console.error('トーナメント取得エラー:', error);
+      // フォールバック：Zustand storeとLocalStorageから読み込み
+      const activeTournaments = getActiveTournaments();
+      const savedTournaments = loadTournaments();
+      const mergedTournaments = [...activeTournaments];
+      savedTournaments.forEach(saved => {
+        if (!mergedTournaments.find(t => t.id === saved.id)) {
+          mergedTournaments.push({
+            ...saved,
+            startTime: saved.startTime ? new Date(saved.startTime) : undefined
+          });
+        }
+      });
+      setTournaments(mergedTournaments);
+    }
+  };
 
   // テーブルが変更されたらLocalStorageに保存
   useEffect(() => {

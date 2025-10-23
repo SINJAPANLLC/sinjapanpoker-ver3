@@ -22,10 +22,41 @@ export type SoundEffect =
 export const useSoundManager = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(true);
+  const masterCompressorRef = useRef<DynamicsCompressorNode | null>(null);
+  const masterGainRef = useRef<GainNode | null>(null);
+  const reverbNodeRef = useRef<ConvolverNode | null>(null);
+  const reverbGainRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = ctx;
+
+      // オーディオチェーンの構築: リバーブ -> コンプレッサー -> マスターゲイン -> destination
+      
+      // マスターゲイン（全体音量調整）
+      masterGainRef.current = ctx.createGain();
+      masterGainRef.current.gain.value = 0.8;
+      masterGainRef.current.connect(ctx.destination);
+
+      // マスターコンプレッサー（プロのミックス）
+      masterCompressorRef.current = ctx.createDynamicsCompressor();
+      masterCompressorRef.current.threshold.value = -20;
+      masterCompressorRef.current.knee.value = 30;
+      masterCompressorRef.current.ratio.value = 8;
+      masterCompressorRef.current.attack.value = 0.003;
+      masterCompressorRef.current.release.value = 0.25;
+      masterCompressorRef.current.connect(masterGainRef.current);
+
+      // リバーブ（空間の深み）
+      reverbNodeRef.current = ctx.createConvolver();
+      const reverbBuffer = createReverbImpulse(ctx, 1.5, 3, false);
+      reverbNodeRef.current.buffer = reverbBuffer;
+      
+      reverbGainRef.current = ctx.createGain();
+      reverbGainRef.current.gain.value = 0.15; // リバーブの深さ
+      reverbNodeRef.current.connect(reverbGainRef.current);
+      reverbGainRef.current.connect(masterCompressorRef.current);
     }
     return () => {
       if (audioContextRef.current) {
@@ -33,6 +64,21 @@ export const useSoundManager = () => {
       }
     };
   }, []);
+
+  const createReverbImpulse = (ctx: AudioContext, duration: number, decay: number, reverse: boolean) => {
+    const sampleRate = ctx.sampleRate;
+    const length = sampleRate * duration;
+    const impulse = ctx.createBuffer(2, length, sampleRate);
+    const left = impulse.getChannelData(0);
+    const right = impulse.getChannelData(1);
+
+    for (let i = 0; i < length; i++) {
+      const n = reverse ? length - i : i;
+      left[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
+      right[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
+    }
+    return impulse;
+  };
 
   const playTone = useCallback(async (frequency: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.5) => {
     if (!soundEnabledRef.current || !audioContextRef.current) return;
@@ -64,8 +110,8 @@ export const useSoundManager = () => {
     frequencies.forEach(freq => playTone(freq, duration, type, volume));
   }, [playTone]);
 
-  const playRichSound = useCallback(async (frequencies: number[], duration: number, envelope: {attack: number, decay: number, sustain: number, release: number}, filterFreq?: number) => {
-    if (!soundEnabledRef.current || !audioContextRef.current) return;
+  const playRichSound = useCallback(async (frequencies: number[], duration: number, envelope: {attack: number, decay: number, sustain: number, release: number}, filterFreq?: number, wetDryMix: number = 0.3) => {
+    if (!soundEnabledRef.current || !audioContextRef.current || !masterCompressorRef.current) return;
 
     const ctx = audioContextRef.current;
     if (ctx.state === 'suspended') await ctx.resume();
@@ -74,17 +120,40 @@ export const useSoundManager = () => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
+      const eq = ctx.createBiquadFilter();
+      const wetGain = ctx.createGain();
+      const dryGain = ctx.createGain();
 
-      osc.type = 'triangle';
-      osc.frequency.value = freq;
+      // サウンド生成
+      osc.type = index % 2 === 0 ? 'sawtooth' : 'triangle'; // レイヤリング
+      osc.frequency.value = freq + (Math.random() * 2 - 1); // デチューン
       
+      // ローパスフィルター
       filter.type = 'lowpass';
       filter.frequency.value = filterFreq || freq * 2;
-      filter.Q.value = 1;
+      filter.Q.value = 2;
 
+      // EQシェルビング（高域を明るく）
+      eq.type = 'highshelf';
+      eq.frequency.value = 2000;
+      eq.gain.value = 3;
+
+      // Wet/Dry ミックス
+      wetGain.gain.value = wetDryMix;
+      dryGain.gain.value = 1 - wetDryMix;
+
+      // ドライ信号チェーン
       osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
+      filter.connect(eq);
+      eq.connect(gain);
+      gain.connect(dryGain);
+      dryGain.connect(masterCompressorRef.current!);
+
+      // ウェット信号チェーン（リバーブ）
+      if (reverbNodeRef.current) {
+        gain.connect(wetGain);
+        wetGain.connect(reverbNodeRef.current);
+      }
 
       const now = ctx.currentTime;
       const attackEnd = now + envelope.attack;
@@ -92,7 +161,7 @@ export const useSoundManager = () => {
       const releaseStart = now + duration - envelope.release;
 
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.3 / frequencies.length, attackEnd);
+      gain.gain.linearRampToValueAtTime(0.35 / frequencies.length, attackEnd);
       gain.gain.linearRampToValueAtTime(envelope.sustain / frequencies.length, decayEnd);
       gain.gain.setValueAtTime(envelope.sustain / frequencies.length, releaseStart);
       gain.gain.linearRampToValueAtTime(0, releaseStart + envelope.release);
@@ -102,18 +171,20 @@ export const useSoundManager = () => {
     });
   }, []);
 
-  const playChipSound = useCallback(async (intensity: number = 1) => {
-    if (!soundEnabledRef.current || !audioContextRef.current) return;
+  const playChipSound = useCallback(async (intensity: number = 1, variation: number = 0) => {
+    if (!soundEnabledRef.current || !audioContextRef.current || !masterCompressorRef.current) return;
 
     const ctx = audioContextRef.current;
     if (ctx.state === 'suspended') await ctx.resume();
 
-    // ホワイトノイズでカチャカチャ感を出す
-    const bufferSize = ctx.sampleRate * 0.05;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.3;
+    // レイヤー1: ホワイトノイズでカチャカチャ感
+    const bufferSize = ctx.sampleRate * 0.06;
+    const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+    for (let channel = 0; channel < 2; channel++) {
+      const data = buffer.getChannelData(channel);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.4;
+      }
     }
 
     const noise = ctx.createBufferSource();
@@ -121,46 +192,98 @@ export const useSoundManager = () => {
 
     const noiseFilter = ctx.createBiquadFilter();
     noiseFilter.type = 'bandpass';
-    noiseFilter.frequency.value = 3000 + Math.random() * 2000;
-    noiseFilter.Q.value = 3;
+    noiseFilter.frequency.value = 3500 + Math.random() * 1500 + variation * 500;
+    noiseFilter.Q.value = 4;
+
+    const noiseEQ = ctx.createBiquadFilter();
+    noiseEQ.type = 'peaking';
+    noiseEQ.frequency.value = 4000;
+    noiseEQ.Q.value = 2;
+    noiseEQ.gain.value = 6; // ブースト
 
     const noiseGain = ctx.createGain();
+    const wetGain = ctx.createGain();
+    const dryGain = ctx.createGain();
+
+    wetGain.gain.value = 0.2;
+    dryGain.gain.value = 0.8;
+
     noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
+    noiseFilter.connect(noiseEQ);
+    noiseEQ.connect(noiseGain);
+    noiseGain.connect(dryGain);
+    dryGain.connect(masterCompressorRef.current);
+
+    if (reverbNodeRef.current) {
+      noiseGain.connect(wetGain);
+      wetGain.connect(reverbNodeRef.current);
+    }
 
     const now = ctx.currentTime;
-    noiseGain.gain.setValueAtTime(0.4 * intensity, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+    noiseGain.gain.setValueAtTime(0.5 * intensity, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
 
     noise.start(now);
-    noise.stop(now + 0.05);
+    noise.stop(now + 0.06);
 
-    // プラスチック/セラミックの響き
-    const resonances = [1200, 2400, 3600, 4800];
+    // レイヤー2 & 3: プラスチック/セラミックの響き（複雑な倍音）
+    const resonances = [900, 1800, 2700, 3600, 5400];
     resonances.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
+      const wetGain2 = ctx.createGain();
+      const dryGain2 = ctx.createGain();
 
-      osc.type = 'sine';
-      osc.frequency.value = freq + Math.random() * 100;
+      osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.value = freq + Math.random() * 150 + variation * 100;
 
       filter.type = 'bandpass';
       filter.frequency.value = freq;
-      filter.Q.value = 10;
+      filter.Q.value = 12 + Math.random() * 4;
+
+      wetGain2.gain.value = 0.25;
+      dryGain2.gain.value = 0.75;
 
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(dryGain2);
+      dryGain2.connect(masterCompressorRef.current!);
 
-      const volume = (0.15 / (i + 1)) * intensity;
+      if (reverbNodeRef.current) {
+        gain.connect(wetGain2);
+        wetGain2.connect(reverbNodeRef.current);
+      }
+
+      const volume = (0.2 / (i + 1)) * intensity;
       gain.gain.setValueAtTime(volume, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03 + i * 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04 + i * 0.008);
 
-      osc.start(now);
-      osc.stop(now + 0.05);
+      osc.start(now + i * 0.002); // わずかにずらして深みを出す
+      osc.stop(now + 0.06);
     });
+
+    // レイヤー4: 低域の「ドン」という音（重量感）
+    const bass = ctx.createOscillator();
+    const bassGain = ctx.createGain();
+    const bassFilter = ctx.createBiquadFilter();
+
+    bass.type = 'sine';
+    bass.frequency.value = 120 + Math.random() * 30;
+
+    bassFilter.type = 'lowpass';
+    bassFilter.frequency.value = 300;
+    bassFilter.Q.value = 1;
+
+    bass.connect(bassFilter);
+    bassFilter.connect(bassGain);
+    bassGain.connect(masterCompressorRef.current!);
+
+    bassGain.gain.setValueAtTime(0.15 * intensity, now);
+    bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+    bass.start(now);
+    bass.stop(now + 0.03);
   }, []);
 
   const playSound = useCallback((effect: SoundEffect) => {
@@ -169,29 +292,29 @@ export const useSoundManager = () => {
     switch (effect) {
       case 'bet':
         // チップを置く音（リアルなカジノチップ）
-        playChipSound(0.8);
-        setTimeout(() => playChipSound(0.6), 50);
+        playChipSound(0.9, 0);
+        setTimeout(() => playChipSound(0.7, 1), 55);
         break;
 
       case 'fold':
         // カードをフォールドする音（スワイプ＋ドロップ）
-        playRichSound([600, 400], 0.15, {attack: 0.01, decay: 0.08, sustain: 0.05, release: 0.06}, 1200);
-        setTimeout(() => playRichSound([300, 200], 0.12, {attack: 0.005, decay: 0.06, sustain: 0.03, release: 0.05}, 800), 60);
+        playRichSound([600, 400], 0.15, {attack: 0.01, decay: 0.08, sustain: 0.05, release: 0.06}, 1200, 0.4);
+        setTimeout(() => playRichSound([300, 200], 0.12, {attack: 0.005, decay: 0.06, sustain: 0.03, release: 0.05}, 800, 0.5), 60);
         break;
 
       case 'call':
         // コール音（チップを押し出す）
-        playChipSound(1.0);
-        setTimeout(() => playChipSound(0.7), 60);
-        setTimeout(() => playChipSound(0.5), 110);
+        playChipSound(1.0, 0);
+        setTimeout(() => playChipSound(0.8, 1), 65);
+        setTimeout(() => playChipSound(0.6, 2), 120);
         break;
 
       case 'raise':
         // レイズ音（複数のチップ積み上げ）
-        playChipSound(0.9);
-        setTimeout(() => playChipSound(0.8), 70);
-        setTimeout(() => playChipSound(0.9), 140);
-        setTimeout(() => playChipSound(0.7), 200);
+        playChipSound(1.0, 0);
+        setTimeout(() => playChipSound(0.85, 1), 75);
+        setTimeout(() => playChipSound(0.95, 0), 150);
+        setTimeout(() => playChipSound(0.75, 2), 210);
         break;
 
       case 'allIn':
@@ -240,10 +363,12 @@ export const useSoundManager = () => {
 
       case 'chipCollect':
         // チップ収集音（カシャカシャと集まる）
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 10; i++) {
           setTimeout(() => {
-            playChipSound(0.7 + Math.random() * 0.3);
-          }, i * 50);
+            const intensity = 0.6 + Math.random() * 0.4;
+            const variation = Math.floor(Math.random() * 3);
+            playChipSound(intensity, variation);
+          }, i * 48);
         }
         break;
 

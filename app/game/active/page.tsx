@@ -756,7 +756,7 @@ export default function ActiveGamePage() {
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-3">
           {communityCards.map((card, index) => (
-            <div key={card.id}>
+            <div key={card.id} style={{ perspective: '1000px' }}>
               <motion.div 
                 initial={{ 
                   rotateY: 180, 
@@ -775,7 +775,7 @@ export default function ActiveGamePage() {
                 }}
                 style={{ transformStyle: 'preserve-3d' }}
               >
-                <Card card={card} faceUp={true} />
+                <Card card={card} enable3D={true} />
               </motion.div>
             </div>
           ))}
@@ -1775,6 +1775,320 @@ export default function ActiveGamePage() {
             />
           ))}
         </>
+      )}
+
+      {/* テーブル情報モーダル */}
+      {showTableInfo && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold flex items-center gap-2">
+                <Info className="w-5 h-5" /> テーブル情報
+              </h2>
+              <button 
+                onClick={() => setShowTableInfo(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {/* テーブル基本情報 */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-xs font-bold mb-2">基本情報</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-white/80 text-xs">テーブル名:</span>
+                    <span className="text-white text-xs font-semibold">VIP Table #1</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/80 text-xs">ゲーム種別:</span>
+                    <span className="text-white text-xs font-semibold">Texas Hold'em</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/80 text-xs">SB/BB:</span>
+                    <span className="text-white text-xs font-semibold">{smallBlind}/{bigBlind}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/80 text-xs">最大席数:</span>
+                    <span className="text-white text-xs font-semibold">9人</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/80 text-xs">現在プレイヤー:</span>
+                    <span className="text-white text-xs font-semibold">{players.length}人</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* プレイヤーリスト */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-xs font-bold mb-2">プレイヤー一覧</p>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {players.map((player) => (
+                    <div key={player.id} className="flex justify-between items-center bg-white/10 rounded px-2 py-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center">
+                          <User className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-white text-xs">{player.name}</span>
+                        {player.position && (
+                          <span className="text-yellow-400 text-xs font-bold">{player.position}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+                        <span className="text-white text-xs font-semibold">{player.chips.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ハンド履歴モーダル */}
+      {showHandHistory && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold flex items-center gap-2">
+                <History className="w-5 h-5" /> ハンド履歴
+              </h2>
+              <button 
+                onClick={() => setShowHandHistory(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {[
+                { hand: '#157', winner: 'プレイヤー2', pot: 1200, cards: 'A♠ K♠' },
+                { hand: '#156', winner: 'プレイヤー6', pot: 850, cards: 'Q♥ Q♦' },
+                { hand: '#155', winner: 'プレイヤー9', pot: 600, cards: '10♣ 10♠' }
+              ].map((record) => (
+                <div key={record.hand} className="bg-white/20 rounded-lg p-3 border border-white/40">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white text-xs font-bold">ハンド {record.hand}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-white/80 text-xs">ポット:</span>
+                      <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+                      <span className="text-white text-xs font-semibold">{record.pot}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-yellow-300 text-xs font-semibold">勝者: {record.winner}</span>
+                    <span className="text-white text-xs">{record.cards}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* シェアモーダル */}
+      {showShare && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">📤 シェア</h2>
+              <button 
+                onClick={() => setShowShare(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <button className="w-full bg-blue-600 hover:bg-blue-700 py-3 px-4 rounded-lg transition-colors">
+                <p className="text-white text-sm font-semibold">🐦 Twitterでシェア</p>
+              </button>
+              <button className="w-full bg-green-600 hover:bg-green-700 py-3 px-4 rounded-lg transition-colors">
+                <p className="text-white text-sm font-semibold">💬 LINEでシェア</p>
+              </button>
+              <button className="w-full bg-white/20 hover:bg-white/30 py-3 px-4 rounded-lg border border-white/40 transition-colors">
+                <p className="text-white text-sm font-semibold">🔗 リンクをコピー</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* フィードバックモーダル */}
+      {showFeedback && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">💬 フィードバック</h2>
+              <button 
+                onClick={() => setShowFeedback(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-white text-xs font-semibold mb-1 block">カテゴリー</label>
+                <select className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded-lg border border-white/40 focus:outline-none focus:bg-white/30">
+                  <option value="bug">🐛 バグ報告</option>
+                  <option value="feature">💡 機能要望</option>
+                  <option value="other">💬 その他</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-white text-xs font-semibold mb-1 block">詳細</label>
+                <textarea 
+                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded-lg border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30 h-24 resize-none"
+                  placeholder="ご意見をお聞かせください..."
+                />
+              </div>
+              <button className="w-full bg-green-500 hover:bg-green-600 py-2.5 px-4 rounded-lg transition-colors">
+                <p className="text-white text-sm font-bold">送信</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 言語設定モーダル */}
+      {showLanguageSettings && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">🌐 言語設定</h2>
+              <button 
+                onClick={() => setShowLanguageSettings(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {['日本語', 'English', '中文'].map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setSelectedLanguage(lang)}
+                  className={`w-full py-3 px-4 rounded-lg transition-colors ${
+                    selectedLanguage === lang 
+                      ? 'bg-white text-blue-600' 
+                      : 'bg-white/20 text-white hover:bg-white/30'
+                  } border border-white/40`}
+                >
+                  <p className="text-sm font-semibold">{lang}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* アカウント設定モーダル */}
+      {showAccountSettings && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">👤 アカウント設定</h2>
+              <button 
+                onClick={() => setShowAccountSettings(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="bg-white/20 rounded-lg p-4 border border-white/40 text-center">
+                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-4 border-white mb-2">
+                  <User className="w-10 h-10 text-white" />
+                </div>
+                <p className="text-white text-sm font-bold">プレイヤー1</p>
+                <p className="text-white/80 text-xs">Level 5</p>
+              </div>
+
+              <div>
+                <label className="text-white text-xs font-semibold mb-1 block">表示名</label>
+                <input 
+                  type="text"
+                  defaultValue="プレイヤー1"
+                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded-lg border border-white/40 focus:outline-none focus:bg-white/30"
+                />
+              </div>
+
+              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-4 rounded-lg border border-white/40 transition-colors">
+                <p className="text-white text-sm font-semibold">🖼️ アバター変更</p>
+              </button>
+
+              <button className="w-full bg-green-500 hover:bg-green-600 py-2.5 px-4 rounded-lg transition-colors">
+                <p className="text-white text-sm font-bold">保存</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* リバイモーダル */}
+      {showRebuy && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">💰 チップ追加</h2>
+              <button 
+                onClick={() => setShowRebuy(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white/80 text-xs mb-1">現在のチップ</p>
+                <div className="flex items-center gap-2">
+                  <Image src="/chip-icon.png" alt="chip" width={20} height={20} />
+                  <p className="text-white text-2xl font-bold">5,000</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-white text-xs font-semibold mb-1 block">追加するチップ</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[1000, 2000, 5000, 10000].map((amount) => (
+                    <button
+                      key={amount}
+                      onClick={() => setRebuyAmount(amount)}
+                      className={`py-2 px-3 rounded-lg transition-colors ${
+                        rebuyAmount === amount
+                          ? 'bg-white text-blue-600'
+                          : 'bg-white/20 text-white hover:bg-white/30'
+                      } border border-white/40`}
+                    >
+                      <p className="text-xs font-bold">{amount.toLocaleString()}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setShowRebuyNotification(true);
+                  setShowRebuy(false);
+                }}
+                className="w-full bg-green-500 hover:bg-green-600 py-3 px-4 rounded-lg transition-colors"
+              >
+                <p className="text-white text-sm font-bold">購入する</p>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

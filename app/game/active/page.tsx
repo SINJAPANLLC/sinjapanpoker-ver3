@@ -180,7 +180,7 @@ export default function ActiveGamePage() {
 
         {/* 最後のアクション表示 - 所持チップの下 */}
         {player.lastAction && (
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(100%+8px)]">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(100%+16px)]">
             <div className={`px-2 py-0.5 rounded-md border border-white/50 shadow-md ${
               player.lastAction === 'FOLD' ? 'bg-red-500' : 
               player.lastAction === 'RAISE' ? 'bg-green-500' : 

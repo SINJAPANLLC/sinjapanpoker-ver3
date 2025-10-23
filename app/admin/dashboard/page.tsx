@@ -31,6 +31,24 @@ import {
 } from 'lucide-react';
 
 
+interface AdminStats {
+  activeTournaments: {
+    count: number;
+    totalPlayers: number;
+    totalPrizePool: number;
+    tournaments: any[];
+  };
+  activeGames: {
+    count: number;
+    games: any[];
+  };
+  systemStats: {
+    totalUsers: number;
+    totalChips: number;
+    todayGames: number;
+  };
+}
+
 function AdminDashboardContent() {
   const router = useRouter();
   const { adminUser, logout } = useAdminStore();
@@ -40,13 +58,42 @@ function AdminDashboardContent() {
   
   const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
   const [myTournaments, setMyTournaments] = useState<Tournament[]>([]);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // データベースから統計を取得
+  useEffect(() => {
+    const fetchAdminStats = async () => {
+      try {
+        const response = await fetch('/api/admin/stats');
+        const data = await response.json();
+        setAdminStats(data);
+        setActiveTournaments(data.activeTournaments.tournaments || []);
+      } catch (error) {
+        console.error('Failed to fetch admin stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (adminUser) {
+      fetchAdminStats();
+      // 30秒ごとに更新
+      const interval = setInterval(fetchAdminStats, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [adminUser]);
+
+  // Fallback: Zustand storeからもデータ取得
   useEffect(() => {
     if (adminUser) {
-      setActiveTournaments(getActiveTournaments());
+      const storeTournaments = getActiveTournaments();
+      if (storeTournaments.length > 0 && !adminStats) {
+        setActiveTournaments(storeTournaments);
+      }
       setMyTournaments(getTournamentsByAdmin(adminUser.id));
     }
-  }, [tournaments, adminUser, getActiveTournaments, getTournamentsByAdmin]);
+  }, [tournaments, adminUser, getActiveTournaments, getTournamentsByAdmin, adminStats]);
 
 
   const handleLogout = () => {
@@ -65,30 +112,30 @@ function AdminDashboardContent() {
   const stats = [
     {
       title: 'アクティブトーナメント',
-      value: activeTournaments.length,
+      value: adminStats?.activeTournaments.count || activeTournaments.length,
       icon: <Trophy className="w-6 h-6 text-yellow-500" />,
       change: '+2',
       changeType: 'positive'
     },
     {
       title: '総参加者数',
-      value: activeTournaments.reduce((sum, t) => sum + t.currentPlayers, 0),
+      value: adminStats?.activeTournaments.totalPlayers || activeTournaments.reduce((sum, t) => sum + (t.currentPlayers || 0), 0),
       icon: <Users className="w-6 h-6 text-blue-500" />,
       change: '+15',
       changeType: 'positive'
     },
     {
       title: '賞金総額',
-      value: activeTournaments.reduce((sum, t) => sum + t.prize, 0).toLocaleString(),
+      value: (adminStats?.activeTournaments.totalPrizePool || activeTournaments.reduce((sum, t) => sum + (t.prizePool || t.prize || 0), 0)).toLocaleString(),
       icon: <DollarSign className="w-6 h-6 text-green-500" />,
       change: '+25%',
       changeType: 'positive'
     },
     {
-      title: '私のトーナメント',
-      value: myTournaments.length,
-      icon: <Calendar className="w-6 h-6 text-purple-500" />,
-      change: '+1',
+      title: 'アクティブゲーム',
+      value: adminStats?.activeGames.count || activeGames.length,
+      icon: <Gamepad2 className="w-6 h-6 text-purple-500" />,
+      change: '+' + (adminStats?.systemStats.todayGames || 0),
       changeType: 'positive'
     }
   ];

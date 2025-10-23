@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCurrencyStore } from '@/store/useCurrencyStore';
 import { useTournamentStore, Tournament } from '@/store/useTournamentStore';
+import { io, Socket } from 'socket.io-client';
 
 interface Table {
   id: string;
@@ -40,6 +41,52 @@ function LobbyContent() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState<string>('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  // Socket.io接続してリアルタイム更新を受信
+  useEffect(() => {
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    const newSocket = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Lobby socket connected');
+    });
+
+    newSocket.on('lobby-update', ({ games }) => {
+      console.log('Lobby update received:', games);
+      
+      // LocalStorageから保存されたテーブルを読み込む
+      const savedTables = loadTables();
+      
+      // サーバーからの更新でcurrentPlayersとstatusを更新
+      const updatedTables = savedTables.map(table => {
+        const serverGame = games.find((g: any) => g.id === table.id);
+        if (serverGame) {
+          return {
+            ...table,
+            currentPlayers: serverGame.currentPlayers,
+            status: serverGame.status as 'waiting' | 'playing' | 'full',
+            createdAt: new Date(table.createdAt)
+          };
+        }
+        return {
+          ...table,
+          createdAt: new Date(table.createdAt)
+        };
+      });
+      
+      setTables(updatedTables);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
 
   // LocalStorageとAPIからデータを読み込む
   useEffect(() => {

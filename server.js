@@ -126,6 +126,7 @@ app.prepare().then(() => {
         cards: [],
         folded: false,
         isAllIn: false,
+        isAway: false,
         position: this.players.length,
         avatar: player.avatar,
         isDealer: this.players.length === 0,
@@ -135,6 +136,13 @@ app.prepare().then(() => {
 
       this.players.push(newPlayer);
       return newPlayer;
+    }
+
+    setAwayStatus(userId, isAway) {
+      const player = this.players.find(p => p.userId === userId);
+      if (player) {
+        player.isAway = isAway;
+      }
     }
 
     removePlayer(userId) {
@@ -449,29 +457,45 @@ app.prepare().then(() => {
       return player && player.userId && player.userId.toString().startsWith('cpu-');
     }
 
-    // CPUプレイヤーの自動アクション
+    // CPUプレイヤー・離席中プレイヤーの自動アクション
     executeCPUAction(io, gameId) {
       const currentPlayer = this.players[this.currentPlayerIndex];
-      if (!currentPlayer || !this.isCPUPlayer(currentPlayer)) {
+      if (!currentPlayer) {
         return;
       }
 
-      // 1-3秒のランダムな待機時間
-      const thinkingTime = 1000 + Math.random() * 2000;
+      const isCPU = this.isCPUPlayer(currentPlayer);
+      const isAway = currentPlayer.isAway;
+
+      if (!isCPU && !isAway) {
+        return;
+      }
+
+      // 離席中の場合は即座に実行、CPUの場合は1-3秒待機
+      const thinkingTime = isAway ? 500 : (1000 + Math.random() * 2000);
       
       setTimeout(() => {
         try {
-          const decision = decideCPUAction(
-            this.difficulty,
-            this.currentBet,
-            currentPlayer.bet,
-            currentPlayer.chips,
-            this.pot
-          );
+          let decision;
           
-          console.log(`CPU ${currentPlayer.username} のアクション: ${decision.action}`);
+          if (isAway) {
+            // 離席中は自動フォールド/チェック
+            const callAmount = this.currentBet - currentPlayer.bet;
+            decision = callAmount === 0 ? { action: 'check' } : { action: 'fold' };
+            console.log(`離席中 ${currentPlayer.username} のアクション: ${decision.action}`);
+          } else {
+            // CPUの場合は通常の意思決定
+            decision = decideCPUAction(
+              this.difficulty,
+              this.currentBet,
+              currentPlayer.bet,
+              currentPlayer.chips,
+              this.pot
+            );
+            console.log(`CPU ${currentPlayer.username} のアクション: ${decision.action}`);
+          }
           
-          // CPUのアクションを実行
+          // アクションを実行
           switch (decision.action) {
             case 'fold':
               currentPlayer.folded = true;
@@ -506,15 +530,15 @@ app.prepare().then(() => {
           this.nextPlayer();
           io.to(gameId).emit('game-state', this.getState());
           
-          // 次のプレイヤーもCPUなら再帰的に実行
+          // 次のプレイヤーもCPU/離席中なら再帰的に実行
           if (this.phase !== 'finished' && this.phase !== 'showdown') {
             const nextPlayer = this.players[this.currentPlayerIndex];
-            if (nextPlayer && this.isCPUPlayer(nextPlayer)) {
+            if (nextPlayer && (this.isCPUPlayer(nextPlayer) || nextPlayer.isAway)) {
               this.executeCPUAction(io, gameId);
             }
           }
         } catch (error) {
-          console.error('CPU action error:', error);
+          console.error('Auto action error:', error);
         }
       }, thinkingTime);
     }
@@ -542,8 +566,28 @@ app.prepare().then(() => {
     }
   }
 
+  // ロビーにゲーム一覧を送信する関数
+  function broadcastLobbyUpdate() {
+    const lobbyGames = [];
+    for (const [gameId, game] of games.entries()) {
+      if (gameId !== 'practice-game') { // 練習モードは除外
+        lobbyGames.push({
+          id: gameId,
+          currentPlayers: game.players.length,
+          maxPlayers: game.maxPlayers,
+          status: game.phase === 'waiting' ? 'waiting' : game.phase === 'finished' ? 'waiting' : 'playing',
+          blinds: game.blinds,
+        });
+      }
+    }
+    io.emit('lobby-update', { games: lobbyGames });
+  }
+
   io.on('connection', (socket) => {
     console.log('クライアント接続:', socket.id);
+    
+    // 接続時に現在のロビー状態を送信
+    broadcastLobbyUpdate();
 
     socket.on('join-game', ({ gameId, player, blinds, difficulty }) => {
       try {
@@ -572,22 +616,28 @@ app.prepare().then(() => {
 
         console.log(`プレイヤー ${player.username} がゲーム ${gameId} に参加しました`);
         
-        // 練習モードで最初のプレイヤーの場合、CPUプレイヤーを追加
+        // 練習モードで最初のプレイヤーの場合、CPUプレイヤーを追加（合計9人）
         if (gameId === 'practice-game' && game.players.length === 1) {
-          for (let i = 0; i < 5; i++) {
+          for (let i = 0; i < 8; i++) {
             const cpuPlayer = createCPUPlayer(i);
             game.addPlayer(cpuPlayer);
           }
-          console.log('練習モード: CPUプレイヤー5人を追加しました');
+          console.log('練習モード: CPUプレイヤー8人を追加しました（合計9人）');
         }
         
         io.to(gameId).emit('game-state', game.getState());
+        
+        // ロビーに更新を送信
+        broadcastLobbyUpdate();
 
         if (game.players.length >= game.minPlayers && game.phase === 'waiting') {
           setTimeout(() => {
             game.startGame();
             console.log(`ゲーム ${gameId} を開始します`);
             io.to(gameId).emit('game-state', game.getState());
+            
+            // ロビーに更新を送信（ゲーム開始）
+            broadcastLobbyUpdate();
             
             // ゲーム開始後、最初のプレイヤーがCPUなら自動アクション
             if (game.isCPUPlayer && game.isCPUPlayer(game.players[game.currentPlayerIndex])) {
@@ -817,6 +867,23 @@ app.prepare().then(() => {
       });
     });
 
+    socket.on('set-away-status', ({ isAway }) => {
+      const playerInfo = players.get(socket.id);
+      if (!playerInfo) return;
+
+      const game = games.get(playerInfo.gameId);
+      if (!game) return;
+
+      game.setAwayStatus(playerInfo.userId, isAway);
+      io.to(playerInfo.gameId).emit('game-state', game.getState());
+
+      // 離席中に設定した場合、現在のターンならすぐに自動アクション
+      const currentPlayer = game.players[game.currentPlayerIndex];
+      if (isAway && currentPlayer && currentPlayer.userId === playerInfo.userId && game.phase !== 'finished' && game.phase !== 'showdown') {
+        game.executeCPUAction(io, playerInfo.gameId);
+      }
+    });
+
     socket.on('disconnect', () => {
       console.log('クライアント切断:', socket.id);
       const playerInfo = players.get(socket.id);
@@ -832,9 +899,15 @@ app.prepare().then(() => {
             game.removePlayer(playerInfo.userId);
             io.to(playerInfo.gameId).emit('game-state', game.getState());
             
+            // ロビーに更新を送信
+            broadcastLobbyUpdate();
+            
             if (game.players.length === 0) {
               games.delete(playerInfo.gameId);
               console.log(`ゲーム ${playerInfo.gameId} を削除しました`);
+              
+              // ロビーに更新を送信（ゲーム削除）
+              broadcastLobbyUpdate();
             }
           }
         }

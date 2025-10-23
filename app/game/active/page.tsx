@@ -51,6 +51,7 @@ export default function ActiveGamePage() {
     joinGame,
     performAction,
     sendMessage: sendSocketMessage,
+    setAwayStatus,
     getCurrentPlayer,
     isMyTurn,
     canCheck,
@@ -271,6 +272,13 @@ export default function ActiveGamePage() {
       playSound('win');
     }
   }, [showCelebration, playSound]);
+
+  // 離席状態が変更されたらサーバーに送信
+  useEffect(() => {
+    if (setAwayStatus) {
+      setAwayStatus(isAway);
+    }
+  }, [isAway, setAwayStatus]);
 
   useEffect(() => {
     if (allInPlayer !== null) {

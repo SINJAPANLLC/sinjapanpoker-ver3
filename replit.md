@@ -6,6 +6,8 @@ SIN JAPAN POKER is a comprehensive online poker application inspired by PPPOKER,
 
 The application serves as a full-featured poker platform with both play money and real money modes (configurable), club systems for private games, tournament management, and extensive player statistics tracking.
 
+**Security Status (2025-10-23):** Comprehensive security implementation complete - Rate limiting, Zod validation, XSS/CSRF protection, security headers, and input sanitization fully deployed.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -74,17 +76,46 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
 - `lib/table-revenue.ts` - Per-table revenue tracking
 - `server/poker-helpers.js` - Hand ranking algorithms and winner determination
 
-**Authentication & Security**
-- JWT-based authentication with `jsonwebtoken`
-- Password hashing via `bcryptjs`
-- Token storage in sessionStorage for API requests
-- Session validation on protected routes
-- **Admin Authentication System** (2025-10-23):
+**Authentication & Security** (Complete Security Implementation - 2025-10-23)
+- **JWT Authentication:**
+  - JWT-based authentication with `jsonwebtoken` (7-day expiration)
+  - Password hashing via `bcryptjs` (10 salt rounds)
+  - Token storage in sessionStorage for API requests
+  - Session validation on protected routes
+- **Admin Authentication System:**
   - JWT-based admin authentication via `/api/admin/login`
   - `lib/auth/admin-auth.ts` provides `requireAdmin()` helper for API route protection
   - All admin API endpoints require valid JWT token in Authorization header
   - JWT_SECRET environment variable required for token signing/verification
   - Admin user identified by email `info@sinjapan.jp` in database
+- **Rate Limiting** (express-rate-limit):
+  - General API: 100 requests/15 min
+  - Auth API: 5 attempts/15 min
+  - Payment API: 10 requests/hour
+  - Admin API: 200 requests/15 min
+  - Socket.io: 30 connections/min
+- **Input Validation** (Zod schemas):
+  - Comprehensive validation for all user inputs
+  - Type-safe schemas in `lib/validation/schemas.ts`
+  - 13+ validation schemas covering auth, payments, games, tournaments
+- **XSS Protection**:
+  - DOMPurify sanitization for all user-generated content
+  - Security headers (X-XSS-Protection, X-Frame-Options, etc.)
+  - CSP headers for script/style source control
+  - Sanitization utilities in `lib/security/sanitize.ts`
+- **CSRF Protection**:
+  - Token-based CSRF validation
+  - Session-bound CSRF tokens with HMAC signatures
+  - Auto-expiration (1 hour)
+  - Implementation in `lib/security/csrf.ts`
+- **Security Headers** (next.config.js):
+  - X-XSS-Protection: 1; mode=block
+  - X-Content-Type-Options: nosniff
+  - X-Frame-Options: DENY
+  - Referrer-Policy: strict-origin-when-cross-origin
+  - Permissions-Policy: camera=(), microphone=(), geolocation=()
+- **SQL Injection Prevention**: Drizzle ORM with parameterized queries
+- **Documentation**: Complete security guide in `SECURITY.md`
 
 ### Data Layer
 

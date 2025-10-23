@@ -28,6 +28,7 @@ import {
   ToggleRight,
   AlertCircle,
   CheckCircle,
+  CreditCard,
 } from 'lucide-react';
 
 
@@ -360,16 +361,16 @@ function AdminDashboardContent() {
           </button>
 
           <button
-            onClick={() => router.push('/admin/realmoney')}
-            className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-3 md:p-6 hover:border-green-500/50 transition-all group"
+            onClick={() => router.push('/admin/payment')}
+            className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-3 md:p-6 hover:border-purple-500/50 transition-all group"
           >
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-3 md:space-x-4">
-              <div className="p-2 md:p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
-                <DollarSign className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
+              <div className="p-2 md:p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
+                <CreditCard className="w-4 h-4 md:w-6 md:h-6 text-purple-400" />
               </div>
               <div className="text-center md:text-left">
-                <h3 className="text-white font-semibold mb-1 text-xs md:text-base">リアルマネー管理</h3>
-                <p className="text-gray-400 text-xs hidden md:block">入出金と決済管理</p>
+                <h3 className="text-white font-semibold mb-1 text-xs md:text-base">決済管理</h3>
+                <p className="text-gray-400 text-xs hidden md:block">Stripe・仮想通貨決済</p>
               </div>
             </div>
           </button>

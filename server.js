@@ -79,6 +79,7 @@ app.prepare().then(() => {
         avatar: player.avatar,
         isDealer: this.players.length === 0,
         hasActed: false,
+        lastAction: null,
       };
 
       this.players.push(newPlayer);
@@ -457,6 +458,7 @@ app.prepare().then(() => {
           case 'fold':
             player.folded = true;
             player.hasActed = true;
+            player.lastAction = 'FOLD';
             break;
 
           case 'check':
@@ -465,6 +467,7 @@ app.prepare().then(() => {
               return;
             }
             player.hasActed = true;
+            player.lastAction = 'CHECK';
             break;
 
           case 'call':
@@ -476,6 +479,9 @@ app.prepare().then(() => {
             player.hasActed = true;
             if (player.chips === 0) {
               player.isAllIn = true;
+              player.lastAction = 'ALL IN';
+            } else {
+              player.lastAction = 'CALL';
             }
             break;
 
@@ -505,6 +511,9 @@ app.prepare().then(() => {
             
             if (player.chips === 0) {
               player.isAllIn = true;
+              player.lastAction = 'ALL IN';
+            } else {
+              player.lastAction = 'RAISE';
             }
             break;
 
@@ -516,6 +525,7 @@ app.prepare().then(() => {
             player.chips = 0;
             player.isAllIn = true;
             player.hasActed = true;
+            player.lastAction = 'ALL IN';
             
             if (player.bet > game.currentBet) {
               game.currentBet = player.bet;

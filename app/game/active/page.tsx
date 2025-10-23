@@ -431,9 +431,9 @@ export default function ActiveGamePage() {
     else if (isBigBlind) position = 'BB';
     
     const isCurrentUser = p.userId === user?.id || p.username === user?.username;
-    // 自分のカードは常に表示、他のプレイヤーは裏向きで表示（showdownとfinishedでは表向き）
+    // アバター横のカードは全員裏向き（showdownとfinishedでは表向き）
     const showCards = true;
-    const showCardsFaceUp = isCurrentUser || gameState?.phase === 'showdown' || gameState?.phase === 'finished';
+    const showCardsFaceUp = gameState?.phase === 'showdown' || gameState?.phase === 'finished';
     
     let lastAction = null;
     if (p.folded) lastAction = 'FOLD';
@@ -451,8 +451,8 @@ export default function ActiveGamePage() {
       chips: p.chips,
       // ユーザーのアバター画像を使用（なければランダム画像）
       avatar: p.avatar || `https://i.pravatar.cc/150?img=${(idx + 1)}`,
-      // position 0（下部中央）は'center'、1-4は左側、5-8は右側
-      cardSide: position === '0' || position === 0 ? 'center' : (Number(position || 0) <= 4 ? 'left' : 'right'),
+      // 全員左側にカード表示（アバターの横）
+      cardSide: 'left',
       showCards,
       showCardsFaceUp,
       position,

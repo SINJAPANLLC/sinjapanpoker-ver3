@@ -9,11 +9,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundManager } from '@/hooks/useSoundManager';
 import { useMoneyModeStore } from '@/store/useMoneyModeStore';
 import { useAppStore } from '@/store/useAppStore';
+import { usePokerGame } from '@/hooks/usePokerGame';
+import { useSearchParams } from 'next/navigation';
 
 export default function ActiveGamePage() {
   const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
   const { mode, isEnabled } = useMoneyModeStore();
-  const { user } = useAppStore();
+  const { user: authUser } = useAppStore();
+  const searchParams = useSearchParams();
+  
+  // デモユーザー（認証なしでテスト）
+  const user = authUser || {
+    id: `demo-${Math.random().toString(36).substring(7)}`,
+    username: `プレイヤー${Math.floor(Math.random() * 100)}`,
+    email: 'demo@test.com',
+    chips: 1000,
+    avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+  };
+  
+  const tableId = (searchParams && searchParams.get('table')) || 'test-game-1';
+  
+  // Socket.io ゲームステート
+  const {
+    gameState,
+    messages: socketMessages,
+    connected,
+    error: socketError,
+    joinGame,
+    performAction,
+    sendMessage: sendSocketMessage,
+    getCurrentPlayer,
+    isMyTurn,
+    canCheck,
+    canCall,
+    getCallAmount,
+    getMinRaise,
+  } = usePokerGame(tableId);
   
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);
@@ -108,6 +139,56 @@ export default function ActiveGamePage() {
     setSoundManagerEnabled(soundEnabled);
   }, [soundEnabled, setSoundManagerEnabled]);
 
+  // ゲームに参加
+  useEffect(() => {
+    if (connected && user && !gameState) {
+      joinGame(user.chips || 1000);
+    }
+  }, [connected, user, gameState, joinGame]);
+
+  // 接続ステータスの同期
+  useEffect(() => {
+    setConnectionStatus(connected ? 'connected' : 'disconnected');
+  }, [connected]);
+
+  // フェーズ遷移のアニメーション
+  useEffect(() => {
+    if (!gameState) return;
+    
+    if (gameState.phase === 'preflop' && gameState.players.length >= 2) {
+      setDealingCards(true);
+      setTimeout(() => setDealingCards(false), 1000);
+    } else if (gameState.phase === 'flop') {
+      setRevealFlop(true);
+      setTimeout(() => setRevealFlop(false), 500);
+    } else if (gameState.phase === 'turn') {
+      setRevealTurn(true);
+      setTimeout(() => setRevealTurn(false), 500);
+    } else if (gameState.phase === 'river') {
+      setRevealRiver(true);
+      setTimeout(() => setRevealRiver(false), 500);
+    } else if (gameState.phase === 'finished' && gameState.winners) {
+      setShowWinnerAnimation(true);
+      setShowWinnerChips(true);
+      setTimeout(() => {
+        setShowWinnerAnimation(false);
+        setShowWinnerChips(false);
+      }, 3000);
+    }
+  }, [gameState?.phase]);
+
+  // チャットメッセージの同期
+  useEffect(() => {
+    if (socketMessages.length > 0) {
+      setChatMessages(socketMessages.map((msg, idx) => ({
+        id: idx,
+        player: msg.username,
+        message: msg.message,
+        time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+      })));
+    }
+  }, [socketMessages]);
+
   // アニメーションに応じたサウンド再生
   useEffect(() => {
     if (dealingCards) {
@@ -169,83 +250,79 @@ export default function ActiveGamePage() {
     }
   }, [showBadBeat, playSound]);
   
-  const communityCards: CardType[] = [
-    { rank: 'A' as Rank, suit: 'spades' as Suit, id: 'comm-1' },
-    { rank: 'K' as Rank, suit: 'hearts' as Suit, id: 'comm-2' },
-    { rank: 'Q' as Rank, suit: 'diamonds' as Suit, id: 'comm-3' },
-    { rank: 'J' as Rank, suit: 'clubs' as Suit, id: 'comm-4' },
-    { rank: '10' as Rank, suit: 'spades' as Suit, id: 'comm-5' },
-  ];
+  // 実際のゲームステートからデータを取得
+  const convertSocketCard = (card: any): CardType => {
+    const suitMap: Record<string, Suit> = {
+      '♠': 'spades',
+      '♥': 'hearts',
+      '♦': 'diamonds',
+      '♣': 'clubs',
+    };
+    return {
+      rank: card.rank as Rank,
+      suit: suitMap[card.suit] || 'spades',
+      id: card.id,
+    };
+  };
 
-  const pot = 15000;
-  const potAmount = 1050;
+  const communityCards: CardType[] = gameState?.communityCards.map(convertSocketCard) || [];
+  const pot = gameState?.pot || 0;
+  const potAmount = gameState?.currentBet || 0;
   const tableName = "SIN JAPAN TABLE #1";
   const handNumber = 42;
-  const smallBlind = 50;
-  const bigBlind = 100;
-  const gamePhase = "FLOP"; // PREFLOP, FLOP, TURN, RIVER, SHOWDOWN
+  const smallBlind = gameState?.blinds.small || 50;
+  const bigBlind = gameState?.blinds.big || 100;
+  const gamePhase = gameState?.phase.toUpperCase() || "WAITING";
 
-  const player1HandCards: CardType[] = [
-    { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-hand-1' },
-    { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-hand-2' },
-  ];
+  const currentPlayerData = getCurrentPlayer();
+  const player1HandCards: CardType[] = currentPlayerData?.cards.map(convertSocketCard) || [];
+  const activePlayerId = gameState ? gameState.currentPlayerIndex + 1 : 0;
 
-  const activePlayerId = 3;
+  // 実際のゲームステートからプレイヤーデータを生成
+  const players = (gameState?.players || []).map((p, idx) => {
+    const playerPosition = p.position;
+    const isDealer = p.isDealer;
+    const dealerIndex = gameState?.dealerIndex || 0;
+    const isSmallBlind = idx === (dealerIndex + 1) % (gameState?.players.length || 1);
+    const isBigBlind = idx === (dealerIndex + 2) % (gameState?.players.length || 1);
+    
+    let position = null;
+    if (isDealer) position = 'D';
+    else if (isSmallBlind) position = 'SB';
+    else if (isBigBlind) position = 'BB';
+    
+    const isCurrentUser = p.userId === user?.id;
+    const showCards = isCurrentUser || gameState?.phase === 'showdown' || gameState?.phase === 'finished';
+    
+    let lastAction = null;
+    if (p.folded) lastAction = 'FOLD';
+    else if (p.isAllIn) lastAction = 'ALL IN';
+    else if (p.hasActed && p.bet > 0) lastAction = 'RAISE';
+    else if (p.hasActed) lastAction = 'CHECK';
+    
+    const isWinner = gameState?.winners?.some(w => w.username === p.username) || false;
+    
+    return {
+      id: idx + 1,
+      name: p.username,
+      chips: p.chips,
+      avatar: `https://i.pravatar.cc/150?img=${(idx + 1)}`,
+      cardSide: (idx < 5 ? 'right' : 'left') as const,
+      showCards,
+      position,
+      bet: p.bet,
+      lastAction,
+      folded: p.folded,
+      chatMessage: null,
+      isWinner,
+      isAllIn: p.isAllIn,
+      cards: p.cards?.map(convertSocketCard) || [],
+    };
+  });
 
-  const players = [
-    { 
-      id: 1, 
-      name: user?.username || 'プレイヤー1', 
-      chips: user?.chips || 5000, 
-      avatar: user?.avatar || 'https://i.pravatar.cc/150?img=1', 
-      cardSide: 'right' as const, 
-      showCards: false, 
-      position: null, 
-      bet: 0, 
-      lastAction: null, 
-      folded: false, 
-      chatMessage: null, 
-      isWinner: false, 
-      cards: [
-        { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
-        { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-card-2' },
-      ]
-    },
-    { id: 2, name: 'プレイヤー2', chips: 8500, avatar: 'https://i.pravatar.cc/150?img=2', cardSide: 'right' as const, showCards: true, position: 'D', bet: 200, lastAction: 'RAISE', folded: false, chatMessage: 'いい手だ！', isWinner: true, cards: [
-      { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
-      { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
-    ]},
-    { id: 3, name: 'プレイヤー3', chips: 12000, avatar: 'https://i.pravatar.cc/150?img=3', cardSide: 'right' as const, showCards: true, position: 'SB', bet: 50, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
-      { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
-      { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
-    ]},
-    { id: 4, name: 'プレイヤー4', chips: 6200, avatar: 'https://i.pravatar.cc/150?img=4', cardSide: 'right' as const, showCards: true, position: 'BB', bet: 100, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
-      { rank: '8' as Rank, suit: 'clubs' as Suit, id: 'p4-card-1' },
-      { rank: '7' as Rank, suit: 'spades' as Suit, id: 'p4-card-2' },
-    ]},
-    { id: 5, name: 'プレイヤー5', chips: 9800, avatar: 'https://i.pravatar.cc/150?img=5', cardSide: 'right' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, isWinner: false, cards: [
-      { rank: '6' as Rank, suit: 'hearts' as Suit, id: 'p5-card-1' },
-      { rank: '5' as Rank, suit: 'diamonds' as Suit, id: 'p5-card-2' },
-    ]},
-    { id: 6, name: 'プレイヤー6', chips: 7500, avatar: 'https://i.pravatar.cc/150?img=6', cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: 'よし、勝負！', isWinner: false, cards: [
-      { rank: '4' as Rank, suit: 'clubs' as Suit, id: 'p6-card-1' },
-      { rank: '3' as Rank, suit: 'spades' as Suit, id: 'p6-card-2' },
-    ]},
-    { id: 7, name: 'プレイヤー7', chips: 11000, avatar: 'https://i.pravatar.cc/150?img=7', cardSide: 'left' as const, showCards: true, position: null, bet: 0, lastAction: 'FOLD', folded: true, chatMessage: null, isWinner: false, cards: [
-      { rank: '2' as Rank, suit: 'hearts' as Suit, id: 'p7-card-1' },
-      { rank: 'A' as Rank, suit: 'clubs' as Suit, id: 'p7-card-2' },
-    ]},
-    { id: 8, name: 'プレイヤー8', chips: 0, avatar: 'https://i.pravatar.cc/150?img=8', cardSide: 'left' as const, showCards: true, position: null, bet: 4500, lastAction: 'ALL IN', folded: false, chatMessage: null, isWinner: false, isAllIn: true, cards: [
-      { rank: 'K' as Rank, suit: 'spades' as Suit, id: 'p8-card-1' },
-      { rank: 'Q' as Rank, suit: 'hearts' as Suit, id: 'p8-card-2' },
-    ]},
-    { id: 9, name: 'プレイヤー9', chips: 8200, avatar: 'https://i.pravatar.cc/150?img=9', cardSide: 'left' as const, showCards: true, position: null, bet: 200, lastAction: 'CALL', folded: false, chatMessage: null, isWinner: false, cards: [
-      { rank: 'J' as Rank, suit: 'diamonds' as Suit, id: 'p9-card-1' },
-      { rank: '10' as Rank, suit: 'clubs' as Suit, id: 'p9-card-2' },
-    ]},
-  ];
-
-  const PlayerComponent = ({ player }: { player: typeof players[0] }) => {
+  const PlayerComponent = ({ player }: { player: typeof players[0] | undefined }) => {
+    if (!player) return null;
+    
     const isActive = player.id === activePlayerId;
     const isJoining = joiningPlayer === player.id;
     const isLeaving = leavingPlayer === player.id;
@@ -1228,18 +1305,20 @@ export default function ActiveGamePage() {
             <button 
               onClick={() => {
                 playSound('fold');
+                performAction('fold');
                 setShowRaiseSlider(false);
               }}
-              className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+              disabled={!isMyTurn()}
+              className="bg-red-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               <p className="text-white text-sm font-bold">フォールド</p>
             </button>
             <button 
               onClick={() => {
-                if (callAmount > 0) {
+                const actualCallAmount = getCallAmount();
+                if (actualCallAmount > 0) {
                   playSound('call');
-                  console.log(`コール: ${callAmount}`);
-                  // チップアニメーションをトリガー
+                  performAction('call');
                   const newChipAnim = { id: Date.now(), playerId: 1 };
                   setChipAnimations([...chipAnimations, newChipAnim]);
                   setTimeout(() => {
@@ -1247,39 +1326,43 @@ export default function ActiveGamePage() {
                   }, 500);
                 } else {
                   playSound('bet');
-                  console.log('チェック');
+                  performAction('check');
                 }
               }}
-              className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+              disabled={!isMyTurn()}
+              className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               <p className="text-white text-sm font-bold">
-                {callAmount > 0 ? `コール ${callAmount}` : 'チェック'}
+                {getCallAmount() > 0 ? `コール ${getCallAmount()}` : 'チェック'}
               </p>
             </button>
             <button 
               onClick={() => {
                 if (showRaiseSlider) {
-                  if (raiseAmount >= maxRaise) {
+                  const currentPlayerChips = getCurrentPlayer()?.chips || 0;
+                  if (raiseAmount >= currentPlayerChips) {
                     playSound('allIn');
+                    performAction('all-in');
                   } else {
                     playSound('raise');
+                    performAction('raise', raiseAmount);
                   }
-                  console.log(`レイズ: ${raiseAmount}`);
                   setShowRaiseSlider(false);
-                  // チップアニメーションをトリガー
                   const newChipAnim = { id: Date.now(), playerId: 1 };
                   setChipAnimations([...chipAnimations, newChipAnim]);
                   setTimeout(() => {
                     setChipAnimations(prev => prev.filter(a => a.id !== newChipAnim.id));
                   }, 500);
                 } else {
+                  setRaiseAmount(getMinRaise());
                   setShowRaiseSlider(true);
                 }
               }}
-              className="bg-green-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+              disabled={!isMyTurn()}
+              className="bg-green-500 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               <p className="text-white text-sm font-bold">
-                {showRaiseSlider ? (raiseAmount >= maxRaise ? 'ALL IN' : `レイズ ${raiseAmount}`) : 'レイズ'}
+                {showRaiseSlider ? (raiseAmount >= (getCurrentPlayer()?.chips || 0) ? 'ALL IN' : `レイズ ${raiseAmount}`) : 'レイズ'}
               </p>
             </button>
           </div>

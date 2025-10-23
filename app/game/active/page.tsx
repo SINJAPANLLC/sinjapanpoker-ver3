@@ -1040,7 +1040,7 @@ export default function ActiveGamePage() {
             <div className="grid grid-cols-3 gap-1 mb-2">
               <button
                 onClick={() => {
-                  sendMessage('よろしく！');
+                  sendSocketMessage('よろしく！');
                 }}
                 className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
               >
@@ -1048,7 +1048,7 @@ export default function ActiveGamePage() {
               </button>
               <button
                 onClick={() => {
-                  sendMessage('いい手だ！');
+                  sendSocketMessage('いい手だ！');
                 }}
                 className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
               >
@@ -1056,7 +1056,7 @@ export default function ActiveGamePage() {
               </button>
               <button
                 onClick={() => {
-                  sendMessage('GG');
+                  sendSocketMessage('GG');
                 }}
                 className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
               >
@@ -1072,7 +1072,7 @@ export default function ActiveGamePage() {
                 onChange={(e) => setChatMessage(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && chatMessage.trim()) {
-                    sendMessage(chatMessage);
+                    sendSocketMessage(chatMessage);
                     setChatMessage('');
                   }
                 }}
@@ -1083,7 +1083,7 @@ export default function ActiveGamePage() {
               <button
                 onClick={() => {
                   if (chatMessage.trim()) {
-                    sendMessage(chatMessage);
+                    sendSocketMessage(chatMessage);
                     setChatMessage('');
                   }
                 }}

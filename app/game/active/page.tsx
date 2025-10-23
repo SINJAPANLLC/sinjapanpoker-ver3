@@ -106,6 +106,7 @@ export default function ActiveGamePage() {
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
     { id: 3, player: 'プレイヤー9', message: 'よし、勝負！', time: '12:34' },
   ]);
+  const [playerBubbles, setPlayerBubbles] = useState<Record<string, { message: string; timestamp: number }>>({});
   
   const callAmount = 200;
   const minRaise = 200;
@@ -192,6 +193,25 @@ export default function ActiveGamePage() {
         message: msg.message,
         time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
       })));
+      
+      // 最新のメッセージをプレイヤーの吹き出しとして表示
+      const latestMsg = socketMessages[socketMessages.length - 1];
+      if (latestMsg) {
+        const username = latestMsg.username;
+        setPlayerBubbles(prev => ({
+          ...prev,
+          [username]: { message: latestMsg.message, timestamp: Date.now() }
+        }));
+        
+        // 3秒後に吹き出しを消す
+        setTimeout(() => {
+          setPlayerBubbles(prev => {
+            const newBubbles = { ...prev };
+            delete newBubbles[username];
+            return newBubbles;
+          });
+        }, 3000);
+      }
     }
   }, [socketMessages]);
 
@@ -426,7 +446,7 @@ export default function ActiveGamePage() {
       bet: p.bet,
       lastAction,
       folded: p.folded,
-      chatMessage: null,
+      chatMessage: playerBubbles[p.username]?.message || null,
       isWinner,
       isAllIn: p.isAllIn,
       cards: p.cards?.map(convertSocketCard) || [],
@@ -1019,19 +1039,25 @@ export default function ActiveGamePage() {
             {/* クイックメッセージ */}
             <div className="grid grid-cols-3 gap-1 mb-2">
               <button
-                onClick={() => setChatMessage('よろしく！')}
+                onClick={() => {
+                  sendMessage('よろしく！');
+                }}
                 className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
               >
                 <p className="text-white text-[8px] font-semibold">よろしく！</p>
               </button>
               <button
-                onClick={() => setChatMessage('いい手だ！')}
+                onClick={() => {
+                  sendMessage('いい手だ！');
+                }}
                 className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
               >
                 <p className="text-white text-[8px] font-semibold">いい手だ！</p>
               </button>
               <button
-                onClick={() => setChatMessage('GG')}
+                onClick={() => {
+                  sendMessage('GG');
+                }}
                 className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
               >
                 <p className="text-white text-[8px] font-semibold">GG</p>
@@ -1046,13 +1072,7 @@ export default function ActiveGamePage() {
                 onChange={(e) => setChatMessage(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && chatMessage.trim()) {
-                    const newMessage = {
-                      id: chatMessages.length + 1,
-                      player: user?.username || 'プレイヤー1',
-                      message: chatMessage,
-                      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
-                    };
-                    setChatMessages([...chatMessages, newMessage]);
+                    sendMessage(chatMessage);
                     setChatMessage('');
                   }
                 }}
@@ -1063,13 +1083,7 @@ export default function ActiveGamePage() {
               <button
                 onClick={() => {
                   if (chatMessage.trim()) {
-                    const newMessage = {
-                      id: chatMessages.length + 1,
-                      player: user?.username || 'プレイヤー1',
-                      message: chatMessage,
-                      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
-                    };
-                    setChatMessages([...chatMessages, newMessage]);
+                    sendMessage(chatMessage);
                     setChatMessage('');
                   }
                 }}

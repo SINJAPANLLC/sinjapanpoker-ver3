@@ -12,12 +12,22 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { usePokerGame } from '@/hooks/usePokerGame';
 import { useSearchParams, useRouter } from 'next/navigation';
 
+// CPUプレイヤーの名前リスト
+const CPU_NAMES = [
+  'タケシ', 'ユウキ', 'ケンジ', 'マサヒロ', 'カズヤ',
+  'サトシ', 'ヒロシ', 'ダイスケ', 'リョウタ', 'コウジ'
+];
+
 export default function ActiveGamePage() {
   const router = useRouter();
   const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
   const { mode, isEnabled } = useMoneyModeStore();
   const { user: authUser } = useAuthStore();
   const searchParams = useSearchParams();
+  
+  // 練習モード検出
+  const isPracticeMode = searchParams?.get('mode') === 'practice';
+  const difficulty = searchParams?.get('difficulty') || 'medium';
   
   // デモユーザー（認証なしでテスト）- useStateで一貫性を保つ
   const [demoUser] = useState({
@@ -30,7 +40,7 @@ export default function ActiveGamePage() {
   
   const user = authUser || demoUser;
   
-  const tableId = (searchParams && searchParams.get('table')) || 'test-game-1';
+  const tableId = (searchParams && searchParams.get('table')) || (isPracticeMode ? 'practice-game' : 'test-game-1');
   
   // Socket.io ゲームステート
   const {
@@ -47,7 +57,7 @@ export default function ActiveGamePage() {
     canCall,
     getCallAmount,
     getMinRaise,
-  } = usePokerGame(tableId);
+  } = usePokerGame(tableId, difficulty);
   
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);

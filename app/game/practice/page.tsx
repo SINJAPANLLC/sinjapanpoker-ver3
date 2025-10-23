@@ -108,7 +108,7 @@ function PracticeContent() {
           </div>
 
           <button
-            onClick={() => router.push('/game/active')}
+            onClick={() => router.push(`/game/active?mode=practice&difficulty=${difficulty}`)}
             className="btn-primary w-full text-xl py-4"
           >
             ゲーム開始

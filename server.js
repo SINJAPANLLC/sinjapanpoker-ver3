@@ -40,8 +40,58 @@ app.prepare().then(() => {
   const games = new Map();
   const players = new Map();
 
+  // CPUプレイヤーの名前リスト
+  const CPU_NAMES = [
+    'タケシ', 'ユウキ', 'ケンジ', 'マサヒロ', 'カズヤ',
+    'サトシ', 'ヒロシ', 'ダイスケ', 'リョウタ', 'コウジ'
+  ];
+
+  // CPUプレイヤー生成関数
+  function createCPUPlayer(index) {
+    return {
+      userId: `cpu-${index}`,
+      username: CPU_NAMES[index % CPU_NAMES.length],
+      chips: 1000,
+      avatar: `https://i.pravatar.cc/150?img=${10 + index}`,
+    };
+  }
+
+  // CPUの意思決定AI（難易度別）
+  function decideCPUAction(difficulty, currentBet, playerBet, chips, pot) {
+    const callAmount = currentBet - playerBet;
+    
+    if (difficulty === 'easy') {
+      if (callAmount === 0) return { action: 'check' };
+      if (callAmount > chips * 0.3) return { action: 'fold' };
+      if (Math.random() < 0.7) return { action: 'call' };
+      if (Math.random() < 0.2) return { action: 'raise', amount: Math.min(currentBet * 2, chips) };
+      return { action: 'fold' };
+    } else if (difficulty === 'medium') {
+      if (callAmount === 0) {
+        if (Math.random() < 0.6) return { action: 'check' };
+        return { action: 'raise', amount: Math.min(pot * 0.5, chips) };
+      }
+      if (callAmount > chips * 0.5) return { action: 'fold' };
+      if (Math.random() < 0.5) return { action: 'call' };
+      if (Math.random() < 0.3) return { action: 'raise', amount: Math.min(currentBet * 2.5, chips) };
+      return { action: 'fold' };
+    } else {
+      if (callAmount === 0) {
+        if (Math.random() < 0.4) return { action: 'check' };
+        return { action: 'raise', amount: Math.min(pot * 0.75, chips) };
+      }
+      if (callAmount > chips * 0.7) {
+        if (Math.random() < 0.3) return { action: 'call' };
+        return { action: 'fold' };
+      }
+      if (Math.random() < 0.4) return { action: 'call' };
+      if (Math.random() < 0.4) return { action: 'raise', amount: Math.min(currentBet * 3, chips) };
+      return { action: 'fold' };
+    }
+  }
+
   class PokerGame {
-    constructor(gameId, type, blinds) {
+    constructor(gameId, type, blinds, difficulty = 'medium') {
       this.id = gameId;
       this.type = type;
       this.phase = 'waiting';
@@ -58,6 +108,7 @@ app.prepare().then(() => {
       this.maxPlayers = 9;
       this.lastRaiserIndex = -1;
       this.bettingRound = 0;
+      this.difficulty = difficulty;
     }
 
     addPlayer(player) {
@@ -393,6 +444,81 @@ app.prepare().then(() => {
       return true;
     }
 
+    // CPUプレイヤーかどうか判定
+    isCPUPlayer(player) {
+      return player && player.userId && player.userId.toString().startsWith('cpu-');
+    }
+
+    // CPUプレイヤーの自動アクション
+    executeCPUAction(io, gameId) {
+      const currentPlayer = this.players[this.currentPlayerIndex];
+      if (!currentPlayer || !this.isCPUPlayer(currentPlayer)) {
+        return;
+      }
+
+      // 1-3秒のランダムな待機時間
+      const thinkingTime = 1000 + Math.random() * 2000;
+      
+      setTimeout(() => {
+        try {
+          const decision = decideCPUAction(
+            this.difficulty,
+            this.currentBet,
+            currentPlayer.bet,
+            currentPlayer.chips,
+            this.pot
+          );
+          
+          console.log(`CPU ${currentPlayer.username} のアクション: ${decision.action}`);
+          
+          // CPUのアクションを実行
+          switch (decision.action) {
+            case 'fold':
+              currentPlayer.folded = true;
+              currentPlayer.hasActed = true;
+              currentPlayer.lastAction = 'FOLD';
+              break;
+            case 'check':
+              currentPlayer.hasActed = true;
+              currentPlayer.lastAction = 'CHECK';
+              break;
+            case 'call':
+              const callAmount = Math.min(this.currentBet - currentPlayer.bet, currentPlayer.chips);
+              currentPlayer.chips -= callAmount;
+              currentPlayer.bet += callAmount;
+              currentPlayer.totalBet += callAmount;
+              this.pot += callAmount;
+              currentPlayer.hasActed = true;
+              currentPlayer.lastAction = `CALL`;
+              break;
+            case 'raise':
+              const raiseAmount = Math.min(decision.amount || this.currentBet * 2, currentPlayer.chips);
+              currentPlayer.chips -= raiseAmount;
+              currentPlayer.bet = raiseAmount;
+              currentPlayer.totalBet += raiseAmount;
+              this.pot += raiseAmount;
+              this.currentBet = Math.max(this.currentBet, raiseAmount);
+              currentPlayer.hasActed = true;
+              currentPlayer.lastAction = `RAISE`;
+              break;
+          }
+          
+          this.nextPlayer();
+          io.to(gameId).emit('game-state', this.getState());
+          
+          // 次のプレイヤーもCPUなら再帰的に実行
+          if (this.phase !== 'finished' && this.phase !== 'showdown') {
+            const nextPlayer = this.players[this.currentPlayerIndex];
+            if (nextPlayer && this.isCPUPlayer(nextPlayer)) {
+              this.executeCPUAction(io, gameId);
+            }
+          }
+        } catch (error) {
+          console.error('CPU action error:', error);
+        }
+      }, thinkingTime);
+    }
+
     getState() {
       return {
         id: this.id,
@@ -419,15 +545,15 @@ app.prepare().then(() => {
   io.on('connection', (socket) => {
     console.log('クライアント接続:', socket.id);
 
-    socket.on('join-game', ({ gameId, player, blinds }) => {
+    socket.on('join-game', ({ gameId, player, blinds, difficulty }) => {
       try {
-        console.log('join-game受信:', { gameId, player, blinds });
+        console.log('join-game受信:', { gameId, player, blinds, difficulty });
         let game = games.get(gameId);
         
         if (!game) {
           const gameBlinds = blinds || { small: 10, big: 20 };
           console.log('新規ゲーム作成:', { gameId, gameBlinds });
-          game = new PokerGame(gameId, 'cash', gameBlinds);
+          game = new PokerGame(gameId, 'cash', gameBlinds, difficulty || 'medium');
           console.log('作成されたゲームのブラインド:', game.blinds);
           games.set(gameId, game);
         }
@@ -445,6 +571,16 @@ app.prepare().then(() => {
         players.set(socket.id, { gameId, userId: player.userId });
 
         console.log(`プレイヤー ${player.username} がゲーム ${gameId} に参加しました`);
+        
+        // 練習モードで最初のプレイヤーの場合、CPUプレイヤーを追加
+        if (gameId === 'practice-game' && game.players.length === 1) {
+          for (let i = 0; i < 5; i++) {
+            const cpuPlayer = createCPUPlayer(i);
+            game.addPlayer(cpuPlayer);
+          }
+          console.log('練習モード: CPUプレイヤー5人を追加しました');
+        }
+        
         io.to(gameId).emit('game-state', game.getState());
 
         if (game.players.length >= game.minPlayers && game.phase === 'waiting') {
@@ -452,6 +588,11 @@ app.prepare().then(() => {
             game.startGame();
             console.log(`ゲーム ${gameId} を開始します`);
             io.to(gameId).emit('game-state', game.getState());
+            
+            // ゲーム開始後、最初のプレイヤーがCPUなら自動アクション
+            if (game.isCPUPlayer && game.isCPUPlayer(game.players[game.currentPlayerIndex])) {
+              game.executeCPUAction(io, gameId);
+            }
           }, 3000);
         }
       } catch (error) {
@@ -584,11 +725,20 @@ app.prepare().then(() => {
           io.to(playerInfo.gameId).emit('game-state', game.getState());
 
           setTimeout(async () => {
-            await saveGameToDatabase(game);
+            // 練習モードでない場合のみデータベースに保存
+            if (game.id !== 'practice-game') {
+              await saveGameToDatabase(game);
+            }
             
             const canContinue = game.startNextHand();
             if (canContinue) {
               io.to(playerInfo.gameId).emit('game-state', game.getState());
+              
+              // 次のハンドでCPUがスタートする場合
+              const firstPlayer = game.players[game.currentPlayerIndex];
+              if (firstPlayer && game.isCPUPlayer(firstPlayer)) {
+                game.executeCPUAction(io, playerInfo.gameId);
+              }
             } else {
               io.to(playerInfo.gameId).emit('game-ended', { message: 'ゲームが終了しました' });
               games.delete(game.id);
@@ -606,11 +756,20 @@ app.prepare().then(() => {
             io.to(playerInfo.gameId).emit('game-state', game.getState());
             
             setTimeout(async () => {
-              await saveGameToDatabase(game);
+              // 練習モードでない場合のみデータベースに保存
+              if (game.id !== 'practice-game') {
+                await saveGameToDatabase(game);
+              }
               
               const canContinue = game.startNextHand();
               if (canContinue) {
                 io.to(playerInfo.gameId).emit('game-state', game.getState());
+                
+                // 次のハンドでCPUがスタートする場合
+                const firstPlayer = game.players[game.currentPlayerIndex];
+                if (firstPlayer && game.isCPUPlayer(firstPlayer)) {
+                  game.executeCPUAction(io, playerInfo.gameId);
+                }
               } else {
                 io.to(playerInfo.gameId).emit('game-ended', { message: 'ゲームが終了しました' });
                 games.delete(game.id);
@@ -618,9 +777,23 @@ app.prepare().then(() => {
             }, 5000);
             return;
           }
+          
+          // フェーズ遷移後、次のプレイヤーがCPUなら自動アクション
+          io.to(playerInfo.gameId).emit('game-state', game.getState());
+          const nextPhasePlayer = game.players[game.currentPlayerIndex];
+          if (nextPhasePlayer && game.isCPUPlayer(nextPhasePlayer)) {
+            game.executeCPUAction(io, playerInfo.gameId);
+          }
+          return;
         }
 
         io.to(playerInfo.gameId).emit('game-state', game.getState());
+        
+        // 次のプレイヤーがCPUなら自動アクション
+        const currentPlayer = game.players[game.currentPlayerIndex];
+        if (currentPlayer && game.isCPUPlayer(currentPlayer) && game.phase !== 'finished' && game.phase !== 'showdown') {
+          game.executeCPUAction(io, playerInfo.gameId);
+        }
       } catch (error) {
         console.error('player-action error:', error);
         socket.emit('error', { message: error.message });

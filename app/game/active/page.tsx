@@ -15,6 +15,11 @@ export default function ActiveGamePage() {
 
   const pot = 15000;
 
+  const player1HandCards: CardType[] = [
+    { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-hand-1' },
+    { rank: 'K' as Rank, suit: 'diamonds' as Suit, id: 'p1-hand-2' },
+  ];
+
   const players = [
     { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, showCards: false, cards: [
       { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
@@ -121,7 +126,7 @@ export default function ActiveGamePage() {
         </div>
       </div>
 
-      {/* ポット - 少し上 */}
+      {/* ポット */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%]">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
           <p className="text-white text-xs font-bold text-center">POT</p>
@@ -132,6 +137,17 @@ export default function ActiveGamePage() {
       {/* プレイヤー1 - 中央下（少し左） */}
       <div className="absolute bottom-32 left-[45%] transform -translate-x-1/2">
         <PlayerComponent player={players[0]} />
+      </div>
+
+      {/* プレイヤー1のハンドカード - 右側に大きく表示 */}
+      <div className="absolute bottom-32 left-[45%] transform translate-x-[80px]">
+        <div className="flex gap-2">
+          {player1HandCards.map((card) => (
+            <div key={card.id} className="scale-110">
+              <Card card={card} faceUp={true} />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* プレイヤー2 - 左下 */}

@@ -33,10 +33,10 @@ export default function Card({ card, faceUp = false, className = '' }: CardProps
     return (
       <div className={`relative w-20 h-28 bg-white rounded-lg border-2 border-gray-300 shadow-lg ${className}`}>
         <Image
-          src="/cards/back.png"
+          src="/cards/card-back.png"
           alt="Card back"
           fill
-          className="object-contain"
+          className="object-cover rounded-lg"
         />
       </div>
     );

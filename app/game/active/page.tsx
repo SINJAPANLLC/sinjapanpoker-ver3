@@ -288,33 +288,6 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[0]} />
       </div>
 
-      {/* チャット入力UI - プレイヤー1の左側 */}
-      <div className="absolute bottom-32 left-4">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-1.5 rounded border border-white/30 shadow-lg w-36">
-          <div className="flex gap-1">
-            <input
-              type="text"
-              value={chatMessage}
-              onChange={(e) => setChatMessage(e.target.value)}
-              placeholder="メッセージ..."
-              className="flex-1 bg-white/20 text-white text-[8px] px-1.5 py-1 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30"
-              maxLength={50}
-            />
-            <button
-              onClick={() => {
-                if (chatMessage.trim()) {
-                  console.log('送信:', chatMessage);
-                  setChatMessage('');
-                }
-              }}
-              className="bg-white/20 hover:bg-white/30 px-2 py-1 rounded border border-white/40 transition-colors"
-            >
-              <p className="text-white text-[7px] font-bold">送信</p>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* プレイヤー1のハンドカード - 右側に大きく扇形で表示 */}
       <div className="absolute bottom-24 left-[45%] transform translate-x-[80px]">
         <div className="flex items-end">

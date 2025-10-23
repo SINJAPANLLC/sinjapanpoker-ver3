@@ -49,11 +49,11 @@ export default function ActiveGamePage() {
           </div>
           
           {/* ユーザー情報（アバターの下部に被せる） */}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-black/95 backdrop-blur-sm px-4 py-2 rounded-lg border-2 border-white/40 shadow-xl min-w-[120px] z-10">
-            <p className="text-white text-sm font-bold text-center whitespace-nowrap drop-shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border-2 border-white/30 shadow-lg min-w-[100px] z-10">
+            <p className="text-white text-xs font-bold text-center whitespace-nowrap">
               プレイヤー1
             </p>
-            <p className="text-yellow-300 text-sm font-semibold text-center whitespace-nowrap drop-shadow-lg">
+            <p className="text-yellow-400 text-xs font-semibold text-center whitespace-nowrap">
               5,000 チップ
             </p>
           </div>

@@ -107,6 +107,7 @@ export default function ActiveGamePage() {
     { id: 3, player: 'プレイヤー9', message: 'よし、勝負！', time: '12:34' },
   ]);
   const [playerBubbles, setPlayerBubbles] = useState<Record<string, { message: string; timestamp: number }>>({});
+  const [processedMessageCount, setProcessedMessageCount] = useState(0);
   
   const callAmount = 200;
   const minRaise = 200;
@@ -194,26 +195,32 @@ export default function ActiveGamePage() {
         time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
       })));
       
-      // 最新のメッセージをプレイヤーの吹き出しとして表示
-      const latestMsg = socketMessages[socketMessages.length - 1];
-      if (latestMsg) {
-        const username = latestMsg.username;
-        setPlayerBubbles(prev => ({
-          ...prev,
-          [username]: { message: latestMsg.message, timestamp: Date.now() }
-        }));
+      // 新しいメッセージだけを処理（重複防止）
+      if (socketMessages.length > processedMessageCount) {
+        const latestMsg = socketMessages[socketMessages.length - 1];
+        if (latestMsg) {
+          const username = latestMsg.username;
+          const bubbleId = `${username}-${latestMsg.timestamp}`;
+          
+          setPlayerBubbles(prev => ({
+            ...prev,
+            [username]: { message: latestMsg.message, timestamp: Date.now() }
+          }));
+          
+          // 3秒後に吹き出しを消す
+          setTimeout(() => {
+            setPlayerBubbles(prev => {
+              const newBubbles = { ...prev };
+              delete newBubbles[username];
+              return newBubbles;
+            });
+          }, 3000);
+        }
         
-        // 3秒後に吹き出しを消す
-        setTimeout(() => {
-          setPlayerBubbles(prev => {
-            const newBubbles = { ...prev };
-            delete newBubbles[username];
-            return newBubbles;
-          });
-        }, 3000);
+        setProcessedMessageCount(socketMessages.length);
       }
     }
-  }, [socketMessages]);
+  }, [socketMessages, processedMessageCount]);
 
   // アニメーションに応じたサウンド再生
   useEffect(() => {

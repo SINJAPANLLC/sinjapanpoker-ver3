@@ -163,8 +163,8 @@ export default function ActiveGamePage() {
 
         {/* ターンタイマー */}
         {isActive && (
-          <div className="absolute -top-2 -left-2 w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
-            <p className="text-black text-sm font-bold">{turnTimer}</p>
+          <div className="absolute -top-2 -left-2 w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+            <p className="text-white text-sm font-bold">{turnTimer}</p>
           </div>
         )}
 

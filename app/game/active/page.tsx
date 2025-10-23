@@ -241,7 +241,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* ゲームフェーズ */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[500%]">
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[700%]">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1 rounded-md border border-white/30 shadow-md">
           <p className="text-white text-xs font-bold text-center">{gamePhase}</p>
         </div>

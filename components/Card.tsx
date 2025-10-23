@@ -31,12 +31,13 @@ function getCardImagePath(card: CardType): string {
 export default function Card({ card, faceUp = false, className = '' }: CardProps) {
   if (!faceUp) {
     return (
-      <div className={`relative w-20 h-28 bg-white rounded-lg border-2 border-gray-300 shadow-lg ${className}`}>
+      <div className={`relative w-20 h-28 rounded-lg overflow-hidden shadow-lg ${className}`}>
         <Image
           src="/cards/card-back.png"
           alt="Card back"
           fill
-          className="object-cover rounded-lg"
+          className="object-contain"
+          style={{ padding: '2px' }}
         />
       </div>
     );

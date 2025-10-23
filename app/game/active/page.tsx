@@ -37,6 +37,8 @@ export default function ActiveGamePage() {
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('日本語');
   const [showShare, setShowShare] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [animationSpeed, setAnimationSpeed] = useState(1);
   const [dealingCards, setDealingCards] = useState(false);
   const [revealFlop, setRevealFlop] = useState(false);
   const [revealTurn, setRevealTurn] = useState(false);
@@ -537,23 +539,13 @@ export default function ActiveGamePage() {
               </button>
               
               <button 
-                onClick={() => setSoundEnabled(!soundEnabled)}
+                onClick={() => {
+                  setShowSettings(true);
+                  setShowMenu(false);
+                }}
                 className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
               >
-                <p className="text-white text-sm font-semibold flex items-center gap-2">
-                  {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                  サウンド {soundEnabled ? 'ON' : 'OFF'}
-                </p>
-              </button>
-              
-              <button 
-                onClick={() => setMusicEnabled(!musicEnabled)}
-                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
-              >
-                <p className="text-white text-sm font-semibold flex items-center gap-2">
-                  <Music className="w-4 h-4" />
-                  音楽 {musicEnabled ? 'ON' : 'OFF'}
-                </p>
+                <p className="text-white text-sm font-semibold">⚙️ 設定</p>
               </button>
               
               <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
@@ -2085,6 +2077,122 @@ export default function ActiveGamePage() {
                 className="w-full bg-green-500 hover:bg-green-600 py-3 px-4 rounded-lg transition-colors"
               >
                 <p className="text-white text-sm font-bold">購入する</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 設定モーダル */}
+      {showSettings && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60">
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-96">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">⚙️ 設定</h2>
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <p className="text-lg">✕</p>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* サウンド設定 */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🔊 オーディオ</p>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white text-xs">サウンドエフェクト</span>
+                    <button
+                      onClick={() => setSoundEnabled(!soundEnabled)}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        soundEnabled ? 'bg-green-500' : 'bg-white/30'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                        soundEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-white text-xs">BGM</span>
+                    <button
+                      onClick={() => setMusicEnabled(!musicEnabled)}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        musicEnabled ? 'bg-green-500' : 'bg-white/30'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                        musicEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* アニメーション設定 */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">⚡ アニメーション速度</p>
+                <div className="space-y-1">
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2"
+                    step="0.5"
+                    value={animationSpeed}
+                    onChange={(e) => setAnimationSpeed(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-white text-xs">
+                    <span>遅い</span>
+                    <span className="font-bold">{animationSpeed}x</span>
+                    <span>速い</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* オートアクション */}
+              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
+                <p className="text-white text-sm font-bold mb-2">🤖 オートアクション</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white text-xs">オートチェック</span>
+                    <button
+                      onClick={() => setAutoCheck(!autoCheck)}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        autoCheck ? 'bg-green-500' : 'bg-white/30'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                        autoCheck ? 'translate-x-6' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-white text-xs">オートチェック/フォールド</span>
+                    <button
+                      onClick={() => setAutoCheckFold(!autoCheckFold)}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        autoCheckFold ? 'bg-green-500' : 'bg-white/30'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                        autoCheckFold ? 'translate-x-6' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="w-full bg-green-500 hover:bg-green-600 py-2.5 px-4 rounded-lg transition-colors"
+              >
+                <p className="text-white text-sm font-bold">閉じる</p>
               </button>
             </div>
           </div>

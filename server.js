@@ -385,12 +385,13 @@ app.prepare().then(() => {
   io.on('connection', (socket) => {
     console.log('クライアント接続:', socket.id);
 
-    socket.on('join-game', ({ gameId, player }) => {
+    socket.on('join-game', ({ gameId, player, blinds }) => {
       try {
         let game = games.get(gameId);
         
         if (!game) {
-          game = new PokerGame(gameId, 'cash', { small: 10, big: 20 });
+          const gameBlinds = blinds || { small: 10, big: 20 };
+          game = new PokerGame(gameId, 'cash', gameBlinds);
           games.set(gameId, game);
         }
 

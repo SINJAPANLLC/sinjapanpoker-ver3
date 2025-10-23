@@ -141,10 +141,14 @@ export default function ActiveGamePage() {
     setSoundManagerEnabled(soundEnabled);
   }, [soundEnabled, setSoundManagerEnabled]);
 
-  // ゲームに参加
+  // ゲームに参加（ブラインド設定を含む）
   useEffect(() => {
     if (connected && user && !gameState) {
-      joinGame(user.chips || 1000);
+      // tableInfoが読み込まれるのを少し待つ
+      setTimeout(() => {
+        const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
+        joinGame(user.chips || 1000, blinds);
+      }, 100);
     }
   }, [connected, user, gameState, joinGame]);
 

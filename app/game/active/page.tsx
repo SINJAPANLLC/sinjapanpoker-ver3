@@ -29,6 +29,10 @@ export default function ActiveGamePage() {
   const [winnerPlayerId, setWinnerPlayerId] = useState<number | null>(null);
   const [showWinnerAnimation, setShowWinnerAnimation] = useState(false);
   const [chipAnimations, setChipAnimations] = useState<Array<{ id: number; playerId: number }>>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showLanguageSettings, setShowLanguageSettings] = useState(false);
+  const [showAccountSettings, setShowAccountSettings] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('日本語');
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -387,6 +391,36 @@ export default function ActiveGamePage() {
               
               <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
                 <p className="text-white text-sm font-semibold">📖 ルール</p>
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setShowFeedback(true);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold">💬 フィードバック</p>
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setShowLanguageSettings(true);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold">🌐 言語設定</p>
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setShowAccountSettings(true);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold">👤 アカウント設定</p>
               </button>
               
               <div className="border-t border-white/30 my-2"></div>
@@ -1140,6 +1174,145 @@ export default function ActiveGamePage() {
             <p className="text-white text-[8px]">プレイヤー9: コール 200</p>
             <p className="text-white text-[8px]">プレイヤー5: フォールド</p>
             <p className="text-white text-[8px]">プレイヤー7: フォールド</p>
+          </div>
+        </div>
+      )}
+
+      {/* フィードバックモーダル */}
+      {showFeedback && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-white text-lg font-bold">💬 フィードバック</p>
+              <button 
+                onClick={() => setShowFeedback(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-sm">✕</p>
+              </button>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-3 mb-4">
+              <p className="text-white text-xs mb-2">ご意見・ご要望をお聞かせください</p>
+              <textarea
+                placeholder="フィードバックを入力..."
+                className="w-full bg-white/20 text-white text-xs px-3 py-2 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30 h-32 resize-none"
+                maxLength={500}
+              />
+              <p className="text-white/70 text-[9px] mt-1">最大500文字</p>
+            </div>
+            
+            <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors">
+              <p className="text-white text-sm font-bold">送信する</p>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 言語設定モーダル */}
+      {showLanguageSettings && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-white text-lg font-bold">🌐 言語設定</p>
+              <button 
+                onClick={() => setShowLanguageSettings(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-sm">✕</p>
+              </button>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-3 mb-4 space-y-2">
+              <button
+                onClick={() => setSelectedLanguage('日本語')}
+                className={`w-full py-2.5 px-3 rounded-lg border transition-colors text-left ${
+                  selectedLanguage === '日本語' 
+                    ? 'bg-white/30 border-white' 
+                    : 'bg-white/10 border-white/40 hover:bg-white/20'
+                }`}
+              >
+                <p className="text-white text-sm font-semibold">🇯🇵 日本語</p>
+              </button>
+              <button
+                onClick={() => setSelectedLanguage('English')}
+                className={`w-full py-2.5 px-3 rounded-lg border transition-colors text-left ${
+                  selectedLanguage === 'English' 
+                    ? 'bg-white/30 border-white' 
+                    : 'bg-white/10 border-white/40 hover:bg-white/20'
+                }`}
+              >
+                <p className="text-white text-sm font-semibold">🇺🇸 English</p>
+              </button>
+              <button
+                onClick={() => setSelectedLanguage('中文')}
+                className={`w-full py-2.5 px-3 rounded-lg border transition-colors text-left ${
+                  selectedLanguage === '中文' 
+                    ? 'bg-white/30 border-white' 
+                    : 'bg-white/10 border-white/40 hover:bg-white/20'
+                }`}
+              >
+                <p className="text-white text-sm font-semibold">🇨🇳 中文</p>
+              </button>
+            </div>
+            
+            <button 
+              onClick={() => setShowLanguageSettings(false)}
+              className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors"
+            >
+              <p className="text-white text-sm font-bold">保存</p>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* アカウント設定モーダル */}
+      {showAccountSettings && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-white text-lg font-bold">👤 アカウント設定</p>
+              <button 
+                onClick={() => setShowAccountSettings(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-sm">✕</p>
+              </button>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-3 mb-4 space-y-3">
+              <div>
+                <p className="text-white text-xs mb-1">ユーザー名</p>
+                <input
+                  type="text"
+                  defaultValue="プレイヤー1"
+                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded border border-white/40 focus:outline-none focus:bg-white/30"
+                />
+              </div>
+              <div>
+                <p className="text-white text-xs mb-1">メールアドレス</p>
+                <input
+                  type="email"
+                  defaultValue="player1@example.com"
+                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded border border-white/40 focus:outline-none focus:bg-white/30"
+                />
+              </div>
+              <div>
+                <p className="text-white text-xs mb-1">パスワード変更</p>
+                <input
+                  type="password"
+                  placeholder="新しいパスワード"
+                  className="w-full bg-white/20 text-white text-sm px-3 py-2 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30"
+                />
+              </div>
+            </div>
+            
+            <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors mb-2">
+              <p className="text-white text-sm font-bold">保存</p>
+            </button>
+            <button className="w-full bg-red-500/80 hover:bg-red-500 py-2 rounded-lg border-2 border-white/30 transition-colors">
+              <p className="text-white text-xs font-bold">アカウント削除</p>
+            </button>
           </div>
         </div>
       )}

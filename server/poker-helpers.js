@@ -105,6 +105,17 @@ function evaluateFiveCards(hand, rankValues) {
   }
   const counts = Object.values(rankCounts).sort((a, b) => b - a);
   
+  // ランクを頻度でソート（同じ頻度の場合は値でソート）
+  const ranksByFrequency = Object.entries(rankCounts)
+    .sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return rankValues[b[0]] - rankValues[a[0]];
+    })
+    .map(([rank]) => rankValues[rank]);
+  
+  // スコア計算用のキッカー
+  const kickerValue = ranksByFrequency.reduce((acc, val, idx) => acc + val * Math.pow(100, 4 - idx), 0);
+  
   // ロイヤルフラッシュ
   if (isFlush && isStraight && sortedCards[0].rank === 'A') {
     return { value: 10000000, description: 'ロイヤルフラッシュ' };
@@ -112,46 +123,48 @@ function evaluateFiveCards(hand, rankValues) {
   
   // ストレートフラッシュ
   if (isFlush && isStraight) {
-    return { value: 9000000 + rankValues[sortedCards[0].rank], description: 'ストレートフラッシュ' };
+    const highCard = isWheel ? 5 : rankValues[sortedCards[0].rank];
+    return { value: 9000000 + highCard, description: 'ストレートフラッシュ' };
   }
   
   // フォーカード
   if (counts[0] === 4) {
-    return { value: 8000000 + rankValues[sortedCards[0].rank] * 100, description: 'フォーカード' };
+    return { value: 8000000 + kickerValue, description: 'フォーカード' };
   }
   
   // フルハウス
   if (counts[0] === 3 && counts[1] === 2) {
-    return { value: 7000000 + rankValues[sortedCards[0].rank] * 100, description: 'フルハウス' };
+    return { value: 7000000 + kickerValue, description: 'フルハウス' };
   }
   
   // フラッシュ
   if (isFlush) {
-    return { value: 6000000 + rankValues[sortedCards[0].rank], description: 'フラッシュ' };
+    return { value: 6000000 + kickerValue, description: 'フラッシュ' };
   }
   
   // ストレート
   if (isStraight) {
-    return { value: 5000000 + rankValues[sortedCards[0].rank], description: 'ストレート' };
+    const highCard = isWheel ? 5 : rankValues[sortedCards[0].rank];
+    return { value: 5000000 + highCard, description: 'ストレート' };
   }
   
   // スリーカード
   if (counts[0] === 3) {
-    return { value: 4000000 + rankValues[sortedCards[0].rank] * 100, description: 'スリーカード' };
+    return { value: 4000000 + kickerValue, description: 'スリーカード' };
   }
   
   // ツーペア
   if (counts[0] === 2 && counts[1] === 2) {
-    return { value: 3000000 + rankValues[sortedCards[0].rank] * 100, description: 'ツーペア' };
+    return { value: 3000000 + kickerValue, description: 'ツーペア' };
   }
   
   // ワンペア
   if (counts[0] === 2) {
-    return { value: 2000000 + rankValues[sortedCards[0].rank] * 100, description: 'ワンペア' };
+    return { value: 2000000 + kickerValue, description: 'ワンペア' };
   }
   
   // ハイカード
-  return { value: 1000000 + rankValues[sortedCards[0].rank], description: `ハイカード (${sortedCards[0].rank})` };
+  return { value: 1000000 + kickerValue, description: `ハイカード (${sortedCards[0].rank})` };
 }
 
 // 勝者を決定

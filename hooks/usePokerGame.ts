@@ -22,6 +22,17 @@ interface Player {
   hasActed: boolean;
 }
 
+interface Winner {
+  username: string;
+  amount: number;
+  handDescription: string;
+}
+
+interface SidePot {
+  amount: number;
+  eligiblePlayers: string[];
+}
+
 interface GameState {
   id: string;
   type: string;
@@ -29,10 +40,17 @@ interface GameState {
   players: Player[];
   communityCards: Card[];
   pot: number;
+  sidePots: SidePot[];
   currentBet: number;
   currentPlayerIndex: number;
+  dealerIndex: number;
   winner?: string;
   winningHand?: string;
+  winners?: Winner[];
+  blinds: {
+    small: number;
+    big: number;
+  };
 }
 
 export function usePokerGame(gameId: string | null) {
@@ -43,7 +61,6 @@ export function usePokerGame(gameId: string | null) {
   const [error, setError] = useState<string | null>(null);
   const user = useAuthStore((state) => state.user);
 
-  // Socket.io接続
   useEffect(() => {
     if (!gameId || !user) return;
 
@@ -82,10 +99,19 @@ export function usePokerGame(gameId: string | null) {
     });
 
     newSocket.on('error', (data: { message: string }) => {
+      console.error('Error:', data.message);
       setError(data.message);
+      setTimeout(() => setError(null), 3000);
     });
 
     newSocket.on('action-error', (data: { message: string }) => {
+      console.error('Action error:', data.message);
+      setError(data.message);
+      setTimeout(() => setError(null), 3000);
+    });
+
+    newSocket.on('game-ended', (data: { message: string }) => {
+      console.log('Game ended:', data.message);
       setError(data.message);
     });
 
@@ -96,10 +122,10 @@ export function usePokerGame(gameId: string | null) {
     };
   }, [gameId, user]);
 
-  // ゲームに参加
   const joinGame = useCallback((chips: number = 1000) => {
     if (!socket || !user || !gameId) return;
 
+    console.log('Joining game:', { gameId, userId: user.id, username: user.username, chips });
     socket.emit('join-game', {
       gameId,
       player: {
@@ -110,38 +136,63 @@ export function usePokerGame(gameId: string | null) {
     });
   }, [socket, user, gameId]);
 
-  // プレイヤーアクション
   const performAction = useCallback((action: 'fold' | 'check' | 'call' | 'raise' | 'all-in', amount?: number) => {
-    if (!socket) return;
+    if (!socket) {
+      console.error('Socket not connected');
+      return;
+    }
 
+    console.log('Performing action:', { action, amount });
     socket.emit('player-action', {
       action,
       amount,
     });
   }, [socket]);
 
-  // チャット送信
   const sendMessage = useCallback((message: string) => {
     if (!socket || !user) return;
 
     socket.emit('chat-message', {
-      username: user.username,
       message,
     });
   }, [socket, user]);
 
-  // 現在のプレイヤーを取得
   const getCurrentPlayer = useCallback(() => {
-    if (!gameState || !socket) return null;
-    return gameState.players.find(p => p.id === socket.id) || null;
-  }, [gameState, socket]);
+    if (!gameState || !user) return null;
+    return gameState.players.find(p => p.userId === user.id) || null;
+  }, [gameState, user]);
 
-  // ターン判定
   const isMyTurn = useCallback(() => {
-    if (!gameState || !socket) return false;
+    if (!gameState || !user) return false;
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-    return currentPlayer?.id === socket.id;
-  }, [gameState, socket]);
+    return currentPlayer?.userId === user.id;
+  }, [gameState, user]);
+
+  const canCheck = useCallback(() => {
+    if (!gameState || !user) return false;
+    const currentPlayer = getCurrentPlayer();
+    if (!currentPlayer) return false;
+    return currentPlayer.bet === gameState.currentBet;
+  }, [gameState, user, getCurrentPlayer]);
+
+  const canCall = useCallback(() => {
+    if (!gameState || !user) return false;
+    const currentPlayer = getCurrentPlayer();
+    if (!currentPlayer) return false;
+    return currentPlayer.bet < gameState.currentBet && currentPlayer.chips > 0;
+  }, [gameState, user, getCurrentPlayer]);
+
+  const getCallAmount = useCallback(() => {
+    if (!gameState) return 0;
+    const currentPlayer = getCurrentPlayer();
+    if (!currentPlayer) return 0;
+    return Math.min(gameState.currentBet - currentPlayer.bet, currentPlayer.chips);
+  }, [gameState, getCurrentPlayer]);
+
+  const getMinRaise = useCallback(() => {
+    if (!gameState) return 0;
+    return gameState.currentBet + gameState.blinds.big;
+  }, [gameState]);
 
   return {
     socket,
@@ -154,5 +205,9 @@ export function usePokerGame(gameId: string | null) {
     sendMessage,
     getCurrentPlayer,
     isMyTurn,
+    canCheck,
+    canCall,
+    getCallAmount,
+    getMinRaise,
   };
 }

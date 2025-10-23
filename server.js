@@ -7,6 +7,7 @@ const {
   determineWinners,
   distributePots,
   validateBet,
+  evaluateHand,
 } = require('./server/poker-helpers');
 const { saveGameToDatabase } = require('./server/game-db');
 
@@ -48,12 +49,15 @@ app.prepare().then(() => {
       this.communityCards = [];
       this.deck = [];
       this.pot = 0;
+      this.sidePots = [];
       this.currentBet = 0;
       this.currentPlayerIndex = 0;
       this.dealerIndex = 0;
       this.blinds = blinds || { small: 10, big: 20 };
       this.minPlayers = 2;
       this.maxPlayers = 9;
+      this.lastRaiserIndex = -1;
+      this.bettingRound = 0;
     }
 
     addPlayer(player) {
@@ -67,6 +71,7 @@ app.prepare().then(() => {
         username: player.username,
         chips: player.chips || 1000,
         bet: 0,
+        totalBet: 0,
         cards: [],
         folded: false,
         isAllIn: false,
@@ -80,7 +85,16 @@ app.prepare().then(() => {
     }
 
     removePlayer(userId) {
-      this.players = this.players.filter((p) => p.userId !== userId);
+      const index = this.players.findIndex(p => p.userId === userId);
+      if (index !== -1) {
+        if (this.currentPlayerIndex >= index && this.currentPlayerIndex > 0) {
+          this.currentPlayerIndex--;
+        }
+        if (this.dealerIndex >= index && this.dealerIndex > 0) {
+          this.dealerIndex--;
+        }
+        this.players.splice(index, 1);
+      }
     }
 
     createDeck() {
@@ -133,28 +147,96 @@ app.prepare().then(() => {
         throw new Error('プレイヤーが不足しています');
       }
 
+      this.resetGameState();
       this.phase = 'preflop';
       this.dealCards();
       this.postBlinds();
     }
 
+    resetGameState() {
+      this.communityCards = [];
+      this.pot = 0;
+      this.sidePots = [];
+      this.currentBet = 0;
+      this.lastRaiserIndex = -1;
+      this.bettingRound = 0;
+      
+      for (const player of this.players) {
+        player.bet = 0;
+        player.totalBet = 0;
+        player.cards = [];
+        player.folded = false;
+        player.isAllIn = false;
+        player.hasActed = false;
+        player.isDealer = false;
+      }
+
+      if (this.players[this.dealerIndex]) {
+        this.players[this.dealerIndex].isDealer = true;
+      }
+    }
+
     postBlinds() {
+      const activePlayers = this.players.filter(p => p.chips > 0);
+      if (activePlayers.length < 2) return;
+
       const smallBlindIndex = (this.dealerIndex + 1) % this.players.length;
       const bigBlindIndex = (this.dealerIndex + 2) % this.players.length;
 
-      this.players[smallBlindIndex].bet = this.blinds.small;
-      this.players[smallBlindIndex].chips -= this.blinds.small;
-      this.pot += this.blinds.small;
+      const sbPlayer = this.players[smallBlindIndex];
+      const bbPlayer = this.players[bigBlindIndex];
 
-      this.players[bigBlindIndex].bet = this.blinds.big;
-      this.players[bigBlindIndex].chips -= this.blinds.big;
-      this.pot += this.blinds.big;
+      const sbAmount = Math.min(sbPlayer.chips, this.blinds.small);
+      sbPlayer.bet = sbAmount;
+      sbPlayer.totalBet = sbAmount;
+      sbPlayer.chips -= sbAmount;
+      this.pot += sbAmount;
+      if (sbPlayer.chips === 0) sbPlayer.isAllIn = true;
+
+      const bbAmount = Math.min(bbPlayer.chips, this.blinds.big);
+      bbPlayer.bet = bbAmount;
+      bbPlayer.totalBet = bbAmount;
+      bbPlayer.chips -= bbAmount;
+      this.pot += bbAmount;
+      if (bbPlayer.chips === 0) bbPlayer.isAllIn = true;
 
       this.currentBet = this.blinds.big;
-      this.currentPlayerIndex = (bigBlindIndex + 1) % this.players.length;
+      this.lastRaiserIndex = bigBlindIndex;
+      this.currentPlayerIndex = this.getNextActivePlayer((bigBlindIndex + 1) % this.players.length);
+    }
+
+    getNextActivePlayer(startIndex) {
+      let index = startIndex;
+      let iterations = 0;
+      
+      while (iterations < this.players.length) {
+        const player = this.players[index];
+        if (player && !player.folded && !player.isAllIn) {
+          return index;
+        }
+        index = (index + 1) % this.players.length;
+        iterations++;
+      }
+      
+      return -1;
+    }
+
+    isBettingRoundComplete() {
+      const activePlayers = this.players.filter(p => !p.folded && !p.isAllIn);
+      
+      if (activePlayers.length === 0) return true;
+      
+      for (const player of activePlayers) {
+        if (!player.hasActed) return false;
+        if (player.bet < this.currentBet) return false;
+      }
+      
+      return true;
     }
 
     nextPhase() {
+      this.bettingRound++;
+      
       if (this.phase === 'preflop') {
         this.phase = 'flop';
         this.dealFlop();
@@ -167,39 +249,107 @@ app.prepare().then(() => {
       } else if (this.phase === 'river') {
         this.phase = 'showdown';
         this.showdown();
+        return;
       }
 
       this.currentBet = 0;
-      this.players.forEach((p) => {
-        p.bet = 0;
-        p.hasActed = false;
-      });
-      this.currentPlayerIndex = (this.dealerIndex + 1) % this.players.length;
+      this.lastRaiserIndex = -1;
+      
+      for (const player of this.players) {
+        player.bet = 0;
+        player.hasActed = false;
+      }
+      
+      this.currentPlayerIndex = this.getNextActivePlayer((this.dealerIndex + 1) % this.players.length);
     }
 
     showdown() {
-      const activePlayers = this.players.filter((p) => !p.folded);
+      const activePlayers = this.players.filter(p => !p.folded);
+      
       if (activePlayers.length === 1) {
-        this.winner = activePlayers[0].username;
         activePlayers[0].chips += this.pot;
+        this.winner = activePlayers[0].username;
+        this.winningHand = 'フォールド勝ち';
+        this.winners = [{
+          username: activePlayers[0].username,
+          amount: this.pot,
+          handDescription: 'フォールド勝ち',
+        }];
         this.phase = 'finished';
         return;
       }
 
-      const winners = determineWinners(activePlayers, this.communityCards);
-      if (winners && winners.length > 0) {
-        const shareAmount = Math.floor(this.pot / winners.length);
-        winners.forEach((winner) => {
-          const player = this.players.find((p) => p.userId === winner.playerId);
-          if (player) {
-            player.chips += shareAmount;
-          }
-        });
-        this.winner = winners.map((w) => w.username).join(', ');
-        this.winningHand = winners[0]?.handRank || '';
+      const playerBets = this.players.map(p => ({
+        playerId: p.userId,
+        bet: p.totalBet,
+        folded: p.folded,
+      }));
+
+      this.sidePots = calculateSidePots(playerBets);
+
+      const handsWithInfo = activePlayers.map(player => {
+        const allCards = [...player.cards, ...this.communityCards];
+        const handResult = evaluateHand(allCards);
+        return {
+          playerId: player.userId,
+          username: player.username,
+          handValue: handResult.value,
+          handDescription: handResult.description,
+          cards: player.cards,
+        };
+      });
+
+      const winningsMap = new Map();
+
+      for (const pot of this.sidePots) {
+        const eligibleHands = handsWithInfo.filter(h => 
+          pot.eligiblePlayers.includes(h.playerId)
+        );
+
+        if (eligibleHands.length === 0) continue;
+
+        const maxHandValue = Math.max(...eligibleHands.map(h => h.handValue));
+        const potWinners = eligibleHands.filter(h => h.handValue === maxHandValue);
+
+        const amountPerWinner = Math.floor(pot.amount / potWinners.length);
+        
+        for (const winner of potWinners) {
+          const currentWinnings = winningsMap.get(winner.playerId) || 0;
+          winningsMap.set(winner.playerId, currentWinnings + amountPerWinner);
+        }
       }
 
+      const winners = [];
+      for (const [playerId, amount] of winningsMap.entries()) {
+        const player = this.players.find(p => p.userId === playerId);
+        const handInfo = handsWithInfo.find(h => h.playerId === playerId);
+        if (player && amount > 0) {
+          player.chips += amount;
+          winners.push({
+            username: player.username,
+            amount,
+            handDescription: handInfo?.handDescription || '',
+          });
+        }
+      }
+
+      this.winner = winners.map(w => w.username).join(', ');
+      this.winningHand = winners[0]?.handDescription || '';
+      this.winners = winners;
       this.phase = 'finished';
+    }
+
+    startNextHand() {
+      this.dealerIndex = (this.dealerIndex + 1) % this.players.length;
+      
+      const activePlayers = this.players.filter(p => p.chips > 0);
+      if (activePlayers.length < this.minPlayers) {
+        this.phase = 'waiting';
+        return false;
+      }
+
+      this.startGame();
+      return true;
     }
 
     getState() {
@@ -213,10 +363,14 @@ app.prepare().then(() => {
         })),
         communityCards: this.communityCards,
         pot: this.pot,
+        sidePots: this.sidePots,
         currentBet: this.currentBet,
         currentPlayerIndex: this.currentPlayerIndex,
+        dealerIndex: this.dealerIndex,
         winner: this.winner,
         winningHand: this.winningHand,
+        winners: this.winners,
+        blinds: this.blinds,
       };
     }
   }
@@ -233,19 +387,30 @@ app.prepare().then(() => {
           games.set(gameId, game);
         }
 
+        const existingPlayer = game.players.find(p => p.userId === player.userId);
+        if (existingPlayer) {
+          socket.join(gameId);
+          players.set(socket.id, { gameId, userId: player.userId });
+          io.to(gameId).emit('game-state', game.getState());
+          return;
+        }
+
         const addedPlayer = game.addPlayer(player);
         socket.join(gameId);
         players.set(socket.id, { gameId, userId: player.userId });
 
+        console.log(`プレイヤー ${player.username} がゲーム ${gameId} に参加しました`);
         io.to(gameId).emit('game-state', game.getState());
 
         if (game.players.length >= game.minPlayers && game.phase === 'waiting') {
           setTimeout(() => {
             game.startGame();
+            console.log(`ゲーム ${gameId} を開始します`);
             io.to(gameId).emit('game-state', game.getState());
-          }, 2000);
+          }, 3000);
         }
       } catch (error) {
+        console.error('join-game error:', error);
         socket.emit('error', { message: error.message });
       }
     });
@@ -253,10 +418,21 @@ app.prepare().then(() => {
     socket.on('player-action', ({ action, amount }) => {
       try {
         const playerInfo = players.get(socket.id);
-        if (!playerInfo) return;
+        if (!playerInfo) {
+          console.log('プレイヤー情報が見つかりません');
+          return;
+        }
 
         const game = games.get(playerInfo.gameId);
-        if (!game) return;
+        if (!game) {
+          console.log('ゲームが見つかりません');
+          return;
+        }
+
+        if (game.phase === 'waiting' || game.phase === 'finished') {
+          socket.emit('action-error', { message: 'ゲームが進行中ではありません' });
+          return;
+        }
 
         const player = game.players[game.currentPlayerIndex];
         if (!player || player.userId !== playerInfo.userId) {
@@ -264,66 +440,135 @@ app.prepare().then(() => {
           return;
         }
 
+        console.log(`プレイヤー ${player.username} のアクション: ${action}${amount ? ` (${amount})` : ''}`);
+
         switch (action) {
           case 'fold':
             player.folded = true;
+            player.hasActed = true;
             break;
+
           case 'check':
             if (game.currentBet > player.bet) {
               socket.emit('action-error', { message: 'チェックできません' });
               return;
             }
+            player.hasActed = true;
             break;
+
           case 'call':
-            const callAmount = game.currentBet - player.bet;
+            const callAmount = Math.min(game.currentBet - player.bet, player.chips);
             player.chips -= callAmount;
-            player.bet = game.currentBet;
+            player.bet += callAmount;
+            player.totalBet += callAmount;
             game.pot += callAmount;
+            player.hasActed = true;
+            if (player.chips === 0) {
+              player.isAllIn = true;
+            }
             break;
+
           case 'raise':
-            if (!amount || amount < game.currentBet * 2) {
-              socket.emit('action-error', { message: '無効なレイズ額です' });
+            if (!amount || amount < game.currentBet + game.blinds.big) {
+              socket.emit('action-error', { message: `最小レイズ額は ${game.currentBet + game.blinds.big} です` });
               return;
             }
             const raiseAmount = amount - player.bet;
+            if (raiseAmount > player.chips) {
+              socket.emit('action-error', { message: 'チップが不足しています' });
+              return;
+            }
             player.chips -= raiseAmount;
             player.bet = amount;
+            player.totalBet += raiseAmount;
             game.pot += raiseAmount;
             game.currentBet = amount;
+            game.lastRaiserIndex = game.currentPlayerIndex;
+            player.hasActed = true;
+            
+            for (const p of game.players) {
+              if (p.userId !== player.userId && !p.folded && !p.isAllIn) {
+                p.hasActed = false;
+              }
+            }
+            
+            if (player.chips === 0) {
+              player.isAllIn = true;
+            }
             break;
+
           case 'all-in':
             const allInAmount = player.chips;
             player.bet += allInAmount;
+            player.totalBet += allInAmount;
             game.pot += allInAmount;
             player.chips = 0;
             player.isAllIn = true;
+            player.hasActed = true;
+            
             if (player.bet > game.currentBet) {
               game.currentBet = player.bet;
+              game.lastRaiserIndex = game.currentPlayerIndex;
+              
+              for (const p of game.players) {
+                if (p.userId !== player.userId && !p.folded && !p.isAllIn) {
+                  p.hasActed = false;
+                }
+              }
             }
             break;
+
+          default:
+            socket.emit('action-error', { message: '無効なアクションです' });
+            return;
         }
 
-        player.hasActed = true;
-
-        game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
-
-        const activePlayers = game.players.filter((p) => !p.folded);
+        const activePlayers = game.players.filter(p => !p.folded);
         if (activePlayers.length === 1) {
           game.phase = 'showdown';
           game.showdown();
-        } else if (game.players.every((p) => p.folded || p.hasActed)) {
+          io.to(playerInfo.gameId).emit('game-state', game.getState());
+
+          setTimeout(async () => {
+            await saveGameToDatabase(game);
+            
+            const canContinue = game.startNextHand();
+            if (canContinue) {
+              io.to(playerInfo.gameId).emit('game-state', game.getState());
+            } else {
+              io.to(playerInfo.gameId).emit('game-ended', { message: 'ゲームが終了しました' });
+              games.delete(game.id);
+            }
+          }, 5000);
+          return;
+        }
+
+        game.currentPlayerIndex = game.getNextActivePlayer((game.currentPlayerIndex + 1) % game.players.length);
+
+        if (game.isBettingRoundComplete()) {
           game.nextPhase();
+          
+          if (game.phase === 'finished') {
+            io.to(playerInfo.gameId).emit('game-state', game.getState());
+            
+            setTimeout(async () => {
+              await saveGameToDatabase(game);
+              
+              const canContinue = game.startNextHand();
+              if (canContinue) {
+                io.to(playerInfo.gameId).emit('game-state', game.getState());
+              } else {
+                io.to(playerInfo.gameId).emit('game-ended', { message: 'ゲームが終了しました' });
+                games.delete(game.id);
+              }
+            }, 5000);
+            return;
+          }
         }
 
         io.to(playerInfo.gameId).emit('game-state', game.getState());
-
-        if (game.phase === 'finished') {
-          setTimeout(async () => {
-            await saveGameToDatabase(game);
-            games.delete(game.id);
-          }, 5000);
-        }
       } catch (error) {
+        console.error('player-action error:', error);
         socket.emit('error', { message: error.message });
       }
     });
@@ -351,11 +596,19 @@ app.prepare().then(() => {
       if (playerInfo) {
         const game = games.get(playerInfo.gameId);
         if (game) {
-          game.removePlayer(playerInfo.userId);
-          io.to(playerInfo.gameId).emit('game-state', game.getState());
+          const player = game.players.find(p => p.userId === playerInfo.userId);
+          if (player) {
+            console.log(`プレイヤー ${player.username} が切断しました`);
+          }
           
-          if (game.players.length === 0) {
-            games.delete(playerInfo.gameId);
+          if (game.phase === 'waiting') {
+            game.removePlayer(playerInfo.userId);
+            io.to(playerInfo.gameId).emit('game-state', game.getState());
+            
+            if (game.players.length === 0) {
+              games.delete(playerInfo.gameId);
+              console.log(`ゲーム ${playerInfo.gameId} を削除しました`);
+            }
           }
         }
         players.delete(socket.id);

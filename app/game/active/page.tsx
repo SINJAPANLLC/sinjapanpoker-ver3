@@ -270,6 +270,11 @@ export default function ActiveGamePage() {
   const communityCards: CardType[] = gameState?.communityCards.map(convertSocketCard) || [];
   const pot = gameState?.pot || 0;
   const potAmount = gameState?.currentBet || 0;
+  
+  // サイドポットの合計を計算
+  const sidePotTotal = gameState?.sidePots?.reduce((sum, sp) => sum + sp.amount, 0) || 0;
+  const hasSidePots = sidePotTotal > 0;
+  
   const tableName = "SIN JAPAN TABLE #1";
   const handNumber = 42;
   const smallBlind = gameState?.blinds.small || 50;
@@ -1128,13 +1133,15 @@ export default function ActiveGamePage() {
       {/* ポットとサイドポット */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%] flex gap-3 items-center">
         {/* サイドポット（複数オールインがある場合） */}
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
-          <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
-          <div className="flex items-center justify-center gap-0.5">
-            <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
-            <p className="text-white text-[10px] font-semibold">3,200</p>
+        {hasSidePots && (
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
+            <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
+            <div className="flex items-center justify-center gap-0.5">
+              <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+              <p className="text-white text-[10px] font-semibold">{sidePotTotal.toLocaleString()}</p>
+            </div>
           </div>
-        </div>
+        )}
         
         {/* メインポット */}
         <div className="relative">

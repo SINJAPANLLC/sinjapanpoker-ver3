@@ -217,11 +217,11 @@ export default function ActiveGamePage() {
 
       {/* テーブル情報ヘッダー */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-1.5 py-0.5 rounded-sm border border-white/30 shadow-sm">
-          <div className="flex items-center justify-center gap-1.5">
-            <p className="text-white text-[7px]">Hand #{handNumber}</p>
-            <p className="text-white text-[7px]">•</p>
-            <p className="text-white text-[7px]">SB/BB: {smallBlind}/{bigBlind}</p>
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded border border-white/30 shadow-sm">
+          <div className="flex items-center justify-center gap-2">
+            <p className="text-white text-[8px]">Hand #{handNumber}</p>
+            <p className="text-white text-[8px]">•</p>
+            <p className="text-white text-[8px]">SB/BB: {smallBlind}/{bigBlind}</p>
           </div>
         </div>
       </div>

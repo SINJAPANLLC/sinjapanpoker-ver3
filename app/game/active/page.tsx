@@ -382,7 +382,9 @@ export default function ActiveGamePage() {
     else if (p.hasActed && p.bet > 0) lastAction = 'RAISE';
     else if (p.hasActed) lastAction = 'CHECK';
     
-    const isWinner = gameState?.winners?.some(w => w.username === p.username) || false;
+    // 勝利ハイライトはゲーム終了時（finished/showdown）のみ表示
+    const isWinner = (gameState?.phase === 'finished' || gameState?.phase === 'showdown') 
+      && gameState?.winners?.some(w => w.username === p.username) || false;
     
     return {
       id: idx + 1,

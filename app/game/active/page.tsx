@@ -201,16 +201,16 @@ export default function ActiveGamePage() {
       </div>
 
       {/* アクションボタン - 画面下部 */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-        <div className="flex gap-4">
-          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 px-16 py-2 rounded-lg border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
-            <p className="text-white text-lg font-bold">フォールド</p>
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full px-4">
+        <div className="flex gap-3 max-w-md mx-auto">
+          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+            <p className="text-white text-base font-bold">フォールド</p>
           </button>
-          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 px-16 py-2 rounded-lg border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
-            <p className="text-white text-lg font-bold">チェック</p>
+          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+            <p className="text-white text-base font-bold">チェック</p>
           </button>
-          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 px-16 py-2 rounded-lg border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
-            <p className="text-white text-lg font-bold">レイズ</p>
+          <button className="bg-gradient-to-br from-cyan-400 to-blue-600 flex-1 py-3 rounded-md border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+            <p className="text-white text-base font-bold">レイズ</p>
           </button>
         </div>
       </div>

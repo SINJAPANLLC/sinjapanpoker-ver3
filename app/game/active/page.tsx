@@ -12,6 +12,7 @@ export default function ActiveGamePage() {
   const [showRaiseSlider, setShowRaiseSlider] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [showChat, setShowChat] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -236,10 +237,62 @@ export default function ActiveGamePage() {
     >
       {/* 左上 - メニューアイコン */}
       <div className="absolute top-4 left-4">
-        <button className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+        <button 
+          onClick={() => setShowMenu(!showMenu)}
+          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+        >
           <Menu className="w-6 h-6 text-white" />
         </button>
       </div>
+
+      {/* メニューパネル */}
+      {showMenu && (
+        <div className="absolute top-16 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Menu className="w-4 h-4 text-white" />
+                <p className="text-white text-sm font-bold">メニュー</p>
+              </div>
+              <button 
+                onClick={() => setShowMenu(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-xs">✕</p>
+              </button>
+            </div>
+
+            {/* メニュー項目 */}
+            <div className="space-y-2">
+              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-semibold">🏠 ホームに戻る</p>
+              </button>
+              
+              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-semibold">👥 プレイヤーリスト</p>
+              </button>
+              
+              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-semibold">📊 統計</p>
+              </button>
+              
+              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-semibold">📖 ルール</p>
+              </button>
+              
+              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-semibold">⚙️ 設定</p>
+              </button>
+              
+              <div className="border-t border-white/30 my-2"></div>
+              
+              <button className="w-full bg-red-500/80 hover:bg-red-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-bold">🚪 テーブルを離れる</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 右上 - チャットアイコン */}
       <div className="absolute top-4 right-4">

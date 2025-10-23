@@ -8,24 +8,26 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundManager } from '@/hooks/useSoundManager';
 import { useMoneyModeStore } from '@/store/useMoneyModeStore';
-import { useAppStore } from '@/store/useAppStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { usePokerGame } from '@/hooks/usePokerGame';
 import { useSearchParams } from 'next/navigation';
 
 export default function ActiveGamePage() {
   const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
   const { mode, isEnabled } = useMoneyModeStore();
-  const { user: authUser } = useAppStore();
+  const { user: authUser } = useAuthStore();
   const searchParams = useSearchParams();
   
-  // デモユーザー（認証なしでテスト）
-  const user = authUser || {
+  // デモユーザー（認証なしでテスト）- useStateで一貫性を保つ
+  const [demoUser] = useState({
     id: `demo-${Math.random().toString(36).substring(7)}`,
     username: `プレイヤー${Math.floor(Math.random() * 100)}`,
     email: 'demo@test.com',
     chips: 1000,
     avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-  };
+  });
+  
+  const user = authUser || demoUser;
   
   const tableId = (searchParams && searchParams.get('table')) || 'test-game-1';
   
@@ -281,8 +283,11 @@ export default function ActiveGamePage() {
   const getRotatedPlayers = () => {
     if (!gameState || gameState.players.length === 0) return [];
     
-    // 自分のインデックスを見つける
-    const myIndex = gameState.players.findIndex(p => p.userId === user?.id);
+    // 自分のインデックスを見つける（userIdまたはusernameで比較）
+    const myIndex = gameState.players.findIndex(p => 
+      p.userId === user?.id || p.username === user?.username
+    );
+    
     if (myIndex === -1) return gameState.players;
     
     // 自分を先頭にしてプレイヤーリストを回転
@@ -299,7 +304,9 @@ export default function ActiveGamePage() {
   // activePlayerIdを回転後のインデックスに変換
   const getActivePlayerIdInRotatedList = () => {
     if (!gameState) return 0;
-    const myIndex = gameState.players.findIndex(p => p.userId === user?.id);
+    const myIndex = gameState.players.findIndex(p => 
+      p.userId === user?.id || p.username === user?.username
+    );
     if (myIndex === -1) return gameState.currentPlayerIndex + 1;
     
     // 実際のcurrentPlayerIndexから自分のインデックスを引いて回転後の位置を計算
@@ -312,7 +319,9 @@ export default function ActiveGamePage() {
   // 実際のゲームステートからプレイヤーデータを生成（自分を基準に並び替え済み）
   const players = rotatedPlayers.map((p, idx) => {
     const dealerIndex = gameState?.dealerIndex || 0;
-    const myIndex = gameState?.players.findIndex(pl => pl.userId === user?.id) || 0;
+    const myIndex = gameState?.players.findIndex(pl => 
+      pl.userId === user?.id || pl.username === user?.username
+    ) || 0;
     
     // 元のインデックスを計算
     const originalIndex = (idx + myIndex) % rotatedPlayers.length;
@@ -326,7 +335,7 @@ export default function ActiveGamePage() {
     else if (isSmallBlind) position = 'SB';
     else if (isBigBlind) position = 'BB';
     
-    const isCurrentUser = p.userId === user?.id;
+    const isCurrentUser = p.userId === user?.id || p.username === user?.username;
     const showCards = isCurrentUser || gameState?.phase === 'showdown' || gameState?.phase === 'finished';
     
     let lastAction = null;

@@ -302,7 +302,7 @@ export default function ActiveGamePage() {
 
   const communityCards: CardType[] = gameState?.communityCards.map(convertSocketCard) || [];
   const pot = gameState?.pot || 0;
-  const potAmount = gameState?.currentBet || 0;
+  const potAmount = pot; // ポットの総額
   
   // サイドポットの合計を計算
   const sidePotTotal = gameState?.sidePots?.reduce((sum, sp) => sum + sp.amount, 0) || 0;
@@ -1382,19 +1382,19 @@ export default function ActiveGamePage() {
               {/* クイックベットボタン - POTサイズ */}
               <div className="grid grid-cols-4 gap-1.5 mb-2">
                 <button
-                  onClick={() => setRaiseAmount(Math.floor(potAmount / 3))}
+                  onClick={() => setRaiseAmount(Math.max(minRaise, Math.floor(potAmount / 3)))}
                   className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
                 >
                   <p className="text-white text-[9px] font-bold">1/3 POT</p>
                 </button>
                 <button
-                  onClick={() => setRaiseAmount(Math.floor(potAmount * 2 / 3))}
+                  onClick={() => setRaiseAmount(Math.max(minRaise, Math.floor(potAmount * 2 / 3)))}
                   className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
                 >
                   <p className="text-white text-[9px] font-bold">2/3 POT</p>
                 </button>
                 <button
-                  onClick={() => setRaiseAmount(potAmount)}
+                  onClick={() => setRaiseAmount(Math.max(minRaise, potAmount))}
                   className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
                 >
                   <p className="text-white text-[9px] font-bold">POT</p>

@@ -1,9 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { users, playerStats } from '@/shared/schema';
 import { desc, sql, eq } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth/admin-auth';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // 管理者認証チェック
+  const authResult = requireAdmin(request);
+  if ('error' in authResult) {
+    return NextResponse.json(
+      { error: authResult.error },
+      { status: authResult.status }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');

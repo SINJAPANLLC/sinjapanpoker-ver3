@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { users } from '@/shared/schema';
 import { eq, sql } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth/admin-auth';
 
 export async function POST(request: NextRequest) {
+  // 管理者認証チェック
+  const authResult = requireAdmin(request);
+  if ('error' in authResult) {
+    return NextResponse.json(
+      { error: authResult.error },
+      { status: authResult.status }
+    );
+  }
+
   try {
     const body = await request.json();
     const { userId, chips, reason } = body;

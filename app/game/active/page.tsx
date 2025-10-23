@@ -11,7 +11,12 @@ export default function ActiveGamePage() {
   const [turnTimer, setTurnTimer] = useState(15);
   const [showRaiseSlider, setShowRaiseSlider] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
-  const [showChatInput, setShowChatInput] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
+    { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
+    { id: 3, player: 'プレイヤー9', message: 'よし、勝負！', time: '12:34' },
+  ]);
   
   const callAmount = 200;
   const minRaise = 200;
@@ -238,10 +243,109 @@ export default function ActiveGamePage() {
 
       {/* 右上 - チャットアイコン */}
       <div className="absolute top-4 right-4">
-        <button className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity">
+        <button 
+          onClick={() => setShowChat(!showChat)}
+          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+        >
           <MessageCircle className="w-6 h-6 text-white" />
         </button>
       </div>
+
+      {/* チャットパネル */}
+      {showChat && (
+        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl">
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-white" />
+                <p className="text-white text-sm font-bold">チャット</p>
+              </div>
+              <button 
+                onClick={() => setShowChat(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-xs">✕</p>
+              </button>
+            </div>
+
+            {/* メッセージ履歴 */}
+            <div className="bg-white/10 rounded-lg p-2 h-48 overflow-y-auto mb-2 space-y-1.5">
+              {chatMessages.map((msg) => (
+                <div key={msg.id} className="bg-white/20 rounded px-2 py-1.5 border border-white/30">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="text-white text-[9px] font-bold">{msg.player}</p>
+                    <p className="text-white/70 text-[8px]">{msg.time}</p>
+                  </div>
+                  <p className="text-white text-[10px]">{msg.message}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* クイックメッセージ */}
+            <div className="grid grid-cols-3 gap-1 mb-2">
+              <button
+                onClick={() => setChatMessage('よろしく！')}
+                className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
+              >
+                <p className="text-white text-[8px] font-semibold">よろしく！</p>
+              </button>
+              <button
+                onClick={() => setChatMessage('いい手だ！')}
+                className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
+              >
+                <p className="text-white text-[8px] font-semibold">いい手だ！</p>
+              </button>
+              <button
+                onClick={() => setChatMessage('GG')}
+                className="bg-white/20 hover:bg-white/30 py-1 rounded border border-white/40 transition-colors"
+              >
+                <p className="text-white text-[8px] font-semibold">GG</p>
+              </button>
+            </div>
+
+            {/* 入力フィールド */}
+            <div className="flex gap-1.5">
+              <input
+                type="text"
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && chatMessage.trim()) {
+                    const newMessage = {
+                      id: chatMessages.length + 1,
+                      player: 'プレイヤー1',
+                      message: chatMessage,
+                      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setChatMessages([...chatMessages, newMessage]);
+                    setChatMessage('');
+                  }
+                }}
+                placeholder="メッセージを入力..."
+                className="flex-1 bg-white/20 text-white text-xs px-2 py-1.5 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30"
+                maxLength={100}
+              />
+              <button
+                onClick={() => {
+                  if (chatMessage.trim()) {
+                    const newMessage = {
+                      id: chatMessages.length + 1,
+                      player: 'プレイヤー1',
+                      message: chatMessage,
+                      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setChatMessages([...chatMessages, newMessage]);
+                    setChatMessage('');
+                  }
+                }}
+                className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded border border-white/40 transition-colors"
+              >
+                <p className="text-white text-[9px] font-bold">送信</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* テーブル情報ヘッダー */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2">

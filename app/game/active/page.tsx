@@ -133,7 +133,7 @@ export default function ActiveGamePage() {
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-1">
           {communityCards.map((card) => (
-            <div key={card.id}>
+            <div key={card.id} className="scale-110">
               <Card card={card} faceUp={true} />
             </div>
           ))}

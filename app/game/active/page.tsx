@@ -292,7 +292,7 @@ export default function ActiveGamePage() {
             player.cardSide === 'right' 
               ? 'right-0 translate-x-1/2' 
               : 'left-0 -translate-x-1/2'
-          }`} style={{ zIndex: player.id === 1 ? 100 : 10 }}>
+          }`} style={{ zIndex: 100 }}>
             <div className="flex items-end" style={{ perspective: '400px' }}>
               {player.cards.map((card, cardIndex) => (
                 <div

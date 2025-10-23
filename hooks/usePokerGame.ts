@@ -54,7 +54,7 @@ interface GameState {
   };
 }
 
-export function usePokerGame(gameId: string | null) {
+export function usePokerGame(gameId: string | null, difficulty?: string) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [messages, setMessages] = useState<Array<{ username: string; message: string; timestamp: number }>>([]);
@@ -126,7 +126,7 @@ export function usePokerGame(gameId: string | null) {
   const joinGame = useCallback((chips: number = 1000, blinds?: { small: number; big: number }) => {
     if (!socket || !user || !gameId) return;
 
-    console.log('Joining game:', { gameId, userId: user.id, username: user.username, chips, blinds });
+    console.log('Joining game:', { gameId, userId: user.id, username: user.username, chips, blinds, difficulty });
     socket.emit('join-game', {
       gameId,
       player: {
@@ -136,8 +136,9 @@ export function usePokerGame(gameId: string | null) {
         avatar: (user as any).avatar,
       },
       blinds,
+      difficulty,
     });
-  }, [socket, user, gameId]);
+  }, [socket, user, gameId, difficulty]);
 
   const performAction = useCallback((action: 'fold' | 'check' | 'call' | 'raise' | 'all-in', amount?: number) => {
     if (!socket) {

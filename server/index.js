@@ -22,9 +22,63 @@ const io = new Server(httpServer, {
 const games = new Map();
 const players = new Map();
 
+// CPUプレイヤーの名前リスト
+const CPU_NAMES = [
+  'タケシ', 'ユウキ', 'ケンジ', 'マサヒロ', 'カズヤ',
+  'サトシ', 'ヒロシ', 'ダイスケ', 'リョウタ', 'コウジ'
+];
+
+// CPUプレイヤー生成関数
+function createCPUPlayer(index) {
+  return {
+    id: `cpu-${index}-${Math.random().toString(36).substring(7)}`,
+    userId: `cpu-${index}`,
+    username: CPU_NAMES[index % CPU_NAMES.length],
+    chips: 1000,
+    avatar: `https://i.pravatar.cc/150?img=${10 + index}`,
+  };
+}
+
+// CPUの意思決定AI（難易度別）
+function decideCPUAction(difficulty, currentBet, playerBet, chips, pot) {
+  const callAmount = currentBet - playerBet;
+  
+  if (difficulty === 'easy') {
+    // 初心者AI: 保守的、主にコールかフォールド
+    if (callAmount === 0) return { action: 'check' };
+    if (callAmount > chips * 0.3) return { action: 'fold' };
+    if (Math.random() < 0.7) return { action: 'call' };
+    if (Math.random() < 0.2) return { action: 'raise', amount: Math.min(currentBet * 2, chips) };
+    return { action: 'fold' };
+  } else if (difficulty === 'medium') {
+    // 中級者AI: バランス型
+    if (callAmount === 0) {
+      if (Math.random() < 0.6) return { action: 'check' };
+      return { action: 'raise', amount: Math.min(pot * 0.5, chips) };
+    }
+    if (callAmount > chips * 0.5) return { action: 'fold' };
+    if (Math.random() < 0.5) return { action: 'call' };
+    if (Math.random() < 0.3) return { action: 'raise', amount: Math.min(currentBet * 2.5, chips) };
+    return { action: 'fold' };
+  } else {
+    // 上級者AI: アグレッシブ
+    if (callAmount === 0) {
+      if (Math.random() < 0.4) return { action: 'check' };
+      return { action: 'raise', amount: Math.min(pot * 0.75, chips) };
+    }
+    if (callAmount > chips * 0.7) {
+      if (Math.random() < 0.3) return { action: 'call' };
+      return { action: 'fold' };
+    }
+    if (Math.random() < 0.4) return { action: 'call' };
+    if (Math.random() < 0.4) return { action: 'raise', amount: Math.min(currentBet * 3, chips) };
+    return { action: 'fold' };
+  }
+}
+
 // ポーカーゲームクラス
 class PokerGame {
-  constructor(gameId, type, blinds) {
+  constructor(gameId, type, blinds, difficulty = 'medium') {
     this.id = gameId;
     this.type = type;
     this.phase = 'waiting';
@@ -40,6 +94,7 @@ class PokerGame {
     this.winner = null;
     this.winningHand = null;
     this.totalBets = new Map();
+    this.difficulty = difficulty; // 練習モード用の難易度
   }
 
   addPlayer(player) {
@@ -213,6 +268,40 @@ class PokerGame {
     }
   }
 
+  // CPUプレイヤーかどうかを判定
+  isCPUPlayer(player) {
+    return player.userId && player.userId.toString().startsWith('cpu-');
+  }
+
+  // CPUプレイヤーの自動アクション（練習モード用）
+  executeCPUAction(callback) {
+    const currentPlayer = this.players[this.currentPlayerIndex];
+    if (!currentPlayer || !this.isCPUPlayer(currentPlayer)) {
+      return;
+    }
+
+    // 1-3秒のランダムな待機時間でよりリアルに
+    const thinkingTime = 1000 + Math.random() * 2000;
+    
+    setTimeout(() => {
+      const decision = decideCPUAction(
+        this.difficulty,
+        this.currentBet,
+        currentPlayer.bet,
+        currentPlayer.chips,
+        this.pot
+      );
+      
+      // CPUのアクションを実行
+      const result = this.playerAction(currentPlayer.id, decision.action, decision.amount);
+      
+      // コールバックを実行（ゲーム状態を更新するため）
+      if (callback) {
+        callback(result);
+      }
+    }, thinkingTime);
+  }
+
   nextPhase() {
     this.players.forEach(p => p.hasActed = false);
     
@@ -330,17 +419,49 @@ io.on('connection', (socket) => {
 
   // ゲーム参加
   socket.on('join-game', (data) => {
-    const { gameId, player } = data;
-    const game = games.get(gameId);
+    const { gameId, player, difficulty } = data;
+    let game = games.get(gameId);
+    
+    // 練習モードの場合、ゲームが存在しなければ作成
+    if (!game && gameId === 'practice-game') {
+      game = new PokerGame(gameId, 'texas-holdem', { small: 50, big: 100 }, difficulty || 'medium');
+      games.set(gameId, game);
+    }
     
     if (game && game.addPlayer({ ...player, id: socket.id })) {
       players.set(socket.id, gameId);
       socket.join(gameId);
+      
+      // 練習モードで最初のプレイヤー（実際のユーザー）の場合、CPUプレイヤーを追加
+      if (gameId === 'practice-game' && game.players.length === 1) {
+        // 5人のCPUプレイヤーを追加
+        for (let i = 0; i < 5; i++) {
+          const cpuPlayer = createCPUPlayer(i);
+          game.addPlayer(cpuPlayer);
+        }
+        console.log('練習モード: CPUプレイヤー5人を追加しました');
+      }
+      
       io.to(gameId).emit('game-state', game.getGameState());
       
       if (game.players.length >= 2 && game.phase === 'waiting') {
         game.startGame();
         io.to(gameId).emit('game-state', game.getGameState());
+        
+        // ゲーム開始後、最初のプレイヤーがCPUの場合は自動アクションを実行
+        if (game.isCPUPlayer(game.players[game.currentPlayerIndex])) {
+          game.executeCPUAction((result) => {
+            if (result.success) {
+              io.to(gameId).emit('game-state', game.getGameState());
+              // 次のプレイヤーもCPUの場合は再帰的に実行
+              if (game.isCPUPlayer(game.players[game.currentPlayerIndex])) {
+                game.executeCPUAction((result) => {
+                  if (result.success) io.to(gameId).emit('game-state', game.getGameState());
+                });
+              }
+            }
+          });
+        }
       }
     } else {
       socket.emit('error', { message: 'ゲームに参加できません' });
@@ -358,6 +479,16 @@ io.on('connection', (socket) => {
       
       if (result.success) {
         io.to(gameId).emit('game-state', game.getGameState());
+        
+        // アクション後、次のプレイヤーがCPUの場合は自動アクションを実行
+        const currentPlayer = game.players[game.currentPlayerIndex];
+        if (currentPlayer && game.isCPUPlayer(currentPlayer) && game.phase !== 'finished' && game.phase !== 'showdown') {
+          game.executeCPUAction((result) => {
+            if (result.success) {
+              io.to(gameId).emit('game-state', game.getGameState());
+            }
+          });
+        }
       } else {
         socket.emit('action-error', { message: result.error || 'アクションが失敗しました' });
       }

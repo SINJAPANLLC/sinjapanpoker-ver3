@@ -605,9 +605,10 @@ export default function ActiveGamePage() {
             <div className={`px-2 py-0.5 rounded-md border border-white/50 shadow-md ${
               player.lastAction === 'FOLD' ? 'bg-red-500' : 
               player.lastAction === 'RAISE' ? 'bg-green-500' : 
+              player.lastAction === 'ALL IN' ? 'bg-orange-500' :
               'bg-blue-500'
             }`}>
-              <p className="text-white text-[9px] font-bold text-center">{player.lastAction}</p>
+              <p className="text-white text-[9px] font-bold text-center whitespace-nowrap">{player.lastAction}</p>
             </div>
           </div>
         )}

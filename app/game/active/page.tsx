@@ -215,7 +215,7 @@ export default function ActiveGamePage() {
       { rank: 'Q' as Rank, suit: 'clubs' as Suit, id: 'p2-card-1' },
       { rank: 'J' as Rank, suit: 'spades' as Suit, id: 'p2-card-2' },
     ]},
-    { id: 3, name: 'プレイヤー3', chips: 12000, avatar: 'https://i.pravatar.cc/150?img=3', cardSide: 'right' as const, showCards: true, position: 'SB', bet: 50, lastAction: null, folded: false, chatMessage: null, isWinner: false, cards: [
+    { id: 3, name: 'プレイヤー3', chips: 0, avatar: 'https://i.pravatar.cc/150?img=3', cardSide: 'right' as const, showCards: true, position: 'SB', bet: 12000, lastAction: 'ALL IN', folded: false, chatMessage: null, isWinner: false, isAllIn: true, cards: [
       { rank: '10' as Rank, suit: 'hearts' as Suit, id: 'p3-card-1' },
       { rank: '9' as Rank, suit: 'diamonds' as Suit, id: 'p3-card-2' },
     ]},
@@ -364,12 +364,105 @@ export default function ActiveGamePage() {
 
         {/* アバターアイコン */}
         <div className="relative">
+          {/* ALL IN 炎のエフェクト */}
+          {player.isAllIn && (
+            <>
+              {/* 外側の炎グロー */}
+              <motion.div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '9999px',
+                  background: 'radial-gradient(circle, rgba(255,69,0,0.8) 0%, rgba(255,140,0,0.6) 50%, rgba(255,69,0,0) 100%)',
+                  filter: 'blur(12px)',
+                  zIndex: 0
+                }}
+                animate={{
+                  scale: [1, 1.4, 1],
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              
+              {/* 炎パーティクル1 */}
+              {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, index) => (
+                <motion.div
+                  key={`flame-${index}`}
+                  style={{
+                    position: 'absolute',
+                    width: '16px',
+                    height: '20px',
+                    left: '50%',
+                    top: '50%',
+                    transformOrigin: '50% 50%',
+                  }}
+                  animate={{
+                    rotate: [angle, angle + 360],
+                    x: [
+                      Math.cos((angle * Math.PI) / 180) * 35,
+                      Math.cos(((angle + 360) * Math.PI) / 180) * 35
+                    ],
+                    y: [
+                      Math.sin((angle * Math.PI) / 180) * 35,
+                      Math.sin(((angle + 360) * Math.PI) / 180) * 35
+                    ],
+                    scale: [0.8, 1.2, 0.8],
+                    opacity: [0.7, 1, 0.7],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: index * 0.1,
+                  }}
+                >
+                  <div 
+                    className="w-full h-full"
+                    style={{
+                      background: 'linear-gradient(to top, #FF4500 0%, #FF8C00 50%, #FFD700 100%)',
+                      borderRadius: '40% 40% 60% 60%',
+                      boxShadow: '0 0 10px #FF4500, 0 0 20px #FF8C00',
+                      filter: 'blur(1px)',
+                    }}
+                  />
+                </motion.div>
+              ))}
+              
+              {/* 内側の赤い輪 */}
+              <motion.div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '9999px',
+                  border: '3px solid #FF4500',
+                  boxShadow: '0 0 15px #FF4500, inset 0 0 15px #FF4500',
+                  zIndex: 1
+                }}
+                animate={{
+                  scale: [1, 1.15, 1],
+                  opacity: [0.6, 1, 0.6],
+                }}
+                transition={{
+                  duration: 0.8,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </>
+          )}
+          
           {/* 勝利者の光るエフェクト */}
           {player.isWinner && (
             <>
               <motion.div
-                className="absolute inset-0 rounded-full"
                 style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '9999px',
                   background: 'linear-gradient(45deg, #FFD700, #FFA500, #FFD700)',
                   filter: 'blur(8px)',
                   zIndex: 0
@@ -385,9 +478,11 @@ export default function ActiveGamePage() {
                 }}
               />
               <motion.div
-                className="absolute inset-0 rounded-full border-4"
                 style={{
-                  borderColor: '#FFD700',
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '9999px',
+                  border: '4px solid #FFD700',
                   boxShadow: '0 0 20px #FFD700, 0 0 40px #FFA500',
                   zIndex: 1
                 }}
@@ -402,7 +497,7 @@ export default function ActiveGamePage() {
               />
             </>
           )}
-          <div className={`relative w-20 h-20 rounded-full border-3 ${player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
+          <div className={`relative w-20 h-20 rounded-full border-3 ${player.isAllIn ? 'border-red-500' : player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
             <Image
               src={player.avatar}
               alt={player.name}

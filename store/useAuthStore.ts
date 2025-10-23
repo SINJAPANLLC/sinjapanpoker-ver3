@@ -9,6 +9,7 @@ interface User {
   level: number;
   experience: number;
   isAdmin?: boolean;
+  avatar?: string | null;
 }
 
 interface AuthState {
@@ -18,6 +19,7 @@ interface AuthState {
   login: (user: User, token: string) => void;
   logout: () => void;
   checkAuth: () => boolean;
+  updateUser: (user: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -43,6 +45,12 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: () => {
         const state = get();
         return state.isAuthenticated && state.user !== null && state.token !== null;
+      },
+      updateUser: (userData) => {
+        const state = get();
+        if (state.user) {
+          set({ user: { ...state.user, ...userData } });
+        }
       },
     }),
     {

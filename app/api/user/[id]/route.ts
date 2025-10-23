@@ -46,3 +46,53 @@ export async function GET(
     );
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const userId = params.id;
+    const body = await request.json();
+    const { avatar } = body;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Invalid user ID' },
+        { status: 400 }
+      );
+    }
+
+    if (avatar === undefined) {
+      return NextResponse.json(
+        { error: 'Avatar value is required' },
+        { status: 400 }
+      );
+    }
+
+    const [updatedUser] = await db.update(users)
+      .set({ avatar })
+      .where(eq(users.id, userId))
+      .returning();
+
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      id: updatedUser.id,
+      username: updatedUser.username,
+      avatar: updatedUser.avatar,
+      message: 'Avatar updated successfully',
+    });
+  } catch (error) {
+    console.error('Error updating avatar:', error);
+    return NextResponse.json(
+      { error: 'Failed to update avatar' },
+      { status: 500 }
+    );
+  }
+}

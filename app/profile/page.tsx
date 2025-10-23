@@ -64,9 +64,24 @@ function ProfileContent() {
     setOwnedAvatars(owned);
 
     if (user?.id) {
-      fetch(`/api/users/${user.id}`)
+      // データベースからユーザー情報（avatar含む）を取得
+      fetch(`/api/user/${user.id}`)
         .then(res => res.json())
-        .then(data => setUserStats(data))
+        .then(data => {
+          setUserStats(data);
+          // データベースからavatarを取得してstoreを更新
+          if (data.avatar) {
+            const { updateUser } = useAuthStore.getState();
+            updateUser({ avatar: data.avatar });
+            // LocalStorageのavatarも更新
+            if (data.avatar.startsWith('data:')) {
+              setUploadedAvatar(data.avatar);
+              setCurrentAvatar('uploaded');
+            } else {
+              setCurrentAvatar(data.avatar);
+            }
+          }
+        })
         .catch(err => console.error('Failed to fetch user stats:', err));
     }
   }, [user?.id]);
@@ -79,7 +94,26 @@ function ProfileContent() {
       lastUpdated: new Date().toISOString()
     };
     saveUserProfile(profile);
-  }, [currentAvatar, uploadedAvatar]);
+    
+    // データベースにも保存
+    if (user?.id && (currentAvatar || uploadedAvatar)) {
+      const avatarValue = currentAvatar === 'uploaded' ? uploadedAvatar : currentAvatar;
+      fetch(`/api/user/${user.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ avatar: avatarValue }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.message) {
+            console.log('✅ Avatar saved to database:', data.message);
+          }
+        })
+        .catch(err => console.error('Failed to save avatar to database:', err));
+    }
+  }, [currentAvatar, uploadedAvatar, user?.id]);
 
   // 所有アバターが変更されたら保存
   useEffect(() => {

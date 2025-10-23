@@ -48,18 +48,38 @@ function CreateTournamentContent() {
         throw new Error('開始時刻は現在時刻より後に設定してください');
       }
 
+      // データベースに保存するためにAPIにPOSTリクエスト
+      const response = await fetch('/api/tournament', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          type: 'tournament',
+          buyIn: formData.buyIn,
+          maxPlayers: formData.maxPlayers,
+          description: formData.description || '',
+          startTime: startTime.toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'トーナメントの作成に失敗しました');
+      }
+
+      const data = await response.json();
+      console.log('Tournament created:', data);
+
+      // Zustand storeにも追加（LocalStorage用）
       addTournament({
-        name: formData.name,
-        type: 'tournament',
-        buyIn: formData.buyIn,
-        currentPlayers: 0,
-        maxPlayers: formData.maxPlayers,
-        prize: formData.prize,
-        status: 'waiting',
+        ...data.tournament,
+        prize: data.tournament.prizePool || formData.prize,
+        status: 'registering',
         createdBy: adminUser.username,
         createdById: adminUser.id,
-        startTime: startTime,
-        description: formData.description || undefined
+        type: 'tournament',
       });
 
       router.push('/admin/dashboard');

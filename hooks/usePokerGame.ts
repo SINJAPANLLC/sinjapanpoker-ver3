@@ -161,6 +161,14 @@ export function usePokerGame(gameId: string | null, difficulty?: string) {
     });
   }, [socket, user]);
 
+  const setAwayStatus = useCallback((isAway: boolean) => {
+    if (!socket) return;
+
+    socket.emit('set-away-status', {
+      isAway,
+    });
+  }, [socket]);
+
   const getCurrentPlayer = useCallback(() => {
     if (!gameState || !user) return null;
     return gameState.players.find(p => p.userId === user.id) || null;
@@ -207,6 +215,7 @@ export function usePokerGame(gameId: string | null, difficulty?: string) {
     joinGame,
     performAction,
     sendMessage,
+    setAwayStatus,
     getCurrentPlayer,
     isMyTurn,
     canCheck,

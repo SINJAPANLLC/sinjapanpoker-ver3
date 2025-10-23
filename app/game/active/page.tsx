@@ -5,6 +5,14 @@ import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
 
 export default function ActiveGamePage() {
+  const communityCards: CardType[] = [
+    { rank: 'A' as Rank, suit: 'spades' as Suit, id: 'comm-1' },
+    { rank: 'K' as Rank, suit: 'hearts' as Suit, id: 'comm-2' },
+    { rank: 'Q' as Rank, suit: 'diamonds' as Suit, id: 'comm-3' },
+    { rank: 'J' as Rank, suit: 'clubs' as Suit, id: 'comm-4' },
+    { rank: '10' as Rank, suit: 'spades' as Suit, id: 'comm-5' },
+  ];
+
   const players = [
     { id: 1, name: 'プレイヤー1', chips: 5000, cardSide: 'right' as const, cards: [
       { rank: 'A' as Rank, suit: 'hearts' as Suit, id: 'p1-card-1' },
@@ -98,17 +106,28 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* プレイヤー1 - 中央下（さらに上） */}
+      {/* コミュニティカード - ロゴの下中央 */}
+      <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className="flex gap-2">
+          {communityCards.map((card) => (
+            <div key={card.id} className="scale-75">
+              <Card card={card} faceUp={true} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* プレイヤー1 - 中央下 */}
       <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2">
         <PlayerComponent player={players[0]} />
       </div>
 
-      {/* プレイヤー2 - 左下（さらに上） */}
+      {/* プレイヤー2 - 左下 */}
       <div className="absolute bottom-72 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
-      {/* プレイヤー3 - 左中（さらに上） */}
+      {/* プレイヤー3 - 左中 */}
       <div className="absolute top-[40%] left-6 transform -translate-y-1/2">
         <PlayerComponent player={players[2]} />
       </div>
@@ -133,12 +152,12 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[6]} />
       </div>
 
-      {/* プレイヤー8 - 右中（さらに上） */}
+      {/* プレイヤー8 - 右中 */}
       <div className="absolute top-[40%] right-6 transform -translate-y-1/2">
         <PlayerComponent player={players[7]} />
       </div>
 
-      {/* プレイヤー9 - 右下（さらに上） */}
+      {/* プレイヤー9 - 右下 */}
       <div className="absolute bottom-72 right-6">
         <PlayerComponent player={players[8]} />
       </div>

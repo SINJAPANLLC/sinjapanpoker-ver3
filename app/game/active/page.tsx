@@ -567,61 +567,8 @@ export default function ActiveGamePage() {
         </div>
       </div>
 
-      {/* ポット */}
-      <div className="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-1 items-center">
-        {/* チップアニメーション */}
-        <AnimatePresence>
-          {chipAnimations.map((anim) => (
-            <motion.div
-              key={anim.id}
-              initial={{ 
-                x: 0, 
-                y: 0, 
-                scale: 0.5,
-                opacity: 0 
-              }}
-              animate={{ 
-                x: 0, 
-                y: 0, 
-                scale: 1,
-                opacity: 1 
-              }}
-              exit={{ 
-                scale: 0,
-                opacity: 0 
-              }}
-              transition={{ 
-                duration: 0.5,
-                ease: "easeOut"
-              }}
-              style={{ position: 'absolute' }}
-            >
-              <Image src="/chip-icon.png" alt="chip" width={24} height={24} className="drop-shadow-lg" />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {/* メインポット */}
-        <motion.div 
-          style={{
-            background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
-          }}
-          animate={{ 
-            scale: chipAnimations.length > 0 ? [1, 1.1, 1] : 1 
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          <p className="text-white text-xs font-bold text-center">POT</p>
-          <div className="flex items-center justify-center gap-1">
-            <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
-            <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
-          </div>
-        </motion.div>
-        
+      {/* ポットとサイドポット */}
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%] flex gap-3 items-center">
         {/* サイドポット（複数オールインがある場合） */}
         <div className="bg-gradient-to-br from-yellow-400 to-orange-500 px-3 py-1.5 rounded border border-white/30 shadow-md">
           <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
@@ -629,6 +576,61 @@ export default function ActiveGamePage() {
             <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
             <p className="text-white text-[10px] font-semibold">3,200</p>
           </div>
+        </div>
+        
+        {/* メインポット */}
+        <div className="relative">
+          {/* チップアニメーション */}
+          <AnimatePresence>
+            {chipAnimations.map((anim) => (
+              <motion.div
+                key={anim.id}
+                initial={{ 
+                  x: 0, 
+                  y: 0, 
+                  scale: 0.5,
+                  opacity: 0 
+                }}
+                animate={{ 
+                  x: 0, 
+                  y: 0, 
+                  scale: 1,
+                  opacity: 1 
+                }}
+                exit={{ 
+                  scale: 0,
+                  opacity: 0 
+                }}
+                transition={{ 
+                  duration: 0.5,
+                  ease: "easeOut"
+                }}
+                style={{ position: 'absolute' }}
+              >
+                <Image src="/chip-icon.png" alt="chip" width={24} height={24} className="drop-shadow-lg" />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
+          <motion.div 
+            style={{
+              background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+            }}
+            animate={{ 
+              scale: chipAnimations.length > 0 ? [1, 1.1, 1] : 1 
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            <p className="text-white text-xs font-bold text-center">POT</p>
+            <div className="flex items-center justify-center gap-1">
+              <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
+              <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
+            </div>
+          </motion.div>
         </div>
       </div>
 

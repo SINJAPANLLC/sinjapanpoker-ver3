@@ -436,8 +436,8 @@ export default function ActiveGamePage() {
 
       {/* チャットパネル */}
       {showChat && (
-        <div className="absolute top-4 right-20 w-72 h-[calc(100vh-2rem)] max-h-[600px] bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50 flex flex-col">
-          <div className="p-3 flex-shrink-0">
+        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+          <div className="p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-white" />
@@ -450,11 +450,9 @@ export default function ActiveGamePage() {
                 <p className="text-xs">✕</p>
               </button>
             </div>
-          </div>
 
-          <div className="px-3 pb-3 flex-1 flex flex-col min-h-0">
             {/* メッセージ履歴 */}
-            <div className="bg-white/10 rounded-lg p-2 flex-1 overflow-y-auto mb-2 space-y-1.5">
+            <div className="bg-white/10 rounded-lg p-2 h-48 overflow-y-auto mb-2 space-y-1.5">
               {chatMessages.map((msg) => (
                 <div key={msg.id} className="bg-white/20 rounded px-2 py-1.5 border border-white/30">
                   <div className="flex items-center justify-between mb-0.5">
@@ -489,7 +487,7 @@ export default function ActiveGamePage() {
             </div>
 
             {/* 入力フィールド */}
-            <div className="flex gap-1.5 flex-shrink-0">
+            <div className="flex gap-1.5">
               <input
                 type="text"
                 value={chatMessage}

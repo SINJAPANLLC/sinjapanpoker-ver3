@@ -11,7 +11,12 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* 背景のみ */}
+      {/* アバターアイコン - 画面中央下 */}
+      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-5xl border-4 border-white shadow-lg">
+          👤
+        </div>
+      </div>
     </div>
   );
 }

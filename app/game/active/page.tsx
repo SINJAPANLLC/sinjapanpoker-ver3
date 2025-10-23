@@ -719,7 +719,7 @@ export default function ActiveGamePage() {
         )}
 
         {/* ターンタイマーとプログレスバー */}
-        {isActive && (
+        {isActive && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && (
           <>
             <motion.div 
               style={{

@@ -10,6 +10,8 @@ export default function ActiveGamePage() {
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);
   const [showRaiseSlider, setShowRaiseSlider] = useState(false);
+  const [chatMessage, setChatMessage] = useState('');
+  const [showChatInput, setShowChatInput] = useState(false);
   
   const callAmount = 200;
   const minRaise = 200;
@@ -283,6 +285,80 @@ export default function ActiveGamePage() {
       {/* プレイヤー1 - 中央下（少し左） */}
       <div className="absolute bottom-32 left-[45%] transform -translate-x-1/2">
         <PlayerComponent player={players[0]} />
+      </div>
+
+      {/* チャット入力UI - プレイヤー1の左側 */}
+      <div className="absolute bottom-32 left-8">
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg w-64">
+          <div className="flex items-center gap-2 mb-2">
+            <MessageCircle className="w-4 h-4 text-white" />
+            <p className="text-white text-xs font-bold">クイックチャット</p>
+          </div>
+          
+          {/* プリセットメッセージ */}
+          <div className="grid grid-cols-2 gap-1.5 mb-2">
+            <button
+              onClick={() => setChatMessage('よろしく！')}
+              className="bg-white/20 hover:bg-white/30 py-1.5 px-2 rounded border border-white/40 transition-colors"
+            >
+              <p className="text-white text-[9px] font-semibold">よろしく！</p>
+            </button>
+            <button
+              onClick={() => setChatMessage('いい手だ！')}
+              className="bg-white/20 hover:bg-white/30 py-1.5 px-2 rounded border border-white/40 transition-colors"
+            >
+              <p className="text-white text-[9px] font-semibold">いい手だ！</p>
+            </button>
+            <button
+              onClick={() => setChatMessage('よし、勝負！')}
+              className="bg-white/20 hover:bg-white/30 py-1.5 px-2 rounded border border-white/40 transition-colors"
+            >
+              <p className="text-white text-[9px] font-semibold">よし、勝負！</p>
+            </button>
+            <button
+              onClick={() => setChatMessage('ナイス！')}
+              className="bg-white/20 hover:bg-white/30 py-1.5 px-2 rounded border border-white/40 transition-colors"
+            >
+              <p className="text-white text-[9px] font-semibold">ナイス！</p>
+            </button>
+            <button
+              onClick={() => setChatMessage('GG')}
+              className="bg-white/20 hover:bg-white/30 py-1.5 px-2 rounded border border-white/40 transition-colors"
+            >
+              <p className="text-white text-[9px] font-semibold">GG</p>
+            </button>
+            <button
+              onClick={() => setChatMessage('次は勝つ！')}
+              className="bg-white/20 hover:bg-white/30 py-1.5 px-2 rounded border border-white/40 transition-colors"
+            >
+              <p className="text-white text-[9px] font-semibold">次は勝つ！</p>
+            </button>
+          </div>
+
+          {/* カスタム入力 */}
+          <div className="flex gap-1.5">
+            <input
+              type="text"
+              value={chatMessage}
+              onChange={(e) => setChatMessage(e.target.value)}
+              placeholder="メッセージを入力..."
+              className="flex-1 bg-white/20 text-white text-xs px-2 py-1.5 rounded border border-white/40 placeholder:text-white/60 focus:outline-none focus:bg-white/30"
+              maxLength={50}
+            />
+            <button
+              onClick={() => {
+                if (chatMessage.trim()) {
+                  // ここでSocket.ioにメッセージを送信
+                  console.log('送信:', chatMessage);
+                  setChatMessage('');
+                }
+              }}
+              className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded border border-white/40 transition-colors"
+            >
+              <p className="text-white text-[9px] font-bold">送信</p>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* プレイヤー1のハンドカード - 右側に大きく扇形で表示 */}

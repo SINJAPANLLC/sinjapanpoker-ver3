@@ -3,6 +3,7 @@
 import { User, Menu, MessageCircle } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
+import Image from 'next/image';
 
 export default function ActiveGamePage() {
   const communityCards: CardType[] = [
@@ -144,7 +145,10 @@ export default function ActiveGamePage() {
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%]">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
           <p className="text-white text-xs font-bold text-center">POT</p>
-          <p className="text-white text-sm font-semibold text-center">{pot.toLocaleString()}</p>
+          <div className="flex items-center justify-center gap-1">
+            <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
+            <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
+          </div>
         </div>
       </div>
 

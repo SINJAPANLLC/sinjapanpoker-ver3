@@ -527,7 +527,17 @@ app.prepare().then(() => {
               break;
           }
           
-          this.nextPlayer();
+          // 次のプレイヤーに移動
+          this.currentPlayerIndex = this.getNextActivePlayer((this.currentPlayerIndex + 1) % this.players.length);
+          
+          // ベッティングラウンドが終了したかチェック
+          const activePlayers = this.players.filter(p => !p.folded && !p.isAllIn);
+          const allActed = activePlayers.every(p => p.hasActed && p.bet === this.currentBet);
+          
+          if (allActed || activePlayers.length <= 1) {
+            this.nextPhase();
+          }
+          
           io.to(gameId).emit('game-state', this.getState());
           
           // 次のプレイヤーもCPU/離席中なら再帰的に実行

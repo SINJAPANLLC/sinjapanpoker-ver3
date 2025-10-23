@@ -114,42 +114,45 @@ export default function PokerTable({ players, communityCards, pot, currentPlayer
               transition={{ delay: index * 0.1 }}
             >
               <div className={`relative ${isCurrentTurn ? 'ring-4 ring-blue-400 rounded-2xl animate-pulse' : ''}`}>
-                <div className={`card-blue p-4 min-w-[160px] ${player.folded ? 'opacity-50 grayscale' : ''} ${isMe ? 'bg-gradient-to-br from-blue-900/80 to-purple-900/80' : ''}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {player.isDealer && (
-                        <Crown className="w-4 h-4 text-yellow-400" />
+                {/* プレイヤー3、4、5（index 2、3、4）はカードを右側に配置 */}
+                <div className={`flex ${index === 2 || index === 3 || index === 4 ? 'flex-row-reverse' : 'flex-col'} gap-2 items-center`}>
+                  <div className={`card-blue p-4 min-w-[160px] ${player.folded ? 'opacity-50 grayscale' : ''} ${isMe ? 'bg-gradient-to-br from-blue-900/80 to-purple-900/80' : ''}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {player.isDealer && (
+                          <Crown className="w-4 h-4 text-yellow-400" />
+                        )}
+                        <span className="font-bold text-white">{player.username}</span>
+                      </div>
+                      {isMe && (
+                        <span className="badge-primary text-xs">YOU</span>
                       )}
-                      <span className="font-bold text-white">{player.username}</span>
                     </div>
-                    {isMe && (
-                      <span className="badge-primary text-xs">YOU</span>
+
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-300">チップ</span>
+                      <span className="text-yellow-400 font-bold">{player.chips.toLocaleString()}</span>
+                    </div>
+
+                    {player.bet > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-300">ベット</span>
+                        <span className="text-green-400 font-bold">{player.bet.toLocaleString()}</span>
+                      </div>
+                    )}
+
+                    {player.isAllIn && (
+                      <div className="mt-2 badge-secondary text-center">ALL IN</div>
+                    )}
+
+                    {player.folded && (
+                      <div className="mt-2 text-red-400 text-sm text-center">FOLDED</div>
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-300">チップ</span>
-                    <span className="text-yellow-400 font-bold">{player.chips.toLocaleString()}</span>
-                  </div>
-
-                  {player.bet > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-300">ベット</span>
-                      <span className="text-green-400 font-bold">{player.bet.toLocaleString()}</span>
-                    </div>
-                  )}
-
-                  {player.isAllIn && (
-                    <div className="mt-2 badge-secondary text-center">ALL IN</div>
-                  )}
-
-                  {player.folded && (
-                    <div className="mt-2 text-red-400 text-sm text-center">FOLDED</div>
-                  )}
-
-                  <div className="flex gap-1 mt-3 justify-center">
-                    {/* プレイヤー3、4、5（index 2、3、4）はカードを反転表示 */}
-                    {(index === 2 || index === 3 || index === 4 ? [...player.cards].reverse() : player.cards).map((card, cardIndex) => {
+                  {/* カード表示 */}
+                  <div className="flex gap-1 justify-center">
+                    {player.cards.map((card, cardIndex) => {
                       const showCard = isMe || player.id === myPlayerId;
                       return (
                         <div

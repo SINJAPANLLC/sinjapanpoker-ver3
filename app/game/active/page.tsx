@@ -136,6 +136,13 @@ export default function ActiveGamePage() {
     { player: 'プレイヤー7', action: 'フォールド', time: '12:36' },
   ];
 
+  // プレイヤーが変わったらタイマーをリセット
+  useEffect(() => {
+    if (gameState?.currentPlayerIndex !== undefined && gameState?.phase !== 'finished' && gameState?.phase !== 'waiting') {
+      setTurnTimer(15);
+    }
+  }, [gameState?.currentPlayerIndex, gameState?.phase]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setTurnTimer((prev) => {

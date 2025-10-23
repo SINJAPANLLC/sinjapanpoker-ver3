@@ -431,7 +431,9 @@ export default function ActiveGamePage() {
     else if (isBigBlind) position = 'BB';
     
     const isCurrentUser = p.userId === user?.id || p.username === user?.username;
-    const showCards = isCurrentUser || gameState?.phase === 'showdown' || gameState?.phase === 'finished';
+    // 自分のカードは常に表示、他のプレイヤーは裏向きで表示（showdownとfinishedでは表向き）
+    const showCards = true;
+    const showCardsFaceUp = isCurrentUser || gameState?.phase === 'showdown' || gameState?.phase === 'finished';
     
     let lastAction = null;
     if (p.folded) lastAction = 'FOLD';
@@ -452,6 +454,7 @@ export default function ActiveGamePage() {
       // position 0（下部中央）は'center'、1-4は右側、5-8は左側
       cardSide: position === '0' || position === 0 ? 'center' : (Number(position || 0) <= 4 ? 'right' : 'left'),
       showCards,
+      showCardsFaceUp,
       position,
       bet: p.bet,
       lastAction,
@@ -525,7 +528,7 @@ export default function ActiveGamePage() {
                   }}
                 >
                   <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
-                    <Card card={card} faceUp={false} />
+                    <Card card={card} faceUp={player.showCardsFaceUp || false} />
                   </div>
                 </div>
               ))}

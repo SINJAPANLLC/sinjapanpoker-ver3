@@ -49,31 +49,41 @@ function CurrencyManagementContent() {
   });
 
   useEffect(() => {
-    // モックユーザーデータ
-    const mockUsers: User[] = [
-      {
-        id: 'user_1',
-        username: 'Player1',
-        email: 'player1@example.com',
-        realChips: 5000,
-        gameChips: 10000,
-        diamonds: 50,
-        energy: 100,
-        points: 1000
-      },
-      {
-        id: 'user_2',
-        username: 'Player2',
-        email: 'player2@example.com',
-        realChips: 15000,
-        gameChips: 10000,
-        diamonds: 25,
-        energy: 75,
-        points: 2500
+    // 実際のユーザーデータを取得
+    const fetchUsers = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? sessionStorage.getItem('admin_token') : null;
+        const response = await fetch('/api/admin/users', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+          // APIレスポンスをUser型に変換
+          const mappedUsers: User[] = data.users.map((u: any) => ({
+            id: u.id,
+            username: u.username,
+            email: u.email,
+            realChips: u.chips || 0,
+            gameChips: 0,
+            diamonds: 0,
+            energy: 0,
+            points: 0,
+          }));
+          setUsers(mappedUsers);
+        } else {
+          console.error('ユーザー取得エラー:', data.error);
+        }
+      } catch (error) {
+        console.error('ユーザー取得エラー:', error);
+      } finally {
+        setLoading(false);
       }
-    ];
-    setUsers(mockUsers);
-    setLoading(false);
+    };
+    
+    fetchUsers();
   }, []);
 
   const handleUserSelect = (user: User) => {
@@ -99,45 +109,58 @@ function CurrencyManagementContent() {
 
     setSaving(true);
     try {
-      // 通貨付与処理（実際のAPI呼び出し）
-      await new Promise(resolve => setTimeout(resolve, 1000)); // モック遅延
+      const token = typeof window !== 'undefined' ? sessionStorage.getItem('admin_token') : null;
       
-      // ユーザーの通貨を更新
-      setUsers(prev => prev.map(user => 
-        user.id === selectedUser.id 
-          ? {
-              ...user,
-              realChips: user.realChips + currencyForm.realChips,
-              gameChips: user.gameChips + currencyForm.gameChips,
-              diamonds: user.diamonds + currencyForm.diamonds,
-              energy: user.energy + currencyForm.energy,
-              points: user.points + currencyForm.points
-            }
-          : user
-      ));
-
-      setSelectedUser(prev => prev ? {
-        ...prev,
-        realChips: prev.realChips + currencyForm.realChips,
-        gameChips: prev.gameChips + currencyForm.gameChips,
-        diamonds: prev.diamonds + currencyForm.diamonds,
-        energy: prev.energy + currencyForm.energy,
-        points: prev.points + currencyForm.points
-      } : null);
-
-      setMessage('通貨の付与が完了しました');
-      setMessageType('success');
-      
-      // フォームをリセット
-      setCurrencyForm({
-        realChips: 0,
-        gameChips: 0,
-        diamonds: 0,
-        energy: 0,
-        points: 0,
-        reason: ''
+      // 実際のチップ付与API呼び出し
+      const response = await fetch('/api/admin/grant-currency', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          chips: currencyForm.realChips,
+          reason: currencyForm.reason,
+        }),
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // ユーザーの通貨を更新
+        setUsers(prev => prev.map(user => 
+          user.id === selectedUser.id 
+            ? {
+                ...user,
+                realChips: data.user.chips,
+              }
+            : user
+        ));
+
+        setSelectedUser(prev => prev ? {
+          ...prev,
+          realChips: data.user.chips,
+        } : null);
+
+        setMessage(data.message || '通貨の付与が完了しました');
+        setMessageType('success');
+        
+        // フォームをリセット
+        setCurrencyForm({
+          realChips: 0,
+          gameChips: 0,
+          diamonds: 0,
+          energy: 0,
+          points: 0,
+          reason: ''
+        });
+      } else {
+        setMessage(data.error || '通貨の付与に失敗しました');
+        setMessageType('error');
+      }
     } catch (error) {
+      console.error('チップ付与エラー:', error);
       setMessage('通貨の付与に失敗しました');
       setMessageType('error');
     } finally {

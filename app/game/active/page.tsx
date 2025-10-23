@@ -113,8 +113,8 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[2]} />
       </div>
 
-      {/* プレイヤー4 - 左上 (3の上) */}
-      <div className="absolute top-32 left-6">
+      {/* プレイヤー4 - 左上 (少し下に) */}
+      <div className="absolute top-44 left-6">
         <PlayerComponent player={players[3]} />
       </div>
 
@@ -128,8 +128,8 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[5]} />
       </div>
 
-      {/* プレイヤー7 - 右上 (4の反対) */}
-      <div className="absolute top-32 right-6">
+      {/* プレイヤー7 - 右上 (少し下に) */}
+      <div className="absolute top-44 right-6">
         <PlayerComponent player={players[6]} />
       </div>
 

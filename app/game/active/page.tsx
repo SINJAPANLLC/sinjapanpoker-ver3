@@ -355,9 +355,11 @@ export default function ActiveGamePage() {
       if (cards.length < 2) return false;
       const rankCounts: Record<string, number> = {};
       cards.forEach(c => rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1);
-      const counts = Object.values(rankCounts);
+      const counts = Object.values(rankCounts).sort((a, b) => b - a);
+      
       if (counts.some(c => c >= 4)) return 'フォーカード';
-      if (counts.some(c => c >= 3) && counts.some(c => c >= 2)) return 'フルハウス';
+      // フルハウス：3枚+2枚（別のランク）
+      if (counts[0] >= 3 && counts[1] >= 2) return 'フルハウス';
       if (counts.some(c => c >= 3)) return 'スリーカード';
       const pairs = counts.filter(c => c >= 2).length;
       if (pairs >= 2) return 'ツーペア';

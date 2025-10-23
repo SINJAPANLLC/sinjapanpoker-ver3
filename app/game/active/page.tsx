@@ -759,10 +759,10 @@ export default function ActiveGamePage() {
         {/* チャット吹き出し */}
         {player.chatMessage && (
           <div className={`absolute top-0 ${
-            player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
+            player.cardSide === 'right' ? 'right-full mr-2' : 'left-full ml-2'
           } transform -translate-y-1/2`}>
             <motion.div
-              initial={{ x: player.cardSide === 'right' ? -20 : 20, opacity: 0, scale: 0.8 }}
+              initial={{ x: player.cardSide === 'right' ? 20 : -20, opacity: 0, scale: 0.8 }}
               animate={{ x: 0, opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
@@ -770,12 +770,12 @@ export default function ActiveGamePage() {
                 <p className="text-white text-[10px] font-semibold">{player.chatMessage}</p>
                 {/* 吹き出しの三角形 */}
                 <div className={`absolute top-1/2 transform -translate-y-1/2 ${
-                  player.cardSide === 'right' ? '-left-2' : '-right-2'
+                  player.cardSide === 'right' ? '-right-2' : '-left-2'
                 }`}>
                   <div className={`w-0 h-0 ${
                     player.cardSide === 'right' 
-                      ? 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-cyan-400'
-                      : 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[8px] border-l-cyan-400'
+                      ? 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[8px] border-l-cyan-400'
+                      : 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-cyan-400'
                   }`}></div>
                 </div>
               </div>

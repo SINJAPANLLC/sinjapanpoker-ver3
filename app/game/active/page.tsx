@@ -253,7 +253,7 @@ export default function ActiveGamePage() {
 
       {/* チャットパネル */}
       {showChat && (
-        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl">
+        <div className="absolute top-16 right-4 w-72 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
           <div className="p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">

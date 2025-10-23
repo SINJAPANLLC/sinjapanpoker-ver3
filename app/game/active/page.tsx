@@ -471,19 +471,9 @@ export default function ActiveGamePage() {
                     zIndex: 100 + cardIndex,
                   }}
                 >
-                  <motion.div
-                    initial={dealingCards ? { x: 0, y: -200, opacity: 0, scale: 0.5 } : false}
-                    animate={{ x: 0, y: 0, opacity: player.folded ? 0 : 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.5, 
-                      delay: dealingCards ? (player.id - 1) * 0.1 + cardIndex * 0.05 : 0,
-                      ease: "easeOut"
-                    }}
-                  >
-                    <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
-                      <Card card={card} faceUp={false} />
-                    </div>
-                  </motion.div>
+                  <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
+                    <Card card={card} faceUp={false} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -493,18 +483,12 @@ export default function ActiveGamePage() {
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${
                 player.cardSide === 'right' ? '-right-12' : '-left-12'
               }`}>
-                <motion.div
-                  initial={{ scale: 0.5, y: -20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  transition={{ type: "spring", duration: 0.5 }}
-                >
-                  <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded-md border-2 border-white shadow-lg">
-                    <div className="flex items-center gap-1">
-                      <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
-                      <p className="text-white text-xs font-bold">{player.bet}</p>
-                    </div>
+                <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded-md border-2 border-white shadow-lg">
+                  <div className="flex items-center gap-1">
+                    <Image src="/chip-icon.png" alt="chip" width={14} height={14} />
+                    <p className="text-white text-xs font-bold">{player.bet}</p>
                   </div>
-                </motion.div>
+                </div>
                 {/* ベット増加表示 */}
                 {betIncrease && betIncrease.playerId === player.id && (
                   <motion.div

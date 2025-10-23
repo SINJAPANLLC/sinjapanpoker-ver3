@@ -449,7 +449,8 @@ export default function ActiveGamePage() {
       chips: p.chips,
       // ユーザーのアバター画像を使用（なければランダム画像）
       avatar: p.avatar || `https://i.pravatar.cc/150?img=${(idx + 1)}`,
-      cardSide: (idx < 5 ? 'right' : 'left') as 'right' | 'left',
+      // position 0（下部中央）は'center'、1-4は右側、5-8は左側
+      cardSide: position === '0' || position === 0 ? 'center' : (Number(position || 0) <= 4 ? 'right' : 'left'),
       showCards,
       position,
       bet: p.bet,
@@ -505,8 +506,8 @@ export default function ActiveGamePage() {
           </div>
         )}
 
-        {/* ハンドカード - アバターに重ねる */}
-        {player.showCards && player.cards && player.cards.length > 0 && (
+        {/* ハンドカード - アバターに重ねる（position 0は表示しない） */}
+        {player.showCards && player.cards && player.cards.length > 0 && player.position !== 0 && player.position !== '0' && (
           <div className={`absolute top-1/2 transform -translate-y-1/2 ${
             player.cardSide === 'right' 
               ? 'right-0 translate-x-1/2' 
@@ -530,8 +531,8 @@ export default function ActiveGamePage() {
               ))}
             </div>
             
-            {/* ベット額表示 - カードの横 */}
-            {player.bet > 0 && !player.folded && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && (
+            {/* ベット額表示 - カードの横（position 0は表示しない） */}
+            {player.bet > 0 && !player.folded && gameState?.phase !== 'waiting' && gameState?.phase !== 'finished' && player.position !== 0 && player.position !== '0' && (
               <div className={`absolute top-1/2 transform -translate-y-1/2 ${
                 player.cardSide === 'right' ? '-right-12' : '-left-12'
               }`}>

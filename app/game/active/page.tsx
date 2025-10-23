@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Menu, MessageCircle } from 'lucide-react';
+import { User, Menu, MessageCircle, Volume2, VolumeX, Music, Wifi, WifiOff, Maximize, Minimize, Info, History, Eye } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
 import Image from 'next/image';
@@ -16,6 +16,15 @@ export default function ActiveGamePage() {
   const [autoCheck, setAutoCheck] = useState(false);
   const [autoCheckFold, setAutoCheckFold] = useState(false);
   const [showEmotes, setShowEmotes] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [showRebuy, setShowRebuy] = useState(false);
+  const [showTableInfo, setShowTableInfo] = useState(false);
+  const [showHandHistory, setShowHandHistory] = useState(false);
+  const [isSpectator, setIsSpectator] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
+  const [showActionLog, setShowActionLog] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -174,11 +183,20 @@ export default function ActiveGamePage() {
           </div>
         )}
 
-        {/* ターンタイマー */}
+        {/* ターンタイマーとプログレスバー */}
         {isActive && (
-          <div className="absolute -top-2 -left-2 w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
-            <p className="text-white text-sm font-bold">{turnTimer}</p>
-          </div>
+          <>
+            <div className="absolute -top-2 -left-2 w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+              <p className="text-white text-sm font-bold">{turnTimer}</p>
+            </div>
+            {/* タイマープログレスバー */}
+            <div className="absolute -bottom-3 left-0 right-0 h-1 bg-white/30 rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-1000 ${turnTimer <= 5 ? 'bg-red-500' : 'bg-cyan-400'}`}
+                style={{ width: `${(turnTimer / 15) * 100}%` }}
+              ></div>
+            </div>
+          </>
         )}
 
         {/* チャット吹き出し */}
@@ -238,13 +256,30 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* 左上 - メニューアイコン */}
-      <div className="absolute top-4 left-4">
+      {/* 左上 - メニューアイコン群 */}
+      <div className="absolute top-4 left-4 flex gap-2">
+        {/* メニューアイコン */}
         <button 
           onClick={() => setShowMenu(!showMenu)}
           className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
         >
           <Menu className="w-6 h-6 text-white" />
+        </button>
+        
+        {/* テーブル情報ボタン */}
+        <button 
+          onClick={() => setShowTableInfo(!showTableInfo)}
+          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+        >
+          <Info className="w-5 h-5 text-white" />
+        </button>
+        
+        {/* ハンド履歴ボタン */}
+        <button 
+          onClick={() => setShowHandHistory(!showHandHistory)}
+          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+        >
+          <History className="w-5 h-5 text-white" />
         </button>
       </div>
 
@@ -279,6 +314,16 @@ export default function ActiveGamePage() {
                 <p className="text-white text-sm font-semibold">📊 統計</p>
               </button>
               
+              <button 
+                onClick={() => {
+                  setShowActionLog(!showActionLog);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-semibold">📝 アクションログ</p>
+              </button>
+              
               <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
                 <p className="text-white text-sm font-semibold">📖 ルール</p>
               </button>
@@ -288,6 +333,23 @@ export default function ActiveGamePage() {
               </button>
               
               <div className="border-t border-white/30 my-2"></div>
+              
+              <button 
+                onClick={() => {
+                  setShowRebuy(true);
+                  setShowMenu(false);
+                }}
+                className="w-full bg-green-500/80 hover:bg-green-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
+                <p className="text-white text-sm font-bold">💰 チップ追加</p>
+              </button>
+              
+              <button 
+                onClick={() => setIsSpectator(!isSpectator)}
+                className={`w-full ${isSpectator ? 'bg-purple-600' : 'bg-white/20'} hover:bg-purple-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left`}
+              >
+                <p className="text-white text-sm font-bold">👁️ 観戦モード {isSpectator ? 'ON' : 'OFF'}</p>
+              </button>
               
               <button className="w-full bg-yellow-500/80 hover:bg-yellow-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
                 <p className="text-white text-sm font-bold">⏸️ 待機する</p>
@@ -305,8 +367,40 @@ export default function ActiveGamePage() {
         </div>
       )}
 
-      {/* 右上 - チャットアイコン */}
-      <div className="absolute top-4 right-4">
+      {/* 右上 - アイコン群 */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        {/* 接続状態インジケーター */}
+        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg">
+          {connectionStatus === 'connected' ? (
+            <Wifi className="w-5 h-5 text-white" />
+          ) : connectionStatus === 'connecting' ? (
+            <Wifi className="w-5 h-5 text-yellow-300 animate-pulse" />
+          ) : (
+            <WifiOff className="w-5 h-5 text-red-300" />
+          )}
+        </div>
+        
+        {/* 全画面ボタン */}
+        <button 
+          onClick={() => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen();
+              setIsFullscreen(true);
+            } else {
+              document.exitFullscreen();
+              setIsFullscreen(false);
+            }
+          }}
+          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+        >
+          {isFullscreen ? (
+            <Minimize className="w-5 h-5 text-white" />
+          ) : (
+            <Maximize className="w-5 h-5 text-white" />
+          )}
+        </button>
+        
+        {/* チャットアイコン */}
         <button 
           onClick={() => setShowChat(!showChat)}
           className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
@@ -412,7 +506,7 @@ export default function ActiveGamePage() {
       )}
 
       {/* テーブル情報ヘッダー */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded border border-white/30 shadow-sm">
           <div className="flex items-center justify-center gap-2">
             <p className="text-white text-[8px]">Hand #{handNumber}</p>
@@ -420,6 +514,14 @@ export default function ActiveGamePage() {
             <p className="text-white text-[8px]">SB/BB: {smallBlind}/{bigBlind}</p>
           </div>
         </div>
+        
+        {/* 観戦モードバッジ */}
+        {isSpectator && (
+          <div className="bg-purple-600 px-3 py-1 rounded-full border-2 border-white/30 shadow-lg flex items-center gap-1">
+            <Eye className="w-3 h-3 text-white" />
+            <p className="text-white text-[9px] font-bold">観戦中</p>
+          </div>
+        )}
       </div>
 
       {/* コミュニティカード */}
@@ -441,12 +543,22 @@ export default function ActiveGamePage() {
       </div>
 
       {/* ポット */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%]">
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%] flex flex-col gap-1 items-center">
+        {/* メインポット */}
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
           <p className="text-white text-xs font-bold text-center">POT</p>
           <div className="flex items-center justify-center gap-1">
             <Image src="/chip-icon.png" alt="chip" width={16} height={16} />
             <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
+          </div>
+        </div>
+        
+        {/* サイドポット（複数オールインがある場合） */}
+        <div className="bg-gradient-to-br from-yellow-400 to-orange-500 px-3 py-1.5 rounded border border-white/30 shadow-md">
+          <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
+          <div className="flex items-center justify-center gap-0.5">
+            <Image src="/chip-icon.png" alt="chip" width={12} height={12} />
+            <p className="text-white text-[10px] font-semibold">3,200</p>
           </div>
         </div>
       </div>
@@ -783,6 +895,179 @@ export default function ActiveGamePage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* テーブル情報パネル */}
+      {showTableInfo && (
+        <div className="absolute top-20 left-4 w-64 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-white" />
+                <p className="text-white text-sm font-bold">テーブル情報</p>
+              </div>
+              <button 
+                onClick={() => setShowTableInfo(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-xs">✕</p>
+              </button>
+            </div>
+            
+            <div className="space-y-2 text-white text-xs">
+              <div className="flex justify-between bg-white/10 p-2 rounded">
+                <span>平均ポット:</span>
+                <span className="font-bold">¥8,500</span>
+              </div>
+              <div className="flex justify-between bg-white/10 p-2 rounded">
+                <span>ハンド/時間:</span>
+                <span className="font-bold">45/時</span>
+              </div>
+              <div className="flex justify-between bg-white/10 p-2 rounded">
+                <span>プレイヤー数:</span>
+                <span className="font-bold">9/9</span>
+              </div>
+              <div className="flex justify-between bg-white/10 p-2 rounded">
+                <span>テーブルタイプ:</span>
+                <span className="font-bold">キャッシュ</span>
+              </div>
+              <div className="flex justify-between bg-white/10 p-2 rounded">
+                <span>ゲーム時間:</span>
+                <span className="font-bold">2時間15分</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ハンド履歴パネル */}
+      {showHandHistory && (
+        <div className="absolute top-20 left-20 w-80 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl z-50">
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-white" />
+                <p className="text-white text-sm font-bold">ハンド履歴</p>
+              </div>
+              <button 
+                onClick={() => setShowHandHistory(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-xs">✕</p>
+              </button>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-2 h-64 overflow-y-auto space-y-1.5">
+              <div className="bg-white/20 rounded p-2 border border-white/30">
+                <div className="flex justify-between mb-1">
+                  <span className="text-white text-[9px] font-bold">Hand #41</span>
+                  <span className="text-green-300 text-[9px] font-bold">+2,500</span>
+                </div>
+                <p className="text-white text-[8px]">AA vs KK - フロップでセット</p>
+              </div>
+              <div className="bg-white/20 rounded p-2 border border-white/30">
+                <div className="flex justify-between mb-1">
+                  <span className="text-white text-[9px] font-bold">Hand #40</span>
+                  <span className="text-red-300 text-[9px] font-bold">-800</span>
+                </div>
+                <p className="text-white text-[8px]">QJ - ミスドロー</p>
+              </div>
+              <div className="bg-white/20 rounded p-2 border border-white/30">
+                <div className="flex justify-between mb-1">
+                  <span className="text-white text-[9px] font-bold">Hand #39</span>
+                  <span className="text-green-300 text-[9px] font-bold">+1,200</span>
+                </div>
+                <p className="text-white text-[8px]">AK - トップペア勝利</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* リバイモーダル */}
+      {showRebuy && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-white text-lg font-bold">チップ追加</p>
+              <button 
+                onClick={() => setShowRebuy(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-sm">✕</p>
+              </button>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-3 mb-4">
+              <p className="text-white text-xs mb-2">現在のチップ: 5,000</p>
+              <p className="text-white text-xs mb-3">最小バイイン: 5,000 / 最大: 20,000</p>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
+                  <p className="text-white text-sm font-bold">5,000</p>
+                </button>
+                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
+                  <p className="text-white text-sm font-bold">10,000</p>
+                </button>
+                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
+                  <p className="text-white text-sm font-bold">15,000</p>
+                </button>
+                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
+                  <p className="text-white text-sm font-bold">20,000</p>
+                </button>
+              </div>
+            </div>
+            
+            <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors">
+              <p className="text-white text-sm font-bold">追加する</p>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ベット履歴ログ */}
+      {showActionLog && (
+        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-80 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-lg p-2">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-white text-[9px] font-bold">アクションログ</p>
+            <button 
+              onClick={() => setShowActionLog(false)}
+              className="text-white hover:bg-white/20 rounded p-0.5 transition-colors"
+            >
+              <p className="text-[8px]">✕</p>
+            </button>
+          </div>
+          <div className="bg-white/10 rounded p-1.5 max-h-24 overflow-y-auto space-y-0.5">
+            <p className="text-white text-[8px]">プレイヤー2: レイズ 200</p>
+            <p className="text-white text-[8px]">プレイヤー6: コール 200</p>
+            <p className="text-white text-[8px]">プレイヤー9: コール 200</p>
+            <p className="text-white text-[8px]">プレイヤー5: フォールド</p>
+            <p className="text-white text-[8px]">プレイヤー7: フォールド</p>
+          </div>
+        </div>
+      )}
+
+      {/* 右下 - サウンド/音楽設定 */}
+      <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+        {/* サウンドボタン */}
+        <button
+          onClick={() => setSoundEnabled(!soundEnabled)}
+          className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2.5 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity"
+        >
+          {soundEnabled ? (
+            <Volume2 className="w-5 h-5 text-white" />
+          ) : (
+            <VolumeX className="w-5 h-5 text-white" />
+          )}
+        </button>
+        
+        {/* 音楽ボタン */}
+        <button
+          onClick={() => setMusicEnabled(!musicEnabled)}
+          className={`bg-gradient-to-br from-cyan-400 to-blue-600 p-2.5 rounded-full border-2 border-white/30 shadow-lg hover:opacity-90 transition-opacity ${!musicEnabled && 'opacity-50'}`}
+        >
+          <Music className="w-5 h-5 text-white" />
+        </button>
       </div>
     </div>
   );

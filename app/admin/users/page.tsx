@@ -69,108 +69,43 @@ function UserManagementContent() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
-    // モックユーザーデータ
-    const mockUsers: User[] = [
-      {
-        id: 'user_1',
-        username: 'Player1',
-        email: 'player1@example.com',
-        status: 'active',
-        role: 'user',
-        realChips: 5000,
-        gameChips: 10000,
-        diamonds: 50,
-        energy: 100,
-        points: 1000,
-        level: 5,
-        joinDate: new Date('2024-01-15'),
-        lastLogin: new Date(),
-        gamesPlayed: 150,
-        totalWinnings: 25000,
-        kycStatus: 'pending',
-        kycSubmittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        kycDocuments: [
-          {
-            id: 'doc_1',
-            type: 'id_card',
-            status: 'pending',
-            uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-            url: '/documents/user_1_id_card.jpg'
-          },
-          {
-            id: 'doc_2',
-            type: 'utility_bill',
-            status: 'pending',
-            uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-            url: '/documents/user_1_utility_bill.pdf'
-          }
-        ],
-        realMoneyEnabled: false
-      },
-      {
-        id: 'user_2',
-        username: 'VIPPlayer',
-        email: 'vip@example.com',
-        status: 'active',
-        role: 'vip',
-        realChips: 50000,
-        gameChips: 10000,
-        diamonds: 200,
-        energy: 200,
-        points: 5000,
-        level: 15,
-        joinDate: new Date('2024-01-01'),
-        lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        gamesPlayed: 500,
-        totalWinnings: 100000,
-        kycStatus: 'approved',
-        kycSubmittedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        kycApprovedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
-        kycDocuments: [
-          {
-            id: 'doc_3',
-            type: 'passport',
-            status: 'approved',
-            uploadedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-            url: '/documents/user_2_passport.jpg'
-          }
-        ],
-        realMoneyEnabled: true
-      },
-      {
-        id: 'user_3',
-        username: 'BadPlayer',
-        email: 'bad@example.com',
-        status: 'banned',
-        role: 'user',
-        realChips: 0,
-        gameChips: 0,
-        diamonds: 0,
-        energy: 0,
-        points: 0,
-        level: 1,
-        joinDate: new Date('2024-02-01'),
-        lastLogin: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        gamesPlayed: 10,
-        totalWinnings: -5000,
-        kycStatus: 'rejected',
-        kycSubmittedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-        kycRejectedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
-        kycDocuments: [
-          {
-            id: 'doc_4',
-            type: 'driver_license',
-            status: 'rejected',
-            uploadedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-            url: '/documents/user_3_driver_license.jpg'
-          }
-        ],
-        realMoneyEnabled: false
-      }
-    ];
-    setUsers(mockUsers);
-    setLoading(false);
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        const formattedUsers: User[] = data.users.map((u: any) => ({
+          id: u.id,
+          username: u.username,
+          email: u.email || `${u.username}@example.com`,
+          status: 'active' as const,
+          role: u.username === 'admin' ? 'admin' as const : 'user' as const,
+          realChips: 0,
+          gameChips: u.chips || 0,
+          diamonds: 0,
+          energy: u.experience || 0,
+          points: 0,
+          level: u.level || 1,
+          joinDate: new Date(u.createdAt || Date.now()),
+          lastLogin: new Date(u.lastLogin || Date.now()),
+          gamesPlayed: u.gamesPlayed || 0,
+          totalWinnings: u.totalWinnings || 0,
+          kycStatus: 'not_submitted' as const,
+          kycDocuments: [],
+          realMoneyEnabled: false,
+        }));
+        setUsers(formattedUsers);
+      }
+    } catch (error) {
+      console.error('ユーザー取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||

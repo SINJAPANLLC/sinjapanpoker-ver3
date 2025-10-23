@@ -86,7 +86,7 @@ function AdminGamesContent() {
 
   const viewGameDetails = async (game: Game) => {
     try {
-      const response = await fetch(`/api/games/${game.gameId}`);
+      const response = await fetch(`/api/games/${game.id}`);
       if (response.ok) {
         const data = await response.json();
         setSelectedGame(data.game);

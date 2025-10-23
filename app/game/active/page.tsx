@@ -10,9 +10,10 @@ import { useSoundManager } from '@/hooks/useSoundManager';
 import { useMoneyModeStore } from '@/store/useMoneyModeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { usePokerGame } from '@/hooks/usePokerGame';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function ActiveGamePage() {
+  const router = useRouter();
   const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
   const { mode, isEnabled } = useMoneyModeStore();
   const { user: authUser } = useAuthStore();
@@ -78,6 +79,7 @@ export default function ActiveGamePage() {
   const [showPlayerList, setShowPlayerList] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [isAway, setIsAway] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(1);
   const [dealingCards, setDealingCards] = useState(false);
   const [revealFlop, setRevealFlop] = useState(false);
@@ -880,7 +882,10 @@ export default function ActiveGamePage() {
 
             {/* メニュー項目 */}
             <div className="space-y-2">
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+              <button 
+                onClick={() => router.push('/lobby')}
+                className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
+              >
                 <p className="text-white text-sm font-semibold">🏠 ホームに戻る</p>
               </button>
               
@@ -1019,8 +1024,11 @@ export default function ActiveGamePage() {
                 <p className="text-white text-sm font-bold">👁️ 観戦モード {isSpectator ? 'ON' : 'OFF'}</p>
               </button>
               
-              <button className="w-full bg-orange-500/80 hover:bg-orange-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-bold">🪑 離席中</p>
+              <button 
+                onClick={() => setIsAway(!isAway)}
+                className={`w-full ${isAway ? 'bg-orange-600' : 'bg-orange-500/80'} hover:bg-orange-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left`}
+              >
+                <p className="text-white text-sm font-bold">🪑 離席中 {isAway ? 'ON' : 'OFF'}</p>
               </button>
             </div>
           </div>

@@ -289,7 +289,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* チャット入力UI - プレイヤー1の左側 */}
-      <div className="absolute bottom-32 left-8">
+      <div className="absolute bottom-32 left-4">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-1.5 rounded border border-white/30 shadow-lg w-36">
           <div className="flex gap-1">
             <input

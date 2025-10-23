@@ -109,9 +109,11 @@ export default function ActiveGamePage() {
   const [playerBubbles, setPlayerBubbles] = useState<Record<string, { message: string; timestamp: number }>>({});
   const [processedMessageCount, setProcessedMessageCount] = useState(0);
   
-  const callAmount = 200;
-  const minRaise = 200;
-  const maxRaise = 5000;
+  // 動的な値として計算
+  const currentPlayer = getCurrentPlayer();
+  const callAmount = getCallAmount();
+  const minRaise = getMinRaise();
+  const maxRaise = currentPlayer?.chips || 0;
 
   const actionLog = [
     { player: 'プレイヤー2', action: 'レイズ 200', time: '12:34' },

@@ -70,6 +70,18 @@ The state is persisted to localStorage/sessionStorage for offline resilience and
   - `ActionButtons` for fold, check, call, raise, all-in actions
   - `GameChat` for in-game messaging
   - Framer Motion animations for cards and player actions (500ms duration)
+  - **Footer chip display** (2025-10-23): Real-time chip balance display in game footer, synchronized with user.chips
+
+**Chip System Implementation** (2025-10-23)
+- **Practice Mode**: Players start with 10,000 practice chips (no admin grant required)
+- **Regular Mode**: Players start with 0 chips (admin must grant chips via `/admin/currency`)
+- **Game Join Logic**: `isPracticeMode ? 10000 : (user.chips || 0)` determines initial chips
+- **Footer Display**: Shows current chip balance in game page footer, updates in real-time
+- **Avatar System** (2025-10-23):
+  - Avatar saved to database (`users.avatar` field) via PATCH `/api/user/[id]`
+  - `useAuthStore.updateUser()` function for synchronizing avatar changes across app
+  - LocalStorage used for caching avatar data
+  - Database-first approach ensures avatar persistence across sessions and devices
 
 **Game Logic Libraries**
 - `lib/poker-engine.ts` - Card deck management, hand evaluation (royal flush to high card)

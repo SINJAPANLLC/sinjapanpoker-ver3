@@ -183,10 +183,12 @@ export default function ActiveGamePage() {
       // tableInfoが読み込まれるのを少し待つ
       setTimeout(() => {
         const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
-        joinGame(user.chips || 10000, blinds);
+        // 練習モードの場合は10000チップ、通常モードは実際の所持チップ（デフォルト0）
+        const chips = isPracticeMode ? 10000 : (user.chips || 0);
+        joinGame(chips, blinds);
       }, 100);
     }
-  }, [connected, user, gameState, joinGame]);
+  }, [connected, user, gameState, joinGame, isPracticeMode]);
 
   // 接続ステータスの同期
   useEffect(() => {
@@ -1442,6 +1444,17 @@ export default function ActiveGamePage() {
       {/* アクションボタン - 画面下部 */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4">
         <div className="max-w-md mx-auto space-y-3">
+          {/* 所持チップ表示 */}
+          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
+            <div className="flex items-center justify-between">
+              <p className="text-white text-xs font-semibold">所持チップ</p>
+              <div className="flex items-center gap-2">
+                <Image src="/chip-icon.png" alt="chip" width={20} height={20} />
+                <p className="text-white text-lg font-bold">{(user?.chips || 0).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+
           {/* レイズスライダー */}
           {showRaiseSlider && (
             <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">
@@ -2555,7 +2568,7 @@ export default function ActiveGamePage() {
                 <p className="text-white/80 text-xs mb-1">現在のチップ</p>
                 <div className="flex items-center gap-2">
                   <Image src="/chip-icon.png" alt="chip" width={20} height={20} />
-                  <p className="text-white text-2xl font-bold">{(user?.chips || 5000).toLocaleString()}</p>
+                  <p className="text-white text-2xl font-bold">{(user?.chips || 0).toLocaleString()}</p>
                 </div>
               </div>
 

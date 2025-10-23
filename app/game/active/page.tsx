@@ -454,7 +454,7 @@ export default function ActiveGamePage() {
         )}
 
         {/* ハンドカード - アバターに重ねる */}
-        {player.showCards && (
+        {player.showCards && player.cards && player.cards.length > 0 && (
           <div className={`absolute top-1/2 transform -translate-y-1/2 ${
             player.cardSide === 'right' 
               ? 'right-0 translate-x-1/2' 

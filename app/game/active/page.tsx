@@ -106,9 +106,9 @@ export default function ActiveGamePage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* コミュニティカード - プレイヤー3と8の下（中央） */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <div className="flex gap-2">
+      {/* コミュニティカード - 少し下で余白詰めて */}
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className="flex gap-1">
           {communityCards.map((card) => (
             <div key={card.id} className="scale-75">
               <Card card={card} faceUp={true} />

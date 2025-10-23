@@ -275,10 +275,10 @@ export default function ActiveGamePage() {
   const sidePotTotal = gameState?.sidePots?.reduce((sum, sp) => sum + sp.amount, 0) || 0;
   const hasSidePots = sidePotTotal > 0;
   
-  const tableName = "SIN JAPAN TABLE #1";
+  const tableName = gameState?.id || "SIN JAPAN TABLE #1";
   const handNumber = 42;
-  const smallBlind = gameState?.blinds.small || 50;
-  const bigBlind = gameState?.blinds.big || 100;
+  const smallBlind = gameState?.blinds?.small || 10;
+  const bigBlind = gameState?.blinds?.big || 20;
   const gamePhase = gameState?.phase.toUpperCase() || "WAITING";
 
   const currentPlayerData = getCurrentPlayer();
@@ -1063,9 +1063,9 @@ export default function ActiveGamePage() {
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-1">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-2 py-1 rounded border border-white/30 shadow-sm">
           <div className="flex items-center justify-center gap-2">
-            <p className="text-white text-[8px]">Hand #{handNumber}</p>
+            <p className="text-white text-[8px] font-semibold">{tableName}</p>
             <p className="text-white text-[8px]">•</p>
-            <p className="text-white text-[8px]">SB/BB: {smallBlind}/{bigBlind}</p>
+            <p className="text-white text-[8px]">SB: {smallBlind} / BB: {bigBlind}</p>
           </div>
         </div>
         

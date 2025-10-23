@@ -568,7 +568,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* ポット */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%] flex flex-col gap-1 items-center">
+      <div className="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-1 items-center">
         {/* チップアニメーション */}
         <AnimatePresence>
           {chipAnimations.map((anim) => (

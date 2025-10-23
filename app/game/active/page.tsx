@@ -751,34 +751,6 @@ export default function ActiveGamePage() {
                 </button>
               </div>
 
-              {/* BB倍数ボタン */}
-              <div className="grid grid-cols-4 gap-1.5 mb-2">
-                <button
-                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 2.5))}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">2.5 BB</p>
-                </button>
-                <button
-                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 3))}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">3 BB</p>
-                </button>
-                <button
-                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 4))}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">4 BB</p>
-                </button>
-                <button
-                  onClick={() => setRaiseAmount(Math.max(minRaise, bigBlind * 5))}
-                  className="bg-white/20 hover:bg-white/30 py-1.5 rounded border border-white/40 transition-colors"
-                >
-                  <p className="text-white text-[9px] font-bold">5 BB</p>
-                </button>
-              </div>
-
               <input
                 type="range"
                 min={minRaise}

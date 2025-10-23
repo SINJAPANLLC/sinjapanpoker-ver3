@@ -1237,7 +1237,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* 自分の役表示 - プレイヤー1の左 */}
-      <div className="absolute bottom-36 left-[45%] transform -translate-x-1/2 -translate-x-52">
+      <div className="absolute bottom-28 left-[45%] transform -translate-x-1/2 -translate-x-52">
         <motion.div 
           initial={{ x: -100, opacity: 0, scale: 0.8 }}
           animate={{ x: 0, opacity: 1, scale: 1 }}

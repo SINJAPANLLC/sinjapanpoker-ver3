@@ -33,6 +33,7 @@ export default function ActiveGamePage() {
   const [showLanguageSettings, setShowLanguageSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('日本語');
+  const [showShare, setShowShare] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { id: 1, player: 'プレイヤー2', message: 'よろしく！', time: '12:30' },
     { id: 2, player: 'プレイヤー6', message: 'いい手だ！', time: '12:32' },
@@ -359,38 +360,18 @@ export default function ActiveGamePage() {
                 </p>
               </button>
               
+              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
+                <p className="text-white text-sm font-semibold">📖 ルール</p>
+              </button>
+              
               <button 
                 onClick={() => {
-                  if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                    setIsFullscreen(true);
-                  } else {
-                    document.exitFullscreen();
-                    setIsFullscreen(false);
-                  }
+                  setShowShare(true);
+                  setShowMenu(false);
                 }}
                 className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
               >
-                <p className="text-white text-sm font-semibold flex items-center gap-2">
-                  {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-                  全画面 {isFullscreen ? 'ON' : 'OFF'}
-                </p>
-              </button>
-              
-              <div className="w-full bg-white/20 py-2.5 px-3 rounded-lg border border-white/40">
-                <p className="text-white text-sm font-semibold flex items-center gap-2">
-                  {connectionStatus === 'connected' ? (
-                    <><Wifi className="w-4 h-4 text-green-300" /> 接続中</>
-                  ) : connectionStatus === 'connecting' ? (
-                    <><Wifi className="w-4 h-4 text-yellow-300 animate-pulse" /> 接続中...</>
-                  ) : (
-                    <><WifiOff className="w-4 h-4 text-red-300" /> 切断</>
-                  )}
-                </p>
-              </div>
-              
-              <button className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-semibold">📖 ルール</p>
+                <p className="text-white text-sm font-semibold">📤 シェア</p>
               </button>
               
               <button 
@@ -442,16 +423,8 @@ export default function ActiveGamePage() {
                 <p className="text-white text-sm font-bold">👁️ 観戦モード {isSpectator ? 'ON' : 'OFF'}</p>
               </button>
               
-              <button className="w-full bg-yellow-500/80 hover:bg-yellow-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-bold">⏸️ 待機する</p>
-              </button>
-              
               <button className="w-full bg-orange-500/80 hover:bg-orange-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
                 <p className="text-white text-sm font-bold">🪑 離席中</p>
-              </button>
-              
-              <button className="w-full bg-red-500/80 hover:bg-red-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left">
-                <p className="text-white text-sm font-bold">🚪 テーブルを離れる</p>
               </button>
             </div>
           </div>
@@ -1312,6 +1285,69 @@ export default function ActiveGamePage() {
             </button>
             <button className="w-full bg-red-500/80 hover:bg-red-500 py-2 rounded-lg border-2 border-white/30 transition-colors">
               <p className="text-white text-xs font-bold">アカウント削除</p>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* シェアモーダル */}
+      {showShare && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-white text-lg font-bold">📤 シェア</p>
+              <button 
+                onClick={() => setShowShare(false)}
+                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+              >
+                <p className="text-sm">✕</p>
+              </button>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-3 mb-4">
+              <p className="text-white text-xs mb-3">このテーブルをシェア</p>
+              
+              {/* リンクコピー */}
+              <div className="mb-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value="https://sinpoker.com/table/abc123"
+                    readOnly
+                    className="flex-1 bg-white/20 text-white text-xs px-3 py-2 rounded border border-white/40 focus:outline-none"
+                  />
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText('https://sinpoker.com/table/abc123');
+                      alert('リンクをコピーしました！');
+                    }}
+                    className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded border border-white/40 transition-colors"
+                  >
+                    <p className="text-white text-xs font-bold">コピー</p>
+                  </button>
+                </div>
+              </div>
+              
+              {/* SNSシェアボタン */}
+              <p className="text-white text-xs mb-2">SNSでシェア</p>
+              <div className="grid grid-cols-3 gap-2">
+                <button className="bg-blue-500 hover:bg-blue-600 py-2.5 rounded border border-white/40 transition-colors">
+                  <p className="text-white text-xs font-bold">Twitter</p>
+                </button>
+                <button className="bg-blue-600 hover:bg-blue-700 py-2.5 rounded border border-white/40 transition-colors">
+                  <p className="text-white text-xs font-bold">Facebook</p>
+                </button>
+                <button className="bg-green-500 hover:bg-green-600 py-2.5 rounded border border-white/40 transition-colors">
+                  <p className="text-white text-xs font-bold">LINE</p>
+                </button>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setShowShare(false)}
+              className="w-full bg-white/20 hover:bg-white/30 py-2 rounded-lg border border-white/40 transition-colors"
+            >
+              <p className="text-white text-sm font-bold">閉じる</p>
             </button>
           </div>
         </div>

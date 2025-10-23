@@ -240,16 +240,10 @@ export default function ActiveGamePage() {
         </div>
       </div>
 
-      {/* ゲームフェーズ */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[350%]">
-        <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1 rounded-md border border-white/30 shadow-md">
-          <p className="text-white text-xs font-bold text-center">{gamePhase}</p>
-        </div>
-      </div>
-
       {/* ポット */}
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-[250%]">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
+          <p className="text-white text-[10px] font-bold text-center mb-1">{gamePhase}</p>
           <p className="text-white text-xs font-bold text-center">POT</p>
           <div className="flex items-center justify-center gap-1">
             <Image src="/chip-icon.png" alt="chip" width={16} height={16} />

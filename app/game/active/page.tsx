@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Menu, MessageCircle, Volume2, VolumeX, Music, Wifi, WifiOff, Maximize, Minimize, Info, History, Eye } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
@@ -839,9 +839,9 @@ export default function ActiveGamePage() {
           {player.chatMessage && (
             <motion.div
               key={`chat-${player.name}-${player.chatMessage}`}
-              className={`absolute top-0 ${
+              className={`absolute top-0 transform -translate-y-1/2 ${
                 player.cardSide === 'right' ? 'left-full ml-2' : 'right-full mr-2'
-              } transform -translate-y-1/2`}
+              }`}
               initial={{ x: player.cardSide === 'right' ? -20 : 20, opacity: 0, scale: 0.8 }}
               animate={{ x: 0, opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -891,17 +891,40 @@ export default function ActiveGamePage() {
     );
   };
 
+  // 画面幅に応じたスケールファクターを計算（430pxを基準）
+  const getScaleFactor = () => {
+    if (typeof window === 'undefined') return 1;
+    const screenWidth = window.innerWidth;
+    if (screenWidth >= 768) return 1; // デスクトップは固定サイズ
+    return Math.min(screenWidth / 430, 1); // モバイルは画面幅に応じて縮小
+  };
+
+  const [scaleFactor, setScaleFactor] = React.useState(1);
+
+  React.useEffect(() => {
+    const updateScale = () => {
+      setScaleFactor(getScaleFactor());
+    };
+    
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
   return (
     <>
-      <div className="relative w-full h-screen flex items-center justify-center bg-black">
+      <div className="relative w-full h-screen flex items-center justify-center bg-black overflow-hidden">
         {/* レスポンシブコンテナ - iPhone17基準（430px x 932px）で最適化 */}
         <div 
-          className="relative w-full h-screen md:max-w-[430px] md:h-[932px] md:max-h-screen md:rounded-lg md:overflow-hidden md:shadow-2xl"
+          className="relative w-full h-screen md:max-w-[430px] md:h-[932px] md:max-h-screen md:rounded-lg md:overflow-hidden md:shadow-2xl origin-center"
           style={{
             backgroundImage: 'url(/poker-table-bg.png)',
             backgroundSize: 'cover',
             backgroundPosition: '55% 32%',
             backgroundRepeat: 'no-repeat',
+            transform: `scale(${scaleFactor})`,
+            width: scaleFactor < 1 ? '430px' : '100%',
+            height: scaleFactor < 1 ? '932px' : '100vh',
           }}
         >
       {/* 左上 - メニューアイコン */}

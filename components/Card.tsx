@@ -46,6 +46,8 @@ export default function Card({ card, faceUp = false, className = '', enable3D = 
             src="/cards/card-back.png"
             alt="Card back"
             fill
+            unoptimized
+            priority
             className="object-contain"
             style={{ padding: '2px' }}
           />
@@ -62,6 +64,8 @@ export default function Card({ card, faceUp = false, className = '', enable3D = 
             src={getCardImagePath(card)}
             alt={`${card.rank} of ${card.suit}`}
             fill
+            unoptimized
+            priority
             className="object-contain"
           />
         </div>
@@ -77,6 +81,8 @@ export default function Card({ card, faceUp = false, className = '', enable3D = 
           src="/cards/card-back.png"
           alt="Card back"
           fill
+          unoptimized
+          priority
           className="object-contain"
           style={{ padding: '2px' }}
         />
@@ -90,6 +96,8 @@ export default function Card({ card, faceUp = false, className = '', enable3D = 
         src={getCardImagePath(card)}
         alt={`${card.rank} of ${card.suit}`}
         fill
+        unoptimized
+        priority
         className="object-contain"
       />
     </div>

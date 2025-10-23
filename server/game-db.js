@@ -63,8 +63,10 @@ const playerStats = pgTable('player_stats', {
   biggestPot: integer('biggest_pot').notNull().default(0),
 });
 
-async function saveGameToDatabase(game, winners) {
+async function saveGameToDatabase(game) {
   try {
+    const winners = game.winners || [];
+    
     // 1. Save game to games table
     const gameData = {
       id: crypto.randomUUID(),
@@ -73,14 +75,14 @@ async function saveGameToDatabase(game, winners) {
       phase: 'ended',
       players: game.players,
       communityCards: game.communityCards,
-      pot: game.pot,
+      pot: 0,
       currentBet: game.currentBet,
       currentPlayerIndex: game.currentPlayerIndex,
       dealerIndex: game.dealerIndex,
-      smallBlind: game.smallBlind,
-      bigBlind: game.bigBlind,
-      winner: winners.length > 0 ? winners[0].id : null,
-      winningHand: winners.length > 0 ? winners[0].handRank : null,
+      smallBlind: game.blinds.small,
+      bigBlind: game.blinds.big,
+      winner: winners.length > 0 ? winners[0].username : null,
+      winningHand: winners.length > 0 ? winners[0].handDescription : null,
       endedAt: new Date(),
     };
 
@@ -88,16 +90,17 @@ async function saveGameToDatabase(game, winners) {
 
     // 2. Save hand history for each player
     for (const player of game.players) {
-      const isWinner = winners.some(w => w.id === player.id);
-      const winAmount = isWinner ? winners.find(w => w.id === player.id).winAmount : 0;
-      const chipsChange = winAmount - (game.totalBets.get(player.id) || 0);
+      const winner = winners.find(w => w.username === player.username);
+      const isWinner = !!winner;
+      const winAmount = winner ? winner.amount : 0;
+      const chipsChange = winAmount - player.totalBet;
 
       await db.insert(handHistory).values({
         id: crypto.randomUUID(),
         userId: player.userId,
         gameId: game.id,
         gameType: game.type,
-        blinds: `${game.smallBlind}/${game.bigBlind}`,
+        blinds: `${game.blinds.small}/${game.blinds.big}`,
         chipsChange,
         result: isWinner ? 'win' : 'loss',
         hand: player.cards ? JSON.stringify(player.cards) : null,
@@ -110,11 +113,11 @@ async function saveGameToDatabase(game, winners) {
         gameType: game.type,
       });
 
-      // 4. Update user chips
+      // 4. Update user chips with final balance
       await db
         .update(users)
         .set({ 
-          chips: sql`${users.chips} + ${chipsChange}`
+          chips: player.chips
         })
         .where(eq(users.id, player.userId));
     }

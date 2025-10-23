@@ -267,12 +267,14 @@ app.prepare().then(() => {
       const activePlayers = this.players.filter(p => !p.folded);
       
       if (activePlayers.length === 1) {
-        activePlayers[0].chips += this.pot;
+        const winAmount = this.pot;
+        activePlayers[0].chips += winAmount;
+        this.pot = 0;
         this.winner = activePlayers[0].username;
         this.winningHand = 'フォールド勝ち';
         this.winners = [{
           username: activePlayers[0].username,
-          amount: this.pot,
+          amount: winAmount,
           handDescription: 'フォールド勝ち',
         }];
         this.phase = 'finished';
@@ -312,10 +314,13 @@ app.prepare().then(() => {
         const potWinners = eligibleHands.filter(h => h.handValue === maxHandValue);
 
         const amountPerWinner = Math.floor(pot.amount / potWinners.length);
+        const remainder = pot.amount % potWinners.length;
         
-        for (const winner of potWinners) {
+        for (let i = 0; i < potWinners.length; i++) {
+          const winner = potWinners[i];
           const currentWinnings = winningsMap.get(winner.playerId) || 0;
-          winningsMap.set(winner.playerId, currentWinnings + amountPerWinner);
+          const extraChip = i < remainder ? 1 : 0;
+          winningsMap.set(winner.playerId, currentWinnings + amountPerWinner + extraChip);
         }
       }
 
@@ -333,6 +338,7 @@ app.prepare().then(() => {
         }
       }
 
+      this.pot = 0;
       this.winner = winners.map(w => w.username).join(', ');
       this.winningHand = winners[0]?.handDescription || '';
       this.winners = winners;

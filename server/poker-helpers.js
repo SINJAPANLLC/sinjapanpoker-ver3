@@ -39,7 +39,7 @@ function calculateSidePots(playerBets) {
 // ハンド評価（7枚から最良の5枚を評価）
 function evaluateHand(cards) {
   if (cards.length < 5) {
-    return { value: 0, description: '不完全な手札' };
+    return { value: 0, description: '不完全な手札', ranks: [] };
   }
   
   const rankValues = {
@@ -49,7 +49,7 @@ function evaluateHand(cards) {
   
   // 7枚から全ての5枚の組み合わせを評価
   const combinations = getCombinations(cards, 5);
-  let bestHand = { value: 0, description: '' };
+  let bestHand = { value: 0, description: '', ranks: [] };
   
   for (const hand of combinations) {
     const result = evaluateFiveCards(hand, rankValues);
@@ -78,7 +78,7 @@ function getCombinations(arr, size) {
   return combinations;
 }
 
-// 5枚のカードを評価
+// 5枚のカードを評価（完全なキッカー比較を含む）
 function evaluateFiveCards(hand, rankValues) {
   const sortedCards = [...hand].sort((a, b) => rankValues[b.rank] - rankValues[a.rank]);
   
@@ -113,58 +113,105 @@ function evaluateFiveCards(hand, rankValues) {
     })
     .map(([rank]) => rankValues[rank]);
   
-  // スコア計算用のキッカー
-  const kickerValue = ranksByFrequency.reduce((acc, val, idx) => acc + val * Math.pow(100, 4 - idx), 0);
+  // 完全なキッカー比較のためのスコア計算
+  // 各位置に15^(4-i)の重みを付けて、確実に順序が保たれるようにする
+  const calculateDetailedScore = (baseScore, ranksArray) => {
+    let score = baseScore;
+    for (let i = 0; i < ranksArray.length && i < 5; i++) {
+      score += ranksArray[i] * Math.pow(15, 4 - i);
+    }
+    return score;
+  };
   
   // ロイヤルフラッシュ
   if (isFlush && isStraight && sortedCards[0].rank === 'A') {
-    return { value: 10000000, description: 'ロイヤルフラッシュ' };
+    return { 
+      value: 10000000, 
+      description: 'ロイヤルフラッシュ',
+      ranks: [14, 13, 12, 11, 10]
+    };
   }
   
   // ストレートフラッシュ
   if (isFlush && isStraight) {
     const highCard = isWheel ? 5 : rankValues[sortedCards[0].rank];
-    return { value: 9000000 + highCard, description: 'ストレートフラッシュ' };
+    return { 
+      value: 9000000 + highCard, 
+      description: 'ストレートフラッシュ',
+      ranks: [highCard]
+    };
   }
   
-  // フォーカード
+  // フォーカード (4枚のランク + キッカー1枚)
   if (counts[0] === 4) {
-    return { value: 8000000 + kickerValue, description: 'フォーカード' };
+    return { 
+      value: calculateDetailedScore(8000000, ranksByFrequency), 
+      description: 'フォーカード',
+      ranks: ranksByFrequency
+    };
   }
   
-  // フルハウス
+  // フルハウス (3枚のランク + 2枚のランク)
   if (counts[0] === 3 && counts[1] === 2) {
-    return { value: 7000000 + kickerValue, description: 'フルハウス' };
+    return { 
+      value: calculateDetailedScore(7000000, ranksByFrequency), 
+      description: 'フルハウス',
+      ranks: ranksByFrequency
+    };
   }
   
-  // フラッシュ
+  // フラッシュ (5枚すべてを降順で比較)
   if (isFlush) {
-    return { value: 6000000 + kickerValue, description: 'フラッシュ' };
+    return { 
+      value: calculateDetailedScore(6000000, values), 
+      description: 'フラッシュ',
+      ranks: values
+    };
   }
   
-  // ストレート
+  // ストレート (最高位のカードのみ)
   if (isStraight) {
     const highCard = isWheel ? 5 : rankValues[sortedCards[0].rank];
-    return { value: 5000000 + highCard, description: 'ストレート' };
+    return { 
+      value: 5000000 + highCard, 
+      description: 'ストレート',
+      ranks: [highCard]
+    };
   }
   
-  // スリーカード
+  // スリーカード (3枚のランク + キッカー2枚)
   if (counts[0] === 3) {
-    return { value: 4000000 + kickerValue, description: 'スリーカード' };
+    return { 
+      value: calculateDetailedScore(4000000, ranksByFrequency), 
+      description: 'スリーカード',
+      ranks: ranksByFrequency
+    };
   }
   
-  // ツーペア
+  // ツーペア (高いペア + 低いペア + キッカー1枚)
   if (counts[0] === 2 && counts[1] === 2) {
-    return { value: 3000000 + kickerValue, description: 'ツーペア' };
+    return { 
+      value: calculateDetailedScore(3000000, ranksByFrequency), 
+      description: 'ツーペア',
+      ranks: ranksByFrequency
+    };
   }
   
-  // ワンペア
+  // ワンペア (ペアのランク + キッカー3枚)
   if (counts[0] === 2) {
-    return { value: 2000000 + kickerValue, description: 'ワンペア' };
+    return { 
+      value: calculateDetailedScore(2000000, ranksByFrequency), 
+      description: 'ワンペア',
+      ranks: ranksByFrequency
+    };
   }
   
-  // ハイカード
-  return { value: 1000000 + kickerValue, description: `ハイカード (${sortedCards[0].rank})` };
+  // ハイカード (5枚すべてを降順で比較)
+  return { 
+    value: calculateDetailedScore(1000000, values), 
+    description: `ハイカード (${sortedCards[0].rank})`,
+    ranks: values
+  };
 }
 
 // 勝者を決定
@@ -178,6 +225,7 @@ function determineWinners(players, communityCards) {
         playerId: player.id,
         handValue: handResult.value,
         handDescription: handResult.description,
+        handRanks: handResult.ranks,
       };
     });
   
@@ -224,48 +272,21 @@ function distributePots(sidePots, winners, players) {
   return winnings;
 }
 
-// ベット検証
-function validateBet(action, amount, playerChips, playerCurrentBet, currentBet, bigBlind) {
-  switch (action) {
-    case 'fold':
-      return { valid: true };
-      
-    case 'check':
-      if (playerCurrentBet < currentBet) {
-        return { valid: false, error: 'チェックできません' };
-      }
-      return { valid: true };
-      
-    case 'call':
-      const callAmount = currentBet - playerCurrentBet;
-      if (callAmount > playerChips) {
-        return { valid: true, adjustedAmount: playerChips };
-      }
-      return { valid: true, adjustedAmount: callAmount };
-      
-    case 'raise':
-      const minRaise = currentBet + bigBlind;
-      const totalBet = playerCurrentBet + amount;
-      
-      if (amount > playerChips) {
-        return { valid: false, error: 'チップが不足しています' };
-      }
-      
-      if (totalBet < minRaise && amount < playerChips) {
-        return { valid: false, error: `最小レイズ額は ${minRaise - playerCurrentBet} チップです` };
-      }
-      
-      return { valid: true, adjustedAmount: amount };
-      
-    case 'all-in':
-      if (playerChips === 0) {
-        return { valid: false, error: 'チップがありません' };
-      }
-      return { valid: true, adjustedAmount: playerChips };
-      
-    default:
-      return { valid: false, error: '無効なアクションです' };
+// ベットの妥当性をチェック
+function validateBet(player, betAmount, currentBet, minRaise) {
+  if (betAmount > player.chips) {
+    return { valid: false, message: 'チップが不足しています' };
   }
+  
+  if (betAmount < currentBet && betAmount !== player.chips) {
+    return { valid: false, message: `最低ベット額は ${currentBet} です` };
+  }
+  
+  if (betAmount > currentBet && betAmount < currentBet + minRaise && betAmount !== player.chips) {
+    return { valid: false, message: `最小レイズ額は ${currentBet + minRaise} です` };
+  }
+  
+  return { valid: true };
 }
 
 module.exports = {

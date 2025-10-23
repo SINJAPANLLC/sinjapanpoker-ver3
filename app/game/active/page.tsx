@@ -235,7 +235,7 @@ export default function ActiveGamePage() {
           <p className="text-white text-xs font-bold mb-2">アクション履歴</p>
           <div className="space-y-1 max-h-32 overflow-y-auto">
             {actionLog.map((log, index) => (
-              <div key={index} className="bg-white/20 px-2 py-1 rounded text-[10px]">
+              <div key={index} className="text-[10px]">
                 <p className="text-white font-semibold">{log.player}</p>
                 <p className="text-white/90">{log.action}</p>
               </div>

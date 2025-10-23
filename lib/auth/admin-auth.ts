@@ -1,7 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is not set');
+}
 const ADMIN_EMAIL = 'info@sinjapan.jp'; // adminユーザーのメールアドレス
 
 export interface AdminTokenPayload {
@@ -13,7 +17,11 @@ export interface AdminTokenPayload {
 
 export function verifyAdminToken(token: string): AdminTokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AdminTokenPayload;
+    if (!JWT_SECRET) {
+      throw new Error('JWT_SECRET is not configured');
+    }
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown as AdminTokenPayload;
     
     // adminユーザーかチェック
     if (decoded.email !== ADMIN_EMAIL && !decoded.isAdmin) {

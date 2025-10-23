@@ -766,7 +766,7 @@ export default function ActiveGamePage() {
           </>
         )}
 
-        {/* チャット吹き出し */}
+        {/* チャット吹き出し - カードと同じ側に表示 */}
         {player.chatMessage && (
           <div className={`absolute top-0 ${
             player.cardSide === 'right' ? 'right-full mr-2' : 'left-full ml-2'

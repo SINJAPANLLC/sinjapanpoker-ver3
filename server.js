@@ -170,6 +170,7 @@ app.prepare().then(() => {
         player.folded = false;
         player.isAllIn = false;
         player.hasActed = false;
+        player.lastAction = null;
         player.isDealer = false;
       }
 

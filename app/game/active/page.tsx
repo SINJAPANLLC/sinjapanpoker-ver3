@@ -127,6 +127,16 @@ export default function ActiveGamePage() {
     const interval = setInterval(() => {
       setTurnTimer((prev) => {
         if (prev <= 1) {
+          // タイマーが0になったら自動アクション
+          const currentPlayer = gameState?.players[gameState?.currentPlayerIndex];
+          if (currentPlayer && currentPlayer.userId === user?.id && gameState?.phase !== 'finished' && gameState?.phase !== 'waiting') {
+            // チェックできる場合（currentBet === 自分のbet）はチェック、できない場合はフォールド
+            if (gameState.currentBet === currentPlayer.bet) {
+              performAction('check');
+            } else {
+              performAction('fold');
+            }
+          }
           return 15;
         }
         if (prev === 5) {
@@ -139,7 +149,7 @@ export default function ActiveGamePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [playSound]);
+  }, [playSound, gameState, user, performAction]);
 
   useEffect(() => {
     setSoundManagerEnabled(soundEnabled);
@@ -449,8 +459,8 @@ export default function ActiveGamePage() {
       id: idx + 1,
       name: p.username,
       chips: p.chips,
-      // ユーザーのアバター画像を使用（なければランダム画像）
-      avatar: p.avatar || `https://i.pravatar.cc/150?img=${(idx + 1)}`,
+      // ユーザーのアバター画像を使用（なければnull）
+      avatar: p.avatar || null,
       // プレイヤー2は右側、それ以外は左側
       cardSide: idx === 1 ? 'right' : 'left',
       showCards,
@@ -705,13 +715,21 @@ export default function ActiveGamePage() {
             </>
           )}
           <div className={`relative w-20 h-20 rounded-full border-3 ${player.isAllIn ? 'border-red-500' : player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
-            <Image
-              src={player.avatar}
-              alt={player.name}
-              width={80}
-              height={80}
-              className="w-full h-full object-cover"
-            />
+            {player.avatar ? (
+              <Image
+                src={player.avatar}
+                alt={player.name}
+                width={80}
+                height={80}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                <span className="text-white text-2xl font-bold">
+                  {player.name[0].toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

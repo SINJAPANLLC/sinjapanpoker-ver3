@@ -82,13 +82,19 @@ export default function TournamentDetailPage({ params }: { params: { id: string 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || '登録に失敗しました');
+        const errorMessage = data.error || '登録に失敗しました';
+        setError(errorMessage);
+        alert(errorMessage);
+        throw new Error(errorMessage);
       }
 
       setTournament(data.tournament);
       alert(data.message);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Tournament registration error:', err);
+      if (!err.message.includes('登録に失敗しました')) {
+        setError('トーナメントに参加できませんでした。' + (err.message || ''));
+      }
     } finally {
       setRegistering(false);
     }

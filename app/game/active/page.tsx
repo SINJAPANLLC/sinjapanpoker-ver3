@@ -1475,17 +1475,6 @@ export default function ActiveGamePage() {
       {/* アクションボタン - 画面下部 */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4">
         <div className="max-w-md mx-auto space-y-3">
-          {/* 所持チップ表示 */}
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-4 py-2 rounded-lg border-2 border-white/30 shadow-lg">
-            <div className="flex items-center justify-between">
-              <p className="text-white text-xs font-semibold">所持チップ</p>
-              <div className="flex items-center gap-2">
-                <Image src="/chip-icon.png" alt="chip" width={20} height={20} unoptimized />
-                <p className="text-white text-lg font-bold">{(user?.chips || 0).toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-
           {/* レイズスライダー */}
           {showRaiseSlider && (
             <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">

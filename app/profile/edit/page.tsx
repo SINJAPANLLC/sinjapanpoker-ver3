@@ -67,13 +67,32 @@ function EditProfileContent() {
     setSaveMessage('');
 
     try {
-      // プロフィール情報を保存
+      // プロフィール情報をLocalStorageに保存
       const profileData = {
         ...formData,
         uploadedAvatar: profileImage,
         lastUpdated: new Date().toISOString()
       };
       saveUserProfile(profileData);
+
+      // 画像をデータベースに保存
+      if (user?.id && profileImage) {
+        const response = await fetch(`/api/user/${user.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ avatar: profileImage }),
+        });
+
+        if (!response.ok) {
+          throw new Error('画像の保存に失敗しました');
+        }
+
+        // AuthStoreも更新
+        const { updateUser } = useAuthStore.getState();
+        updateUser({ avatar: profileImage });
+      }
 
       // ユーザー名が変更された場合はストアも更新
       if (formData.username !== user?.username) {
@@ -85,6 +104,7 @@ function EditProfileContent() {
         router.push('/profile');
       }, 1500);
     } catch (error) {
+      console.error('保存エラー:', error);
       setSaveMessage('保存に失敗しました');
     } finally {
       setIsSaving(false);

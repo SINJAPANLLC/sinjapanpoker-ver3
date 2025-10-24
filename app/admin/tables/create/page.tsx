@@ -58,12 +58,35 @@ function CreateTableContent() {
         throw new Error('ビッグブラインドはスモールブラインドより大きい値に設定してください');
       }
 
-      // TODO: APIエンドポイントを実装
-      console.log('Creating table:', formData);
-      
-      // モック遅延
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // テーブルオブジェクトを作成
+      const newTable = {
+        id: `table-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: formData.name,
+        type: formData.type,
+        buyIn: formData.buyIn,
+        maxPlayers: formData.maxPlayers,
+        currentPlayers: 0,
+        blinds: {
+          small: formData.smallBlind,
+          big: formData.bigBlind,
+        },
+        rakePercentage: formData.rakePercentage,
+        isPrivate: formData.isPrivate,
+        description: formData.description,
+        status: 'waiting',
+        createdAt: new Date().toISOString(),
+        createdBy: adminUser.email,
+        players: [],
+      };
+
+      // LocalStorageに保存
+      if (typeof window !== 'undefined') {
+        const { saveTables, loadTables } = await import('@/lib/storage');
+        const existingTables = loadTables();
+        saveTables([...existingTables, newTable]);
+      }
+
+      console.log('Table created successfully:', newTable);
       router.push('/admin/tables');
     } catch (err: any) {
       setError(err.message || 'テーブルの作成に失敗しました');

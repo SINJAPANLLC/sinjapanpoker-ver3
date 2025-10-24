@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool } from '@neondatabase/serverless';
+import { users } from '@/shared/schema';
+import { eq } from 'drizzle-orm';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY environment variable');
@@ -18,14 +22,37 @@ export default async function handler(
   }
 
   try {
-    const { userId, amount, description } = req.body;
+    const { userEmail, userId, amount, description } = req.body;
 
-    if (!userId || !amount) {
-      return res.status(400).json({ error: 'userId and amount are required' });
+    // メールアドレスまたはユーザーIDが必要
+    if ((!userEmail && !userId) || !amount) {
+      return res.status(400).json({ error: 'userEmail or userId, and amount are required' });
     }
 
     if (amount < 50) {
       return res.status(400).json({ error: 'Stripeの最低決済金額は50円です' });
+    }
+
+    let finalUserId = userId;
+    let userDisplayInfo = userId || userEmail;
+
+    // メールアドレスが提供された場合、ユーザーIDを検索
+    if (userEmail && !userId) {
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      const db = drizzle(pool);
+
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, userEmail))
+        .limit(1);
+
+      if (!user) {
+        return res.status(404).json({ error: 'ユーザーが見つかりません' });
+      }
+
+      finalUserId = user.id;
+      userDisplayInfo = `${userEmail} (${user.username})`;
     }
 
     const paymentLink = await stripe.paymentLinks.create({
@@ -35,7 +62,7 @@ export default async function handler(
             currency: 'jpy',
             product_data: {
               name: description || 'チップ購入',
-              description: `ユーザーID: ${userId}`,
+              description: `ユーザー: ${userDisplayInfo}`,
             },
             unit_amount: amount,
           },
@@ -45,11 +72,12 @@ export default async function handler(
       after_completion: {
         type: 'redirect',
         redirect: {
-          url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/payment/success?userId=${userId}`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/payment/success?userId=${finalUserId}`,
         },
       },
       metadata: {
-        userId,
+        userId: finalUserId,
+        userEmail: userEmail || '',
         type: 'chip_purchase',
       },
     });
@@ -57,6 +85,7 @@ export default async function handler(
     return res.status(200).json({
       url: paymentLink.url,
       id: paymentLink.id,
+      userId: finalUserId,
     });
   } catch (error: any) {
     console.error('Stripe payment link creation error:', error);

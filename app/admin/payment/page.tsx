@@ -23,18 +23,27 @@ import {
   Send,
 } from 'lucide-react';
 
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  chips: number;
+}
+
 function PaymentContent() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'deposits' | 'withdrawals' | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false);
   const [paymentLinkForm, setPaymentLinkForm] = useState({
-    userId: '',
+    userEmail: '',
     amount: '',
     description: '',
   });
   const [generatedLink, setGeneratedLink] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   // ダミーの決済データ
   const payments = [
@@ -161,9 +170,30 @@ function PaymentContent() {
     return labels[method as keyof typeof labels] || method;
   };
 
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const token = sessionStorage.getItem('adminToken');
+      const response = await fetch('/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   const handleGeneratePaymentLink = async () => {
-    if (!paymentLinkForm.userId || !paymentLinkForm.amount) {
-      alert('ユーザーIDと金額を入力してください');
+    if (!paymentLinkForm.userEmail || !paymentLinkForm.amount) {
+      alert('メールアドレスと金額を入力してください');
       return;
     }
 
@@ -181,7 +211,7 @@ function PaymentContent() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: paymentLinkForm.userId,
+          userEmail: paymentLinkForm.userEmail,
           amount: parseInt(paymentLinkForm.amount),
           description: paymentLinkForm.description || 'チップ購入',
         }),
@@ -209,11 +239,16 @@ function PaymentContent() {
 
   const handleResetForm = () => {
     setPaymentLinkForm({
-      userId: '',
+      userEmail: '',
       amount: '',
       description: '',
     });
     setGeneratedLink('');
+  };
+
+  const handleOpenModal = () => {
+    setShowPaymentLinkModal(true);
+    loadUsers();
   };
 
   return (
@@ -236,7 +271,7 @@ function PaymentContent() {
             </div>
             
             <button
-              onClick={() => setShowPaymentLinkModal(true)}
+              onClick={handleOpenModal}
               className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg transition-all shadow-lg hover:shadow-cyan-500/50 w-full md:w-auto"
             >
               <LinkIcon className="w-5 h-5" />
@@ -432,14 +467,28 @@ function PaymentContent() {
                   {/* フォーム */}
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-white font-semibold mb-2">ユーザーID</label>
-                      <input
-                        type="text"
-                        value={paymentLinkForm.userId}
-                        onChange={(e) => setPaymentLinkForm({...paymentLinkForm, userId: e.target.value})}
-                        placeholder="user123"
-                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-cyan-400 focus:outline-none"
-                      />
+                      <label className="block text-white font-semibold mb-2">メールアドレス</label>
+                      {loadingUsers ? (
+                        <div className="w-full px-4 py-3 bg-gray-700 text-gray-400 rounded-lg border border-gray-600">
+                          読み込み中...
+                        </div>
+                      ) : (
+                        <select
+                          value={paymentLinkForm.userEmail}
+                          onChange={(e) => setPaymentLinkForm({...paymentLinkForm, userEmail: e.target.value})}
+                          className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-cyan-400 focus:outline-none"
+                        >
+                          <option value="">ユーザーを選択してください</option>
+                          {users.map((user) => (
+                            <option key={user.id} value={user.email}>
+                              {user.email} ({user.username}) - {user.chips}チップ
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <p className="text-gray-400 text-xs mt-1">
+                        メールアドレスを選択すると、自動的にユーザーIDが紐付けられます
+                      </p>
                     </div>
 
                     <div>

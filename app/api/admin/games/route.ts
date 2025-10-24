@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db-api';
 import { games, users, handHistory } from '@/shared/schema';
-import { desc, gte, sql, eq, and } from 'drizzle-orm';
+import { desc, gte, sql, eq, and, isNull } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth/admin-auth';
 
 export const dynamic = 'force-dynamic';
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       query = query.where(
         and(
           gte(games.createdAt, oneHourAgo),
-          eq(games.winner, sql`NULL`)
+          isNull(games.winner)
         )
       ) as typeof query;
     }

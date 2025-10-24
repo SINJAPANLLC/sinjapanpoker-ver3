@@ -97,6 +97,9 @@ function GameMonitorContent() {
       
       const data = await response.json();
       
+      console.log('API Response:', data);
+      console.log('Games count:', data.games?.length || 0);
+      
       // データを GameSession フォーマットに変換
       const formattedGames: GameSession[] = data.games.map((game: any) => ({
         id: game.id,

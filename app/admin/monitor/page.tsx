@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminStore } from '@/store/useAdminStore';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
+import Card from '@/components/Card';
+import { Card as CardType } from '@/types';
 import { 
   Shield, 
   ArrowLeft, 
@@ -249,29 +251,30 @@ function GameMonitorContent() {
 
   const CardComponent = ({ card, size = 'normal' }: { card: { rank: string; suit: string; visible: boolean }, size?: 'small' | 'normal' | 'large' }) => {
     const sizeClasses = {
-      small: 'w-8 h-10 text-xs',
-      normal: 'w-12 h-16 text-sm',
-      large: 'w-16 h-20 text-base'
+      small: 'w-12 h-16 scale-75',
+      normal: 'w-16 h-24',
+      large: 'w-20 h-28'
     };
 
     if (!card.visible) {
-      return (
-        <div className={`${sizeClasses[size]} bg-blue-900 border-2 border-blue-700 rounded flex items-center justify-center`}>
-          <div className="text-blue-300">?</div>
-        </div>
-      );
+      return <Card card={{ rank: 'A', suit: 'spades', id: 'back' } as CardType} faceUp={false} className={sizeClasses[size]} />;
     }
 
-    return (
-      <div className={`${sizeClasses[size]} bg-white border-2 border-gray-300 rounded flex flex-col items-center justify-center shadow-lg`}>
-        <div className={`${getSuitColor(card.suit)} font-bold`}>
-          {card.rank}
-        </div>
-        <div className={`${getSuitColor(card.suit)} text-xs`}>
-          {card.suit}
-        </div>
-      </div>
-    );
+    // スートマッピング（絵文字からカード名へ）
+    const suitMap: { [key: string]: string } = {
+      '♥': 'hearts',
+      '♦': 'diamonds',
+      '♠': 'spades',
+      '♣': 'clubs'
+    };
+
+    const mappedCard: CardType = {
+      rank: card.rank as any,
+      suit: (suitMap[card.suit] || card.suit) as any,
+      id: `${card.rank}${card.suit}`
+    };
+
+    return <Card card={mappedCard} faceUp={true} className={sizeClasses[size]} />;
   };
 
   const PlayerCard = ({ player, game }: { player: GameSession['players'][0], game: GameSession }) => {

@@ -354,9 +354,9 @@ export default function ActiveGamePage() {
   const pot = gameState?.pot || 0;
   const potAmount = pot; // ポットの総額
   
-  // サイドポットの合計を計算
+  // サイドポットの合計を計算（実際にサイドポットが存在する場合のみ）
   const sidePotTotal = gameState?.sidePots?.reduce((sum, sp) => sum + sp.amount, 0) || 0;
-  const hasSidePots = sidePotTotal > 0;
+  const hasSidePots = (gameState?.sidePots?.length || 0) > 1 && sidePotTotal > 0;
   
   // ロビーで設定したテーブル情報を取得（useEffectで処理）
   const [tableInfo, setTableInfo] = useState<any>(null);
@@ -580,10 +580,12 @@ export default function ActiveGamePage() {
                     <Card 
                       card={card} 
                       faceUp={
-                        (typeof player.position === 'number' && player.position === 0) || 
-                        (typeof player.position === 'string' && player.position === '0') ||
-                        gameState?.phase === 'showdown' || 
-                        gameState?.phase === 'finished'
+                        !player.folded && (
+                          (typeof player.position === 'number' && player.position === 0) || 
+                          (typeof player.position === 'string' && player.position === '0') ||
+                          gameState?.phase === 'showdown' || 
+                          gameState?.phase === 'finished'
+                        )
                       } 
                     />
                   </div>
@@ -628,8 +630,8 @@ export default function ActiveGamePage() {
 
         {/* アバターアイコン */}
         <div className="relative">
-          {/* ALL IN 炎のエフェクト */}
-          {player.isAllIn && (
+          {/* ALL IN 炎のエフェクト - ゲーム進行中のみ表示 */}
+          {player.isAllIn && gameState?.phase !== 'finished' && gameState?.phase !== 'waiting' && (
             <>
               {/* 外側の炎グロー */}
               <motion.div
@@ -1472,12 +1474,23 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[8]} />
       </div>
 
+      {/* レイズスライダーを閉じるためのオーバーレイ */}
+      {showRaiseSlider && (
+        <div 
+          className="absolute inset-0 z-[90]"
+          onClick={() => setShowRaiseSlider(false)}
+        />
+      )}
+
       {/* アクションボタン - 画面下部 */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4 z-[100]">
         <div className="max-w-md mx-auto space-y-3">
           {/* レイズスライダー */}
           {showRaiseSlider && (
-            <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg">
+            <div 
+              className="bg-gradient-to-br from-cyan-400 to-blue-600 p-3 rounded-lg border-2 border-white/30 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between mb-2">
                 <p className="text-white text-xs font-bold">
                   {raiseAmount >= maxRaise ? 'ALL IN' : 'レイズ額'}

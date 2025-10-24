@@ -467,7 +467,7 @@ function AdminDashboardContent() {
                           {tournament.currentPlayers}/{tournament.maxPlayers}名
                         </span>
                         <span className="text-yellow-400">
-                          ¥{tournament.prize.toLocaleString()}
+                          ¥{(tournament.prize || 0).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -523,7 +523,7 @@ function AdminDashboardContent() {
                           {game.players.length}名 | ハンド#{game.currentHand}
                         </span>
                         <span className="text-green-400">
-                          ¥{game.pot.toLocaleString()}
+                          ¥{(game.pot || 0).toLocaleString()}
                         </span>
                       </div>
                     </div>

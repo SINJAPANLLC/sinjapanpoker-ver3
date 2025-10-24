@@ -135,7 +135,7 @@ function AdminDashboardContent() {
     },
     {
       title: '賞金総額',
-      value: (adminStats?.activeTournaments.totalPrizePool || activeTournaments.reduce((sum, t) => sum + ((t as any).prizePool || (t as any).prize || 0), 0)).toLocaleString(),
+      value: ((adminStats?.activeTournaments?.totalPrizePool ?? activeTournaments.reduce((sum, t) => sum + ((t as any).prizePool || (t as any).prize || 0), 0)) || 0).toLocaleString(),
       icon: <DollarSign className="w-6 h-6 text-green-500" />,
       change: '+25%',
       changeType: 'positive'

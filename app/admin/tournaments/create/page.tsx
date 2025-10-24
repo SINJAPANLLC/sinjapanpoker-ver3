@@ -151,16 +151,16 @@ function CreateTournamentContent() {
                   バイイン（チップ） *
                 </label>
                 <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     type="number"
                     value={formData.buyIn}
                     onChange={(e) => handleInputChange('buyIn', parseInt(e.target.value) || 0)}
                     required
                     min="1"
-                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                     placeholder="1000"
                   />
-                  <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
               </div>
 
@@ -170,6 +170,7 @@ function CreateTournamentContent() {
                   最大参加者数 *
                 </label>
                 <div className="relative">
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     type="number"
                     value={formData.maxPlayers}
@@ -177,10 +178,9 @@ function CreateTournamentContent() {
                     required
                     min="2"
                     max="1000"
-                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                     placeholder="50"
                   />
-                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
               </div>
 
@@ -190,16 +190,16 @@ function CreateTournamentContent() {
                   賞金総額（チップ） *
                 </label>
                 <div className="relative">
+                  <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     type="number"
                     value={formData.prize}
                     onChange={(e) => handleInputChange('prize', parseInt(e.target.value) || 0)}
                     required
                     min="1"
-                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                     placeholder="45000"
                   />
-                  <Trophy className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
                 <p className="text-gray-500 text-sm mt-1">
                   通常は (バイイン × 最大参加者数 × 0.9) を設定
@@ -212,15 +212,15 @@ function CreateTournamentContent() {
                   開始時刻 *
                 </label>
                 <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     type="datetime-local"
                     value={formData.startTime}
                     onChange={(e) => handleInputChange('startTime', e.target.value)}
                     required
                     min={new Date().toISOString().slice(0, 16)}
-                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                   />
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
               </div>
 

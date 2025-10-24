@@ -133,7 +133,7 @@ export function usePokerGame(gameId: string | null, difficulty?: string) {
         userId: user.id,
         username: user.username,
         chips,
-        avatar: (user as any).avatar,
+        avatar: (user as any).avatar || null,
       },
       blinds,
       difficulty,

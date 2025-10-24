@@ -762,7 +762,7 @@ export default function ActiveGamePage() {
             </>
           )}
           <div className={`relative w-20 h-20 rounded-full border-3 ${player.isAllIn ? 'border-red-500' : player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
-            {player.avatar ? (
+            {player.avatar && player.avatar !== 'default' ? (
               <Image
                 key={`avatar-${player.id}-${player.avatar}`}
                 src={player.avatar}

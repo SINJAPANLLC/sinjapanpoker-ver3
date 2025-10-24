@@ -114,6 +114,7 @@ class PokerGame {
       position: this.players.length,
       isDealer: this.players.length === 0,
       hasActed: false,
+      avatar: player.avatar || null,
     });
 
     return true;

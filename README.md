@@ -112,6 +112,57 @@ npm run build
 npm start
 ```
 
+## Hostingerでのデプロイ
+
+### 前提条件
+- Hostingerアカウント
+- Node.js対応のホスティングプラン
+
+### デプロイ手順
+
+1. **GitHubリポジトリの準備**
+   ```bash
+   git add .
+   git commit -m "Deploy to Hostinger"
+   git push origin main
+   ```
+
+2. **Hostingerでの設定**
+   - Hostingerの管理パネルにログイン
+   - Webサイト管理で対象ドメインを選択
+   - File Managerまたはcpanelにアクセス
+   - GitHubからファイルをアップロードまたはgit cloneを実行
+
+3. **環境変数の設定**
+   Hostingerの環境変数設定で以下を追加：
+   ```
+   NODE_ENV=production
+   MONGODB_URI=your-mongodb-atlas-uri
+   JWT_SECRET=your-production-secret
+   NEXT_PUBLIC_SOCKET_URL=your-domain-url
+   ```
+
+4. **依存関係のインストール**
+   ```bash
+   npm install --production
+   ```
+
+5. **アプリケーションのビルド**
+   ```bash
+   npm run build
+   ```
+
+6. **アプリケーションの起動**
+   ```bash
+   npm start
+   ```
+
+### Hostinger注意点
+- Node.jsアプリケーションのポート設定は自動的に管理されます
+- MongoDB AtlasなどのクラウドDBを使用することを推奨
+- 静的ファイルは `/public` ディレクトリに配置
+- SSL証明書の設定を忘れずに行ってください
+
 ## プロジェクト構造
 
 ```

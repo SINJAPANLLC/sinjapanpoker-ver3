@@ -11,7 +11,11 @@
     "seed": "node scripts/seed.js",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "hostinger:install": "npm install --production",
+    "hostinger:build": "npm run build",
+    "hostinger:start": "NODE_ENV=production npm start",
+    "hostinger:deploy": "npm run hostinger:install && npm run hostinger:build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.456.0",

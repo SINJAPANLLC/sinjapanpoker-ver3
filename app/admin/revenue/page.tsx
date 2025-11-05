@@ -3,104 +3,94 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminStore } from '@/store/useAdminStore';
-import { useRevenueStore, GameTransaction } from '@/store/useRevenueStore';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import { 
   Shield, 
   ArrowLeft, 
   DollarSign, 
   TrendingUp,
-  TrendingDown,
   Calendar,
-  Filter,
-  Download,
-  Eye,
   RefreshCw,
   BarChart3,
-  PieChart,
-  Activity
+  Activity,
+  AlertCircle
 } from 'lucide-react';
+
+interface RevenueData {
+  summary: {
+    totalGames: number;
+    totalPot: number;
+    avgPot: number;
+    totalHands: number;
+    totalRake: number;
+    rakeRate: string;
+  };
+  dailyRevenue: Array<{
+    date: string;
+    games: number;
+    totalPot: number;
+    rake: number;
+  }>;
+  topWinners: Array<{
+    userId: string;
+    username: string;
+    totalWinnings: number;
+    handsPlayed: number;
+  }>;
+  period: string;
+}
 
 function RevenueManagementContent() {
   const router = useRouter();
   const { adminUser } = useAdminStore();
-  const { 
-    transactions, 
-    stats, 
-    getTransactionsByDateRange,
-    getTransactionsByType,
-    updateStats,
-    addTransaction
-  } = useRevenueStore();
   
-  const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [selectedType, setSelectedType] = useState<'all' | 'rake' | 'tournament_fee' | 'table_fee'>('all');
-  const [dateRange, setDateRange] = useState({
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
-  });
+  const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month' | 'all'>('today');
+
+  const fetchRevenueData = async (period: string) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const token = typeof window !== 'undefined' ? sessionStorage.getItem('admin_token') : null;
+      const response = await fetch(`/api/admin/revenue?period=${period}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setRevenueData(data);
+      } else {
+        setError(data.error || '収益データの取得に失敗しました');
+      }
+    } catch (err) {
+      console.error('収益データ取得エラー:', err);
+      setError('収益データの取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    updateStats();
-  }, [updateStats]);
+    fetchRevenueData(selectedPeriod);
+  }, [selectedPeriod]);
 
-  const filteredTransactions = transactions.filter(tx => {
-    const matchesType = selectedType === 'all' || tx.type === selectedType;
-    const txDate = new Date(tx.createdAt);
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
-    const matchesDate = txDate >= startDate && txDate <= endDate;
-    
-    return matchesType && matchesDate;
-  });
+  const handleRefresh = () => {
+    fetchRevenueData(selectedPeriod);
+  };
 
-  const getRevenueByPeriod = () => {
-    const now = new Date();
-    let startDate: Date;
-    
+  const getPeriodLabel = () => {
     switch (selectedPeriod) {
-      case 'daily':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        break;
-      case 'weekly':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'monthly':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    }
-    
-    return getTransactionsByDateRange(startDate, now);
-  };
-
-  const periodTransactions = getRevenueByPeriod();
-  const periodRevenue = periodTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-
-  const getTransactionTypeLabel = (type: GameTransaction['type']) => {
-    switch (type) {
-      case 'rake':
-        return 'レーキ収益';
-      case 'tournament_fee':
-        return 'トーナメント手数料';
-      case 'table_fee':
-        return 'テーブル手数料';
-      default:
-        return type;
-    }
-  };
-
-  const getTransactionTypeColor = (type: GameTransaction['type']) => {
-    switch (type) {
-      case 'rake':
-        return 'text-green-400 bg-green-500/20';
-      case 'tournament_fee':
-        return 'text-blue-400 bg-blue-500/20';
-      case 'table_fee':
-        return 'text-purple-400 bg-purple-500/20';
-      default:
-        return 'text-gray-400 bg-gray-500/20';
+      case 'today': return '今日';
+      case 'week': return '今週';
+      case 'month': return '今月';
+      case 'all': return '全期間';
+      default: return '';
     }
   };
 
@@ -130,278 +120,218 @@ function RevenueManagementContent() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* 収益統計カード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-          <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 md:p-3 bg-green-500/20 rounded-lg">
-                <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-green-400" />
-              </div>
-              <div className="text-right">
-                <p className="text-green-400 text-sm font-semibold">+{stats.totalRevenue.toLocaleString()}</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">総収益</p>
-              <p className="text-white text-lg md:text-xl font-bold">¥{stats.totalRevenue.toLocaleString()}</p>
-            </div>
+        {error && (
+          <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center space-x-3">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <span className="text-red-400">{error}</span>
           </div>
+        )}
 
-          <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 md:p-3 bg-blue-500/20 rounded-lg">
-                <Activity className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
-              </div>
-              <div className="text-right">
-                <p className="text-blue-400 text-sm font-semibold">5%</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">レーキ収益</p>
-              <p className="text-white text-lg md:text-xl font-bold">¥{stats.totalRake.toLocaleString()}</p>
-            </div>
+        {/* 期間選択 */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {(['today', 'week', 'month', 'all'] as const).map((period) => (
+              <button
+                key={period}
+                onClick={() => setSelectedPeriod(period)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  selectedPeriod === period
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                {period === 'today' && '今日'}
+                {period === 'week' && '今週'}
+                {period === 'month' && '今月'}
+                {period === 'all' && '全期間'}
+              </button>
+            ))}
           </div>
-
-          <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 md:p-3 bg-purple-500/20 rounded-lg">
-                <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
-              </div>
-              <div className="text-right">
-                <p className="text-purple-400 text-sm font-semibold">10%</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">トーナメント手数料</p>
-              <p className="text-white text-lg md:text-xl font-bold">¥{stats.totalTournamentFees.toLocaleString()}</p>
-            </div>
-          </div>
-
-          <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 md:p-3 bg-yellow-500/20 rounded-lg">
-                <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" />
-              </div>
-              <div className="text-right">
-                <p className="text-yellow-400 text-sm font-semibold">
-                  {selectedPeriod === 'daily' ? '日' : selectedPeriod === 'weekly' ? '週' : '月'}
-                </p>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">期間収益</p>
-              <p className="text-white text-lg md:text-xl font-bold">¥{periodRevenue.toLocaleString()}</p>
-            </div>
-          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>更新</span>
+          </button>
         </div>
 
-        {/* フィルター */}
-        <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl border border-gray-700/50 mb-6">
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">期間</label>
-                <select
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value as any)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                >
-                  <option value="daily">日別</option>
-                  <option value="weekly">週別</option>
-                  <option value="monthly">月別</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">種類</label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value as any)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                >
-                  <option value="all">すべて</option>
-                  <option value="rake">レーキ収益</option>
-                  <option value="tournament_fee">トーナメント手数料</option>
-                  <option value="table_fee">テーブル手数料</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">開始日</label>
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">終了日</label>
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                />
-              </div>
-            </div>
+        {loading && !revenueData ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
           </div>
-        </div>
-
-        {/* 取引履歴 */}
-        <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl border border-gray-700/50">
-          <div className="p-6 border-b border-gray-700/50">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">取引履歴</h2>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={updateStats}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>更新</span>
-                </button>
-                <span className="text-gray-400 text-sm">{filteredTransactions.length}件</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            {filteredTransactions.length === 0 ? (
-              <div className="text-center py-12">
-                <DollarSign className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg mb-2">取引履歴がありません</p>
-                <p className="text-gray-500 text-sm">指定した条件に一致する取引が見つかりません</p>
-              </div>
-            ) : (
-              <div className="min-w-full">
-                {/* デスクトップ表示 */}
-                <div className="hidden lg:block">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-700/50">
-                        <th className="text-left p-4 text-gray-400 font-medium">日時</th>
-                        <th className="text-left p-4 text-gray-400 font-medium">種類</th>
-                        <th className="text-left p-4 text-gray-400 font-medium">プレイヤー</th>
-                        <th className="text-left p-4 text-gray-400 font-medium">ゲーム/トーナメント</th>
-                        <th className="text-left p-4 text-gray-400 font-medium">ポットサイズ</th>
-                        <th className="text-left p-4 text-gray-400 font-medium">収益</th>
-                        <th className="text-left p-4 text-gray-400 font-medium">ステータス</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredTransactions.map((tx) => (
-                        <tr key={tx.id} className="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors">
-                          <td className="p-4">
-                            <p className="text-white text-sm">
-                              {tx.createdAt.toLocaleDateString('ja-JP')}
-                            </p>
-                            <p className="text-gray-400 text-xs">
-                              {tx.createdAt.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${getTransactionTypeColor(tx.type)}`}>
-                              {getTransactionTypeLabel(tx.type)}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-white font-semibold">{tx.playerName}</p>
-                            <p className="text-gray-400 text-xs">{tx.playerId}</p>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-white text-sm">{tx.gameId}</p>
-                            {tx.tableId && <p className="text-gray-400 text-xs">テーブル: {tx.tableId}</p>}
-                            {tx.tournamentId && <p className="text-gray-400 text-xs">トーナメント: {tx.tournamentId}</p>}
-                          </td>
-                          <td className="p-4">
-                            <p className="text-white font-semibold">¥{tx.originalPot.toLocaleString()}</p>
-                            <p className="text-gray-400 text-xs">
-                              {tx.type === 'rake' ? `${(tx.rakePercentage * 100).toFixed(1)}%` : 
-                               tx.feePercentage ? `${(tx.feePercentage * 100).toFixed(1)}%` : ''}
-                            </p>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-green-400 font-bold">¥{tx.amount.toLocaleString()}</p>
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              tx.status === 'processed' ? 'bg-green-500/20 text-green-400' :
-                              tx.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-red-500/20 text-red-400'
-                            }`}>
-                              {tx.status === 'processed' ? '処理済み' :
-                               tx.status === 'pending' ? '処理中' : '失敗'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+        ) : revenueData ? (
+          <>
+            {/* 収益統計カード */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+              <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 md:p-3 bg-green-500/20 rounded-lg">
+                    <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-green-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-green-400 text-sm font-semibold">
+                      +{revenueData.summary.totalRake.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">総収益（レーキ）</p>
+                  <p className="text-white text-lg md:text-xl font-bold">
+                    ¥{revenueData.summary.totalRake.toLocaleString()}
+                  </p>
+                </div>
+              </div>
 
-                {/* モバイル表示 */}
-                <div className="lg:hidden">
-                  <div className="space-y-4 p-6">
-                    {filteredTransactions.map((tx) => (
-                      <div key={tx.id} className="bg-gray-700/30 rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${getTransactionTypeColor(tx.type)}`}>
-                              {getTransactionTypeLabel(tx.type)}
-                            </span>
-                            <p className="text-white font-semibold mt-2">{tx.playerName}</p>
-                            <p className="text-gray-400 text-sm">{tx.gameId}</p>
+              <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 md:p-3 bg-blue-500/20 rounded-lg">
+                    <Activity className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-blue-400 text-sm font-semibold">{revenueData.summary.rakeRate}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">レーキ率</p>
+                  <p className="text-white text-lg md:text-xl font-bold">
+                    {revenueData.summary.rakeRate}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 md:p-3 bg-purple-500/20 rounded-lg">
+                    <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-purple-400 text-sm font-semibold">
+                      {revenueData.summary.totalGames}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">総ゲーム数</p>
+                  <p className="text-white text-lg md:text-xl font-bold">
+                    {revenueData.summary.totalGames.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-gray-700/50">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 md:p-3 bg-yellow-500/20 rounded-lg">
+                    <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-yellow-400 text-sm font-semibold">
+                      {revenueData.summary.totalHands}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">総ハンド数</p>
+                  <p className="text-white text-lg md:text-xl font-bold">
+                    {revenueData.summary.totalHands.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 日別収益 */}
+            <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl border border-gray-700/50 mb-6">
+              <div className="p-6 border-b border-gray-700/50">
+                <h2 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-blue-400" />
+                  <span>日別収益推移</span>
+                </h2>
+              </div>
+              <div className="p-6">
+                {revenueData.dailyRevenue.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 text-gray-400 font-semibold">日付</th>
+                          <th className="text-right py-3 px-4 text-gray-400 font-semibold">ゲーム数</th>
+                          <th className="text-right py-3 px-4 text-gray-400 font-semibold">総ポット</th>
+                          <th className="text-right py-3 px-4 text-gray-400 font-semibold">レーキ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {revenueData.dailyRevenue.map((day, index) => (
+                          <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-700/20">
+                            <td className="py-3 px-4 text-white">{day.date}</td>
+                            <td className="py-3 px-4 text-right text-gray-300">{day.games}</td>
+                            <td className="py-3 px-4 text-right text-gray-300">
+                              ¥{Math.floor(day.totalPot).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4 text-right text-green-400 font-semibold">
+                              ¥{Math.floor(day.rake).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-400 py-8">この期間のデータがありません</p>
+                )}
+              </div>
+            </div>
+
+            {/* トップウィナー */}
+            <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl border border-gray-700/50">
+              <div className="p-6 border-b border-gray-700/50">
+                <h2 className="text-xl font-bold text-white">トッププレイヤー（獲得順）</h2>
+              </div>
+              <div className="p-6">
+                {revenueData.topWinners.length > 0 ? (
+                  <div className="space-y-3">
+                    {revenueData.topWinners.map((winner, index) => (
+                      <div
+                        key={winner.userId}
+                        className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-gray-600"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                            index === 0 ? 'bg-yellow-500 text-white' :
+                            index === 1 ? 'bg-gray-400 text-white' :
+                            index === 2 ? 'bg-orange-600 text-white' :
+                            'bg-gray-600 text-gray-300'
+                          }`}>
+                            {index + 1}
                           </div>
-                          <div className="text-right">
-                            <p className="text-green-400 font-bold">¥{tx.amount.toLocaleString()}</p>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              tx.status === 'processed' ? 'bg-green-500/20 text-green-400' :
-                              tx.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-red-500/20 text-red-400'
-                            }`}>
-                              {tx.status === 'processed' ? '処理済み' :
-                               tx.status === 'pending' ? '処理中' : '失敗'}
-                            </span>
+                          <div>
+                            <h3 className="text-white font-semibold">{winner.username}</h3>
+                            <p className="text-gray-400 text-sm">{winner.handsPlayed}ハンドプレイ</p>
                           </div>
                         </div>
-                        
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-400">ポットサイズ</p>
-                            <p className="text-white">¥{tx.originalPot.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-400">手数料率</p>
-                            <p className="text-white">
-                              {tx.type === 'rake' ? `${(tx.rakePercentage * 100).toFixed(1)}%` : 
-                               tx.feePercentage ? `${(tx.feePercentage * 100).toFixed(1)}%` : 'N/A'}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 pt-3 border-t border-gray-600">
-                          <p className="text-gray-400 text-xs">
-                            {tx.createdAt.toLocaleDateString('ja-JP')} {tx.createdAt.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                        <div className="text-right">
+                          <p className={`font-bold ${winner.totalWinnings >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {winner.totalWinnings >= 0 ? '+' : ''}¥{winner.totalWinnings.toLocaleString()}
                           </p>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                ) : (
+                  <p className="text-center text-gray-400 py-8">この期間のデータがありません</p>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export default function RevenueManagementPage() {
+export default function RevenueManagement() {
   return (
-    <AdminProtectedRoute requiredPermission="revenue.view">
+    <AdminProtectedRoute>
       <RevenueManagementContent />
     </AdminProtectedRoute>
   );

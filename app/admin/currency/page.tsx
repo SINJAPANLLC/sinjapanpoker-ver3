@@ -66,8 +66,8 @@ function CurrencyManagementContent() {
             id: u.id,
             username: u.username,
             email: u.email,
-            realChips: u.chips || 0,
-            gameChips: 0,
+            realChips: u.realChips || 0,
+            gameChips: u.gameChips || 0,
             diamonds: 0,
             energy: 0,
             points: 0,
@@ -228,10 +228,10 @@ function CurrencyManagementContent() {
                         </div>
                         <div className="text-right">
                           <p className="text-green-400 font-semibold">
-                            {user.realChips.toLocaleString()}チップ
+                            {(user.realChips || 0).toLocaleString()}リアルチップ
                           </p>
-                          <p className="text-gray-400 text-sm">
-                            {user.diamonds}ダイヤ • {user.energy}エネルギー
+                          <p className="text-blue-400 text-sm">
+                            {(user.gameChips || 0).toLocaleString()}ゲームチップ
                           </p>
                         </div>
                       </div>

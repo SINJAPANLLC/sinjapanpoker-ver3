@@ -65,7 +65,7 @@ function TableManagementContent() {
   const fetchTables = async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       const response = await fetch('/api/admin/tables', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -123,7 +123,7 @@ function TableManagementContent() {
 
   const handleTableAction = async (tableId: string, action: 'pause' | 'resume' | 'delete') => {
     try {
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       
       if (action === 'delete') {
         const response = await fetch(`/api/admin/tables?id=${tableId}`, {

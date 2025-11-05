@@ -192,7 +192,6 @@ function SettingsContent() {
             <Link href="/lobby" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
               <ArrowLeft className="w-6 h-6 text-white" />
             </Link>
-            <h1 className="text-2xl font-bold text-gradient-blue">設定</h1>
           </div>
           
           {/* 保存ボタン */}

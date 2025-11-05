@@ -328,7 +328,6 @@ function ProfileContent() {
               alt="SIN JAPAN POKER"
               className="w-32 h-10 object-contain"
             />
-            <h1 className="text-base font-bold text-gradient-blue">プロファイル</h1>
           </div>
 
           <div className="flex items-center space-x-3">

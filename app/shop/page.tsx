@@ -111,7 +111,6 @@ function ShopContent() {
               alt="SIN JAPAN POKER"
               className="w-32 h-10 object-contain"
             />
-            <h1 className="text-2xl font-bold text-gradient-blue">SHOP</h1>
           </div>
 
           <div className="flex items-center space-x-4">

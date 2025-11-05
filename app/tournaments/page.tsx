@@ -95,7 +95,6 @@ function TournamentsContent() {
               height={40}
               className="w-32 h-10 object-contain"
             />
-            <h1 className="text-2xl font-bold text-gradient-blue">トーナメント</h1>
           </div>
           <Link
             href="/admin/tournaments/create"

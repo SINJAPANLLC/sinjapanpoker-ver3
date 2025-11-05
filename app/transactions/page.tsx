@@ -49,7 +49,6 @@ function TransactionsContent() {
             <Link href="/profile" className="text-blue-400 hover:text-cyan-300">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-gradient-blue">取引履歴</h1>
           </div>
 
           <div className="flex items-center space-x-3">

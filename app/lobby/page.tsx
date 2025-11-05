@@ -46,27 +46,44 @@ function LobbyContent() {
   // データベースからユーザー情報を同期
   useEffect(() => {
     const syncUserData = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        console.log('⚠️ ユーザーIDがありません');
+        return;
+      }
+
+      console.log('🔄 ユーザーデータ同期開始:', user.id);
 
       try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        if (!token) return;
+        if (!token) {
+          console.log('⚠️ トークンがありません');
+          return;
+        }
 
+        console.log('📡 APIリクエスト送信中...');
         const response = await fetch(`/api/user/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
 
+        console.log('📡 APIレスポンス:', response.status);
+
         if (response.ok) {
           const data = await response.json();
+          console.log('✅ ユーザーデータ取得成功:', data);
+          
           // データベースの値でストアを更新
           setCurrency('realChips', data.realChips || 0, 'データベースから同期');
           setCurrency('gameChips', data.gameChips || 10000, 'データベースから同期');
           setCurrency('energy', data.energy || 100, 'データベースから同期');
+          
+          console.log('✅ 通貨ストア更新完了');
+        } else {
+          console.error('❌ APIエラー:', response.status, await response.text());
         }
       } catch (error) {
-        console.error('ユーザーデータ同期エラー:', error);
+        console.error('❌ ユーザーデータ同期エラー:', error);
       }
     };
 

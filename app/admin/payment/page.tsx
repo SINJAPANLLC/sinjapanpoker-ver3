@@ -87,8 +87,8 @@ function PaymentContent() {
     try {
       const token = sessionStorage.getItem('adminToken');
       
-      // 出金申請データを取得
-      const response = await fetch('/api/admin/withdrawals', {
+      // 入金・出金データを統合して取得
+      const response = await fetch('/api/admin/payments', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -97,8 +97,19 @@ function PaymentContent() {
       if (response.ok) {
         const data = await response.json();
         
-        // 出金データを決済フォーマットに変換
-        const formattedPayments = data.withdrawals.map((w: any) => ({
+        // 入金データをフォーマット
+        const formattedDeposits = data.deposits.map((d: any) => ({
+          id: d.id.substring(0, 10),
+          type: 'deposit',
+          user: d.username,
+          amount: d.amount,
+          method: 'credit_card',
+          status: d.status === 'completed' ? 'completed' : d.status === 'failed' ? 'failed' : 'pending',
+          date: new Date(d.createdAt).toLocaleString('ja-JP'),
+        }));
+
+        // 出金データをフォーマット
+        const formattedWithdrawals = data.withdrawals.map((w: any) => ({
           id: w.id.substring(0, 10),
           type: 'withdrawal',
           user: w.username,
@@ -108,41 +119,42 @@ function PaymentContent() {
           date: new Date(w.createdAt).toLocaleString('ja-JP'),
         }));
 
-        setPayments(formattedPayments);
-
-        // 統計情報を計算
-        const completedWithdrawals = data.withdrawals.filter((w: any) => w.status === 'completed');
-        const pendingWithdrawals = data.withdrawals.filter((w: any) => w.status === 'pending' || w.status === 'approved' || w.status === 'processing');
+        // 入金と出金を統合（新しい順）
+        const allPayments = [...formattedDeposits, ...formattedWithdrawals].sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
         
-        const totalWithdrawals = completedWithdrawals.reduce((sum: number, w: any) => sum + w.amount, 0);
-        const pendingCount = pendingWithdrawals.length;
+        setPayments(allPayments);
 
+        // 統計情報を設定
+        const { stats: statsData } = data;
+        
         setStats([
           {
             title: '総入金額',
-            value: '¥0',
-            change: 'データなし',
+            value: `¥${statsData.totalDeposits.toLocaleString()}`,
+            change: `${statsData.completedDepositsCount}件`,
             icon: <TrendingUp className="w-6 h-6 text-green-400" />,
             color: 'green',
           },
           {
             title: '総出金額',
-            value: `¥${totalWithdrawals.toLocaleString()}`,
-            change: `${completedWithdrawals.length}件`,
+            value: `¥${statsData.totalWithdrawals.toLocaleString()}`,
+            change: `${statsData.completedWithdrawalsCount}件`,
             icon: <TrendingDown className="w-6 h-6 text-red-400" />,
             color: 'red',
           },
           {
             title: '保留中',
-            value: `${pendingCount}件`,
-            change: `${pendingWithdrawals.reduce((sum: number, w: any) => sum + w.amount, 0).toLocaleString()}円`,
+            value: `${statsData.pendingCount}件`,
+            change: `¥${statsData.pendingAmount.toLocaleString()}`,
             icon: <Clock className="w-6 h-6 text-yellow-400" />,
             color: 'yellow',
           },
           {
             title: '純利益',
-            value: `¥${(-totalWithdrawals).toLocaleString()}`,
-            change: '出金のみ',
+            value: `¥${statsData.netProfit.toLocaleString()}`,
+            change: `+${((statsData.netProfit / (statsData.totalDeposits || 1)) * 100).toFixed(1)}%`,
             icon: <DollarSign className="w-6 h-6 text-blue-400" />,
             color: 'blue',
           },

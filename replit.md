@@ -10,6 +10,29 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**November 5, 2025 - Admin Dashboard Real Data Integration Complete**
+- **Removed all mock data** from admin dashboard pages and integrated real database APIs
+- **Payment Transactions System**: Created `payment_transactions` table to track Stripe deposits
+  - Modified `verify-session.ts` to save payment records and update user `realChips` automatically
+  - Added idempotency check to prevent duplicate transaction processing
+  - Integrated deposit + withdrawal data in admin payment dashboard
+- **Admin Payment API** (`/api/admin/payments`): Returns unified deposit/withdrawal statistics
+  - Total deposits, total withdrawals, net profit, pending amounts
+  - Complete transaction history for both deposits and withdrawals
+- **Admin Tables API** (`/api/admin/tables`): Full CRUD operations for table management
+  - GET: Fetch all tables with statistics
+  - DELETE: Remove tables
+  - PATCH: Pause/resume tables
+- **System Settings API** (`/api/admin/settings`): Database-persisted configuration
+  - Created `system_settings` table with auto-initialization
+  - GET/PATCH endpoints for real-time settings management
+- **Admin Dashboard Pages Updated**:
+  - Payment page: Shows real deposit/withdrawal data with accurate statistics
+  - Tables page: Integrated with database for live table management
+  - Settings page: Real-time database updates for system configuration
+  - Users page: Displays correct `realChips` and `gameChips` from API
+  - Revenue page: Removed sample transaction generation code
+
 **November 5, 2025 - Profile Features & KYC System Complete**
 - Implemented complete user profile API with JWT authentication (`/api/user/[id]`)
 - Added KYC verification system with document upload endpoints (`/api/kyc/submit`, `/api/kyc/status`)

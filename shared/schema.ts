@@ -405,6 +405,35 @@ export type WithdrawalRequest = typeof withdrawalRequests.$inferSelect;
 export type InsertWithdrawalRequest = typeof withdrawalRequests.$inferInsert;
 
 // ========================================
+// PAYMENT TRANSACTIONS TABLE (Stripe)
+// ========================================
+export const paymentTransactions = pgTable('payment_transactions', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar('user_id', { length: 100 }).notNull(),
+  username: varchar('username', { length: 100 }).notNull(),
+  type: varchar('type', { length: 20 }).notNull().$type<'deposit' | 'purchase'>(),
+  amount: integer('amount').notNull(),
+  stripeAmount: integer('stripe_amount'),
+  currency: varchar('currency', { length: 10 }).notNull().default('JPY'),
+  stripeSessionId: varchar('stripe_session_id', { length: 200 }).unique(),
+  stripePaymentIntentId: varchar('stripe_payment_intent_id', { length: 200 }),
+  status: varchar('status', { length: 20 }).notNull().default('pending').$type<'pending' | 'completed' | 'failed' | 'refunded'>(),
+  method: varchar('method', { length: 50 }).default('credit_card'),
+  description: varchar('description', { length: 500 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+}, (table) => {
+  return {
+    userIdIdx: index('payment_transactions_user_id_idx').on(table.userId),
+    statusIdx: index('payment_transactions_status_idx').on(table.status),
+    stripeSessionIdx: uniqueIndex('payment_transactions_stripe_session_unique_idx').on(table.stripeSessionId),
+  };
+});
+
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type InsertPaymentTransaction = typeof paymentTransactions.$inferInsert;
+
+// ========================================
 // SYSTEM SETTINGS TABLE
 // ========================================
 export const systemSettings = pgTable('system_settings', {

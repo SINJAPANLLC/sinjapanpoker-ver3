@@ -10,6 +10,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**November 5, 2025 - Profile Features & KYC System Complete**
+- Implemented complete user profile API with JWT authentication (`/api/user/[id]`)
+- Added KYC verification system with document upload endpoints (`/api/kyc/submit`, `/api/kyc/status`)
+- Created achievements/titles system with database integration (`/api/achievements/user`)
+- Updated `kycVerifications` table in schema for identity verification tracking
+- Enhanced PokerTable component to display player avatars (supports data URIs, URLs, local paths)
+- Secured all profile-related APIs with JWT authentication and authorization checks
+- Profile data now differentiates public vs private fields based on viewer identity
+- All existing pages confirmed functional: Hand History, Transactions, Settings
+
 **November 5, 2025 - Club & Table Persistence**
 - Migrated club system from in-memory Map storage to PostgreSQL database
 - Updated `clubs` table with comprehensive revenue tracking, member management, and configuration fields

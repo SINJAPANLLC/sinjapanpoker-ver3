@@ -84,61 +84,61 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-black via-[#1a0a0a] to-black"></div>
         
         {/* 流れるトランプカード */}
-        <div className="absolute inset-0 opacity-40">
+        <div className="absolute inset-0 opacity-40 pointer-events-none">
           {/* カード1 - スペードのA */}
-          <div className="absolute w-12 h-16 animate-card-fall-1 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-1 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '0s' }}>
             <Image src="/cards/ace_of_spades.png" alt="Ace of Spades" fill unoptimized className="object-contain" />
           </div>
           
           {/* カード2 - ハートのK */}
-          <div className="absolute w-12 h-16 animate-card-fall-2 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-2 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '2s' }}>
             <Image src="/cards/king_of_hearts.png" alt="King of Hearts" fill unoptimized className="object-contain" />
           </div>
           
           {/* カード3 - クラブのQ */}
-          <div className="absolute w-12 h-16 animate-card-fall-3 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-3 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '4s' }}>
             <Image src="/cards/queen_of_clubs.png" alt="Queen of Clubs" fill unoptimized className="object-contain" />
           </div>
           
           {/* カード4 - ダイヤのJ */}
-          <div className="absolute w-12 h-16 animate-card-fall-4 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-4 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '1s' }}>
             <Image src="/cards/jack_of_diamonds.png" alt="Jack of Diamonds" fill unoptimized className="object-contain" />
           </div>
           
           {/* カード5 - スペードの10 */}
-          <div className="absolute w-12 h-16 animate-card-fall-5 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-5 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '3s' }}>
             <Image src="/cards/10_of_spades.png" alt="10 of Spades" fill unoptimized className="object-contain" />
           </div>
           
           {/* カード6 - ハートの9 */}
-          <div className="absolute w-12 h-16 animate-card-fall-6 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-6 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '5s' }}>
             <Image src="/cards/9_of_hearts.png" alt="9 of Hearts" fill unoptimized className="object-contain" />
           </div>
           
           {/* カード7 - クラブの8 */}
-          <div className="absolute w-12 h-16 animate-card-fall-7 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-7 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '1.5s' }}>
             <Image src="/cards/8_of_clubs.png" alt="8 of Clubs" fill unoptimized className="object-contain" />
           </div>
           
           {/* カード8 - ダイヤの7 */}
-          <div className="absolute w-12 h-16 animate-card-fall-8 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-8 h-11 animate-card-fall-8 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '3.5s' }}>
             <Image src="/cards/7_of_diamonds.png" alt="7 of Diamonds" fill unoptimized className="object-contain" />
           </div>
           
           {/* 追加のカード群 */}
-          <div className="absolute w-10 h-14 animate-card-fall-9 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-7 h-10 animate-card-fall-9 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '0.5s' }}>
             <Image src="/cards/ace_of_hearts.png" alt="Ace of Hearts" fill unoptimized className="object-contain" />
           </div>
           
-          <div className="absolute w-10 h-14 animate-card-fall-10 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-7 h-10 animate-card-fall-10 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '2.5s' }}>
             <Image src="/cards/king_of_spades.png" alt="King of Spades" fill unoptimized className="object-contain" />
           </div>
           
-          <div className="absolute w-10 h-14 animate-card-fall-11 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-7 h-10 animate-card-fall-11 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '4.5s' }}>
             <Image src="/cards/queen_of_diamonds.png" alt="Queen of Diamonds" fill unoptimized className="object-contain" />
           </div>
           
-          <div className="absolute w-10 h-14 animate-card-fall-12 relative bg-white rounded-lg overflow-hidden shadow-lg">
+          <div className="absolute w-7 h-10 animate-card-fall-12 relative bg-white rounded overflow-hidden shadow-lg" style={{ animationDelay: '1.8s' }}>
             <Image src="/cards/jack_of_clubs.png" alt="Jack of Clubs" fill unoptimized className="object-contain" />
           </div>
         </div>

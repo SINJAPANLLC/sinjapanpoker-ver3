@@ -19,57 +19,8 @@ interface ForumPost {
   isFeatured?: boolean;
 }
 
-// モックデータ
-let posts: ForumPost[] = [
-  {
-    id: '1',
-    title: 'ポーカーの基本戦略について',
-    content: 'テキサスホールデムポーカーの基本的な戦略について解説します...',
-    category: 'strategy',
-    tags: ['ポーカー', '戦略', '初心者'],
-    type: 'text',
-    username: 'PokerMaster',
-    userId: 'user_1',
-    views: 1250,
-    comments: 45,
-    likes: 89,
-    date: '2024-01-15',
-    isPinned: true,
-    isFeatured: true
-  },
-  {
-    id: '2',
-    title: 'トーナメントでの重要なハンド分析',
-    content: 'トーナメントで重要なハンドの分析ビデオです...',
-    category: 'tournament',
-    tags: ['トーナメント', 'ハンド分析', 'ビデオ'],
-    type: 'video',
-    videoUrl: 'https://youtube.com/watch?v=example',
-    username: 'TournamentPro',
-    userId: 'user_2',
-    views: 890,
-    comments: 23,
-    likes: 67,
-    date: '2024-01-14',
-    videoThumbnail: 'https://img.youtube.com/vi/example/maxresdefault.jpg',
-    isFeatured: true
-  },
-  {
-    id: '3',
-    title: 'コミュニティイベントのお知らせ',
-    content: '今週末に開催されるコミュニティポーカートーナメントの詳細...',
-    category: 'community',
-    tags: ['イベント', 'トーナメント', 'コミュニティ'],
-    type: 'text',
-    username: 'Admin',
-    userId: 'admin_1',
-    views: 456,
-    comments: 12,
-    likes: 34,
-    date: '2024-01-13',
-    isPinned: true
-  }
-];
+// モックデータ（空）
+let posts: ForumPost[] = [];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {

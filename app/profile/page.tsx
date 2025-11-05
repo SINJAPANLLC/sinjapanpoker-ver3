@@ -290,7 +290,7 @@ function ProfileContent() {
             
             {/* チップ */}
             <div className="flex items-center space-x-2 glass px-3 py-2 rounded-full hover-lift">
-              <img src="/attached_assets/stock_images/casino_poker_chips_s_3c193188.jpg" alt="Chips" className="w-5 h-5 rounded-full object-cover" />
+              <img src="/poker-chip.jpg" alt="Chips" className="w-5 h-5 rounded-full object-cover" />
               <span className="text-white font-semibold">{currency?.realChips?.toLocaleString() || '0'}</span>
               <Link href="/purchase" className="text-blue-400 hover:text-cyan-300 text-xs">+</Link>
             </div>
@@ -524,7 +524,7 @@ function ProfileContent() {
                   <div className="bg-gray-800/50 rounded-lg p-4">
                     <div className="text-gray-400 text-sm mb-1">現在の残高</div>
                     <div className="text-3xl font-bold text-white flex items-center space-x-2">
-                      <img src="/attached_assets/stock_images/casino_poker_chips_s_3c193188.jpg" alt="Chips" className="w-8 h-8 rounded-full object-cover" />
+                      <img src="/poker-chip.jpg" alt="Chips" className="w-8 h-8 rounded-full object-cover" />
                       <span>{(currency?.realChips || 0).toLocaleString()}</span>
                       <span className="text-sm text-gray-400">チップ</span>
                     </div>

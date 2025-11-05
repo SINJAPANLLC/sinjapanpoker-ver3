@@ -58,7 +58,7 @@ function PracticeContent() {
             <h1 className="text-2xl font-bold text-white">練習モード</h1>
           </div>
           <div className="flex items-center space-x-2 glass px-3 py-2 rounded-full">
-            <img src="/attached_assets/stock_images/casino_poker_chips_s_3c193188.jpg" alt="Chips" className="w-5 h-5 rounded-full object-cover" />
+            <img src="/poker-chip.jpg" alt="Chips" className="w-5 h-5 rounded-full object-cover" />
             <span className="text-white font-semibold">{(currency?.gameChips || 0).toLocaleString()}</span>
             <span className="text-gray-400 text-xs">練習用</span>
           </div>

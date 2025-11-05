@@ -55,7 +55,69 @@ export async function GET(request: NextRequest) {
     // 今日の統計（過去24時間）
     const todayGames = activeGames.length;
     
+    // 収益データの計算
+    let totalRake = 0;
+    let totalTournamentFees = 0;
+    
+    for (const game of activeGames) {
+      const rake = (game as any).rake || 0;
+      const fee = (game as any).fee || 0;
+      totalRake += rake;
+      if (game.type === 'tournament') {
+        totalTournamentFees += fee;
+      }
+    }
+
+    // トッププレイヤー取得（チップ数順）
+    const topPlayers = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        chips: users.chips,
+      })
+      .from(users)
+      .orderBy(sql`${users.chips} DESC`)
+      .limit(10);
+
+    // 新規ユーザー数
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const newUsersToday = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(gte(users.createdAt, oneDayAgo));
+
+    const activeUsersWeek = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(gte(users.lastLogin, oneWeekAgo));
+
     return NextResponse.json({
+      revenue: {
+        total: totalRake + totalTournamentFees,
+        rake: totalRake,
+        tournament: totalTournamentFees,
+        vip: 0,
+      },
+      users: {
+        total: totalUsers[0]?.count || 0,
+        new: newUsersToday[0]?.count || 0,
+        active: activeUsersWeek[0]?.count || 0,
+        newWeek: newUsersToday[0]?.count || 0,
+      },
+      games: {
+        total: activeGames.length,
+        today: todayGames,
+        week: todayGames,
+        active: activeGames.length,
+      },
+      topRakePlayers: topPlayers.map((p, i) => ({
+        rank: i + 1,
+        username: p.username,
+        rakePaid: 0,
+        gamesPlayed: 0,
+      })),
       activeTournaments: {
         count: activeTournaments.length,
         totalPlayers,

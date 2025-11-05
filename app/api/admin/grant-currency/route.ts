@@ -5,7 +5,6 @@ import { eq, sql } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth/admin-auth';
 
 export async function POST(request: NextRequest) {
-  // 管理者認証チェック
   const authResult = requireAdmin(request);
   if ('error' in authResult) {
     return NextResponse.json(
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { userId, chips, reason } = body;
+    const { userId, chips, reason, chipType = 'real' } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -39,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ユーザーの存在確認
     const userResult = await db
       .select()
       .from(users)
@@ -54,12 +52,10 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userResult[0];
+    const chipField = chipType === 'game' ? users.gameChips : users.realChips;
+    const currentChips = chipType === 'game' ? user.gameChips : user.realChips;
 
-    // チップを更新（加算）
-    const newChips = user.chips + chips;
-
-    // マイナスにならないようにする
-    if (newChips < 0) {
+    if (currentChips + chips < 0) {
       return NextResponse.json(
         { error: 'チップ数がマイナスになります' },
         { status: 400 }
@@ -68,18 +64,27 @@ export async function POST(request: NextRequest) {
 
     await db
       .update(users)
-      .set({ chips: newChips })
+      .set({
+        [chipType === 'game' ? 'gameChips' : 'realChips']: sql`${chipField} + ${chips}`,
+      })
       .where(eq(users.id, userId));
 
-    console.log(`チップ付与: ユーザー ${user.username} に ${chips} チップ付与（理由: ${reason}）`);
+    const [updatedUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    console.log(`チップ付与: ${user.username} に ${chips} ${chipType === 'game' ? 'ゲーム' : 'リアル'}チップ付与（理由: ${reason}）`);
 
     return NextResponse.json({
       success: true,
-      message: `${user.username}に${chips}チップを付与しました`,
+      message: `${user.username}に${Math.abs(chips)}${chipType === 'game' ? 'ゲーム' : 'リアル'}チップを${chips > 0 ? '付与' : '減算'}しました`,
       user: {
-        id: user.id,
-        username: user.username,
-        chips: newChips,
+        id: updatedUser.id,
+        username: updatedUser.username,
+        realChips: updatedUser.realChips,
+        gameChips: updatedUser.gameChips,
       },
     });
   } catch (error) {

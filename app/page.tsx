@@ -488,9 +488,6 @@ export default function HomePage() {
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><Link href="/feedback" className="hover:text-blue-400 transition-colors">お問い合わせ</Link></li>
                 <li><Link href="/faq" className="hover:text-blue-400 transition-colors">FAQ</Link></li>
-                <li><Link href="/responsible-gaming" className="hover:text-blue-400 transition-colors">責任あるゲーミング</Link></li>
-                <li><Link href="/self-exclusion" className="hover:text-blue-400 transition-colors">セルフエクスクルージョン</Link></li>
-                <li><Link href="/problem-gambling" className="hover:text-blue-400 transition-colors">ギャンブル依存対策</Link></li>
                 <li><Link href="/age-verification" className="hover:text-blue-400 transition-colors">年齢確認</Link></li>
                 <li><Link href="/deposit-limits" className="hover:text-blue-400 transition-colors">入金制限</Link></li>
                 <li><Link href="/cooling-off" className="hover:text-blue-400 transition-colors">クーリングオフ</Link></li>

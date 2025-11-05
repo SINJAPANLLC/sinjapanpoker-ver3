@@ -117,7 +117,7 @@ export default function TermsOfUsePage() {
               <section>
                 <h3 className="text-xl font-semibold text-blue-400 mb-3">8. 紛争解決</h3>
                 <p>
-                  本条件に関する紛争は、当社の本社所在地を管轄する裁判所を専属的合意管轄とします。日本法が準拠法となります。
+                  本条件に関する紛争は、リベリア共和国モンロビアの管轄裁判所を専属的合意管轄とします。リベリア共和国の法律が準拠法となります。
                 </p>
               </section>
 
@@ -126,18 +126,6 @@ export default function TermsOfUsePage() {
                 <p>
                   当社は、必要に応じて本条件を変更することがあります。変更は、本サービス上での通知により効力を生じます。
                 </p>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold text-blue-400 mb-3">10. お問い合わせ</h3>
-                <p>
-                  本条件に関するお問い合わせは、下記までご連絡ください。
-                </p>
-                <div className="bg-gray-800 p-4 rounded-lg mt-4">
-                  <p className="font-semibold">SIN JAPAN LIBERIA CO.,INC.</p>
-                  <p>Email: legal@sinjapanpoker.com</p>
-                  <p>受付時間: 平日 9:00-18:00（日本時間）</p>
-                </div>
               </section>
 
               <div className="mt-8 pt-6 border-t border-gray-600">

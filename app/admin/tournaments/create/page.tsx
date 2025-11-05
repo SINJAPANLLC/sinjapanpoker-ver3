@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminStore } from '@/store/useAdminStore';
-import { useTournamentStore } from '@/store/useTournamentStore';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import { 
   Shield, 
@@ -19,13 +18,12 @@ import {
 function CreateTournamentContent() {
   const router = useRouter();
   const { adminUser } = useAdminStore();
-  const { addTournament } = useTournamentStore();
   
   const [formData, setFormData] = useState({
     name: '',
+    type: 'sit-n-go' as 'sit-n-go' | 'scheduled' | 'bounty',
     buyIn: 1000,
-    maxPlayers: 50,
-    prize: 45000,
+    maxPlayers: 100,
     startTime: '',
     description: ''
   });
@@ -43,46 +41,41 @@ function CreateTournamentContent() {
         throw new Error('Admin認証が必要です');
       }
 
-      const startTime = new Date(formData.startTime);
-      if (startTime <= new Date()) {
-        throw new Error('開始時刻は現在時刻より後に設定してください');
+      if (formData.maxPlayers < 2 || formData.maxPlayers > 1000) {
+        throw new Error('最大プレイヤー数は2～1000人の範囲で設定してください');
       }
 
+      if (formData.buyIn < 10) {
+        throw new Error('バイインは10チップ以上に設定してください');
+      }
+
+      const token = sessionStorage.getItem('admin_token');
+      
       // データベースに保存するためにAPIにPOSTリクエスト
-      const response = await fetch('/api/tournament', {
+      const response = await fetch('/api/admin/tournaments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: formData.name,
-          type: 'tournament',
+          type: formData.type,
           buyIn: formData.buyIn,
           maxPlayers: formData.maxPlayers,
           description: formData.description || '',
-          startTime: startTime.toISOString(),
+          startTime: formData.startTime || null,
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'トーナメントの作成に失敗しました');
+        throw new Error(data.message || 'トーナメントの作成に失敗しました');
       }
 
-      const data = await response.json();
-      console.log('Tournament created:', data);
-
-      // Zustand storeにも追加（LocalStorage用）
-      addTournament({
-        ...data.tournament,
-        prize: data.tournament.prizePool || formData.prize,
-        status: 'registering',
-        createdBy: adminUser.username,
-        createdById: adminUser.id,
-        type: 'tournament',
-      });
-
-      router.push('/admin/dashboard');
+      console.log('Tournament created:', data.tournament);
+      router.push('/admin/tournaments');
     } catch (err: any) {
       setError(err.message || 'トーナメントの作成に失敗しました');
     } finally {
@@ -101,7 +94,7 @@ function CreateTournamentContent() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => router.push('/admin/dashboard')}
+              onClick={() => router.push('/admin/tournaments')}
               className="text-blue-400 hover:text-blue-300 transition-colors"
             >
               <ArrowLeft className="w-6 h-6" />
@@ -145,6 +138,54 @@ function CreateTournamentContent() {
                 />
               </div>
 
+              {/* トーナメントタイプ */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  トーナメントタイプ *
+                </label>
+                <div className="grid grid-cols-3 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('type', 'sit-n-go')}
+                    className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                      formData.type === 'sit-n-go'
+                        ? 'border-purple-500 bg-purple-500/20 text-purple-400'
+                        : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    <Trophy className="w-6 h-6 mx-auto mb-1" />
+                    <div className="font-semibold text-sm">シット&ゴー</div>
+                    <div className="text-xs opacity-75">満席で開始</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('type', 'scheduled')}
+                    className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                      formData.type === 'scheduled'
+                        ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
+                        : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    <Calendar className="w-6 h-6 mx-auto mb-1" />
+                    <div className="font-semibold text-sm">スケジュール</div>
+                    <div className="text-xs opacity-75">時刻指定</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('type', 'bounty')}
+                    className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                      formData.type === 'bounty'
+                        ? 'border-orange-500 bg-orange-500/20 text-orange-400'
+                        : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    <DollarSign className="w-6 h-6 mx-auto mb-1" />
+                    <div className="font-semibold text-sm">バウンティ</div>
+                    <div className="text-xs opacity-75">賞金あり</div>
+                  </button>
+                </div>
+              </div>
+
               {/* バイイン */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -184,45 +225,23 @@ function CreateTournamentContent() {
                 </div>
               </div>
 
-              {/* 賞金総額 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  賞金総額（チップ） *
-                </label>
-                <div className="relative">
-                  <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  <input
-                    type="number"
-                    value={formData.prize}
-                    onChange={(e) => handleInputChange('prize', parseInt(e.target.value) || 0)}
-                    required
-                    min="1"
-                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
-                    placeholder="45000"
-                  />
+              {/* 開始時刻（スケジュールタイプの場合のみ） */}
+              {formData.type === 'scheduled' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    開始時刻
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="datetime-local"
+                      value={formData.startTime}
+                      onChange={(e) => handleInputChange('startTime', e.target.value)}
+                      className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    />
+                  </div>
                 </div>
-                <p className="text-gray-500 text-sm mt-1">
-                  通常は (バイイン × 最大参加者数 × 0.9) を設定
-                </p>
-              </div>
-
-              {/* 開始時刻 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  開始時刻 *
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  <input
-                    type="datetime-local"
-                    value={formData.startTime}
-                    onChange={(e) => handleInputChange('startTime', e.target.value)}
-                    required
-                    min={new Date().toISOString().slice(0, 16)}
-                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              </div>
+              )}
 
               {/* 説明 */}
               <div>
@@ -242,7 +261,7 @@ function CreateTournamentContent() {
               <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-700/50">
                 <button
                   type="button"
-                  onClick={() => router.push('/admin/dashboard')}
+                  onClick={() => router.push('/admin/tournaments')}
                   className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors"
                 >
                   キャンセル
@@ -275,7 +294,7 @@ function CreateTournamentContent() {
 
 export default function CreateTournamentPage() {
   return (
-    <AdminProtectedRoute requiredPermission="tournament.create">
+    <AdminProtectedRoute>
       <CreateTournamentContent />
     </AdminProtectedRoute>
   );

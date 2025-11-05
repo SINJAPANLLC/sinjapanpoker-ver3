@@ -273,12 +273,27 @@ function AdminDashboardContent() {
         {/* クイックアクション */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6 mb-6 md:mb-8">
           <button
-            onClick={() => router.push('/admin/tournaments/create')}
+            onClick={() => router.push('/admin/tournaments')}
             className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-xl p-3 md:p-6 hover:border-yellow-500/50 transition-all group"
           >
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-3 md:space-x-4">
               <div className="p-2 md:p-3 bg-yellow-500/20 rounded-lg group-hover:bg-yellow-500/30 transition-colors">
-                <Plus className="w-4 h-4 md:w-6 md:h-6 text-yellow-400" />
+                <Trophy className="w-4 h-4 md:w-6 md:h-6 text-yellow-400" />
+              </div>
+              <div className="text-center md:text-left">
+                <h3 className="text-white font-semibold mb-1 text-xs md:text-base">トーナメント管理</h3>
+                <p className="text-gray-400 text-xs hidden md:block">トーナメントの確認・管理</p>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/tournaments/create')}
+            className="bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-xl p-3 md:p-6 hover:border-orange-500/50 transition-all group"
+          >
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-3 md:space-x-4">
+              <div className="p-2 md:p-3 bg-orange-500/20 rounded-lg group-hover:bg-orange-500/30 transition-colors">
+                <Plus className="w-4 h-4 md:w-6 md:h-6 text-orange-400" />
               </div>
               <div className="text-center md:text-left">
                 <h3 className="text-white font-semibold mb-1 text-xs md:text-base">トーナメント作成</h3>

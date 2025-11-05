@@ -8,8 +8,6 @@ import {
   Shield, 
   ArrowLeft, 
   Coins, 
-  Zap,
-  Gem,
   Gift,
   User,
   Save,
@@ -23,9 +21,6 @@ interface User {
   email: string;
   realChips: number;
   gameChips: number;
-  diamonds: number;
-  energy: number;
-  points: number;
 }
 
 function CurrencyManagementContent() {
@@ -42,9 +37,6 @@ function CurrencyManagementContent() {
   const [currencyForm, setCurrencyForm] = useState({
     realChips: 0,
     gameChips: 0,
-    diamonds: 0,
-    energy: 0,
-    points: 0,
     reason: ''
   });
 
@@ -68,9 +60,6 @@ function CurrencyManagementContent() {
             email: u.email,
             realChips: u.realChips || 0,
             gameChips: u.gameChips || 0,
-            diamonds: 0,
-            energy: 0,
-            points: 0,
           }));
           setUsers(mappedUsers);
         } else {
@@ -91,9 +80,6 @@ function CurrencyManagementContent() {
     setCurrencyForm({
       realChips: 0,
       gameChips: 0,
-      diamonds: 0,
-      energy: 0,
-      points: 0,
       reason: ''
     });
     setMessage('');
@@ -107,58 +93,97 @@ function CurrencyManagementContent() {
     e.preventDefault();
     if (!selectedUser || !currencyForm.reason.trim()) return;
 
+    // リアルチップとゲームチップの両方がゼロの場合は何もしない
+    if (currencyForm.realChips === 0 && currencyForm.gameChips === 0) {
+      setMessage('付与するチップを入力してください');
+      setMessageType('error');
+      return;
+    }
+
     setSaving(true);
+    setMessage('');
+    
     try {
       const token = typeof window !== 'undefined' ? sessionStorage.getItem('admin_token') : null;
       
-      // 実際のチップ付与API呼び出し
-      const response = await fetch('/api/admin/grant-currency', {
-        method: 'POST',
+      // リアルチップを付与
+      if (currencyForm.realChips !== 0) {
+        const response = await fetch('/api/admin/grant-currency', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId: selectedUser.id,
+            chips: currencyForm.realChips,
+            chipType: 'real',
+            reason: currencyForm.reason,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'リアルチップの付与に失敗しました');
+        }
+      }
+
+      // ゲームチップを付与
+      if (currencyForm.gameChips !== 0) {
+        const response = await fetch('/api/admin/grant-currency', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId: selectedUser.id,
+            chips: currencyForm.gameChips,
+            chipType: 'game',
+            reason: currencyForm.reason,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'ゲームチップの付与に失敗しました');
+        }
+      }
+
+      // 最新のユーザー情報を取得
+      const userResponse = await fetch('/api/admin/users', {
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          userId: selectedUser.id,
-          chips: currencyForm.realChips,
-          reason: currencyForm.reason,
-        }),
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // ユーザーの通貨を更新
-        setUsers(prev => prev.map(user => 
-          user.id === selectedUser.id 
-            ? {
-                ...user,
-                realChips: data.user.chips,
-              }
-            : user
-        ));
-
-        setSelectedUser(prev => prev ? {
-          ...prev,
-          realChips: data.user.chips,
-        } : null);
-
-        setMessage(data.message || '通貨の付与が完了しました');
-        setMessageType('success');
+      
+      const userData = await userResponse.json();
+      
+      if (userResponse.ok) {
+        const mappedUsers: User[] = userData.users.map((u: any) => ({
+          id: u.id,
+          username: u.username,
+          email: u.email,
+          realChips: u.realChips || 0,
+          gameChips: u.gameChips || 0,
+        }));
+        setUsers(mappedUsers);
         
-        // フォームをリセット
-        setCurrencyForm({
-          realChips: 0,
-          gameChips: 0,
-          diamonds: 0,
-          energy: 0,
-          points: 0,
-          reason: ''
-        });
-      } else {
-        setMessage(data.error || '通貨の付与に失敗しました');
-        setMessageType('error');
+        const updatedSelectedUser = mappedUsers.find(u => u.id === selectedUser.id);
+        if (updatedSelectedUser) {
+          setSelectedUser(updatedSelectedUser);
+        }
       }
+
+      setMessage('通貨の付与が完了しました');
+      setMessageType('success');
+      
+      // フォームをリセット
+      setCurrencyForm({
+        realChips: 0,
+        gameChips: 0,
+        reason: ''
+      });
     } catch (error) {
       console.error('チップ付与エラー:', error);
       setMessage('通貨の付与に失敗しました');
@@ -276,7 +301,7 @@ function CurrencyManagementContent() {
                     <p className="text-blue-400">{selectedUser.username} ({selectedUser.email})</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
                         リアルチップ
@@ -306,38 +331,6 @@ function CurrencyManagementContent() {
                           placeholder="0"
                         />
                         <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        ダイヤモンド
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={currencyForm.diamonds}
-                          onChange={(e) => handleCurrencyChange('diamonds', parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                          placeholder="0"
-                        />
-                        <Gem className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        エネルギー
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={currencyForm.energy}
-                          onChange={(e) => handleCurrencyChange('energy', parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                          placeholder="0"
-                        />
-                        <Zap className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
                       </div>
                     </div>
                   </div>

@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/server/db';
 import { tournaments, users } from '@/shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { calculateTournamentFee } from '@/lib/rake-system';
+import { requireAdmin } from '@/lib/auth/admin-auth';
+import { verifyAuth } from '@/lib/auth-utils';
 
 export async function GET(
   request: Request,
@@ -33,7 +35,7 @@ export async function GET(
 }
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -56,6 +58,22 @@ export async function POST(
     const currentTournament = tournament[0];
 
     if (action === 'register') {
+      const authResult = await verifyAuth(request);
+      if (!authResult.valid || !authResult.userId) {
+        return NextResponse.json(
+          { error: '認証が必要です' },
+          { status: 401 }
+        );
+      }
+
+      if (userId && userId !== authResult.userId) {
+        return NextResponse.json(
+          { error: '他のユーザーを登録することはできません' },
+          { status: 403 }
+        );
+      }
+
+      const actualUserId = authResult.userId;
       if (currentTournament.status !== 'registering') {
         return NextResponse.json(
           { error: '登録受付が終了しています' },
@@ -71,7 +89,7 @@ export async function POST(
       }
 
       const players = currentTournament.players || [];
-      if (players.some(p => p.userId === userId)) {
+      if (players.some(p => p.userId === actualUserId)) {
         return NextResponse.json(
           { error: 'すでに登録済みです' },
           { status: 400 }
@@ -81,7 +99,7 @@ export async function POST(
       const user = await db
         .select()
         .from(users)
-        .where(eq(users.id, userId))
+        .where(eq(users.id, actualUserId))
         .limit(1);
 
       if (user.length === 0) {
@@ -104,12 +122,12 @@ export async function POST(
       await db
         .update(users)
         .set({ chips: user[0].chips - totalCost })
-        .where(eq(users.id, userId));
+        .where(eq(users.id, actualUserId));
 
       const newPlayers = [
         ...players,
         {
-          userId,
+          userId: actualUserId,
           username: username || user[0].username,
           chips: currentTournament.buyIn,
         }
@@ -132,6 +150,11 @@ export async function POST(
     }
 
     if (action === 'start') {
+      const authResult = requireAdmin(request);
+      if ('error' in authResult) {
+        return NextResponse.json({ error: authResult.error }, { status: authResult.status });
+      }
+
       if (currentTournament.status !== 'registering') {
         return NextResponse.json(
           { error: 'トーナメントはすでに開始しています' },
@@ -162,6 +185,11 @@ export async function POST(
     }
 
     if (action === 'complete') {
+      const authResult = requireAdmin(request);
+      if ('error' in authResult) {
+        return NextResponse.json({ error: authResult.error }, { status: authResult.status });
+      }
+
       if (currentTournament.status !== 'in-progress') {
         return NextResponse.json(
           { error: 'トーナメントは進行中ではありません' },
@@ -216,6 +244,11 @@ export async function POST(
     }
 
     if (action === 'cancel') {
+      const authResult = requireAdmin(request);
+      if ('error' in authResult) {
+        return NextResponse.json({ error: authResult.error }, { status: authResult.status });
+      }
+
       if (currentTournament.status === 'completed') {
         return NextResponse.json(
           { error: '完了したトーナメントはキャンセルできません' },

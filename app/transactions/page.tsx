@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, Coins, Zap, Filter, BarChart3, CreditCard } from 'lucide-react';
 import { useCurrencyStore } from '@/store/useCurrencyStore';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -16,7 +17,7 @@ function TransactionsContent() {
 
   const getCurrencyIcon = (currency: string) => {
     switch (currency) {
-      case 'chips': return <Coins className="w-5 h-5 text-yellow-500" />;
+      case 'chips': return <Image src="/chip-icon.png" alt="Chip" width={20} height={20} className="w-5 h-5" />;
       case 'energy': return <Zap className="w-5 h-5 text-yellow-400" />;
       case 'points': return <CreditCard className="w-5 h-5 text-blue-400" />;
       default: return null;
@@ -52,8 +53,8 @@ function TransactionsContent() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="glass px-3 py-2 rounded-full">
-              <Coins className="text-yellow-500 inline mr-2" />
+            <div className="glass px-3 py-2 rounded-full flex items-center">
+              <Image src="/chip-icon.png" alt="Chip" width={20} height={20} className="inline mr-2" />
               <span className="text-white font-semibold">{(currency?.realChips || 0).toLocaleString()}</span>
             </div>
           </div>
@@ -74,7 +75,7 @@ function TransactionsContent() {
 
           <div className="card-blue hover-lift">
             <div className="flex items-center space-x-3 mb-2">
-              <Coins className="text-yellow-500 text-2xl" />
+              <Image src="/chip-icon.png" alt="Chip" width={32} height={32} />
               <span className="text-gray-400">獲得</span>
             </div>
             <div className="text-4xl font-bold text-green-400">+{stats.earned.toLocaleString()}</div>
@@ -82,7 +83,7 @@ function TransactionsContent() {
 
           <div className="card hover-lift">
             <div className="flex items-center space-x-3 mb-2">
-              <Coins className="text-yellow-500 text-2xl" />
+              <Image src="/chip-icon.png" alt="Chip" width={32} height={32} />
               <span className="text-gray-400">消費</span>
             </div>
             <div className="text-4xl font-bold text-blue-400">-{stats.spent.toLocaleString()}</div>
@@ -93,7 +94,7 @@ function TransactionsContent() {
         <div className="flex justify-center space-x-4 mb-8 animate-scale-in">
           {[
             { id: 'all', label: 'すべて', icon: <Filter className="text-gray-400" /> },
-            { id: 'chips', label: 'チップ', icon: <Coins className="text-yellow-500" /> },
+            { id: 'chips', label: 'チップ', icon: <Image src="/chip-icon.png" alt="Chip" width={20} height={20} /> },
             { id: 'energy', label: 'エネルギー', icon: <Zap className="text-yellow-400" /> },
             { id: 'points', label: 'ポイント', icon: <CreditCard className="text-blue-400" /> }
           ].map((option) => (

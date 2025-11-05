@@ -31,7 +31,7 @@ import { saveTables, loadTables, saveTournaments, loadTournaments } from '@/lib/
 
 function LobbyContent() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, token } = useAuthStore();
   const { currency, setCurrency } = useCurrencyStore();
   const { getActiveTournaments, joinTournament } = useTournamentStore();
 
@@ -54,13 +54,12 @@ function LobbyContent() {
       console.log('🔄 ユーザーデータ同期開始:', user.id);
 
       try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (!token) {
           console.log('⚠️ トークンがありません');
           return;
         }
 
-        console.log('📡 APIリクエスト送信中...');
+        console.log('📡 APIリクエスト送信中...', token.substring(0, 20) + '...');
         const response = await fetch(`/api/user/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -88,7 +87,7 @@ function LobbyContent() {
     };
 
     syncUserData();
-  }, [user?.id, setCurrency]);
+  }, [user?.id, token, setCurrency]);
 
   // Socket.io接続してリアルタイム更新を受信
   useEffect(() => {

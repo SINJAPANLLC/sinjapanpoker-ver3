@@ -405,6 +405,24 @@ export type WithdrawalRequest = typeof withdrawalRequests.$inferSelect;
 export type InsertWithdrawalRequest = typeof withdrawalRequests.$inferInsert;
 
 // ========================================
+// SYSTEM SETTINGS TABLE
+// ========================================
+export const systemSettings = pgTable('system_settings', {
+  id: varchar('id', { length: 100 }).primaryKey(),
+  category: varchar('category', { length: 50 }).notNull(),
+  name: varchar('name', { length: 200 }).notNull(),
+  description: varchar('description', { length: 500 }),
+  value: jsonb('value').notNull(),
+  type: varchar('type', { length: 20 }).notNull().$type<'boolean' | 'number' | 'string' | 'select'>(),
+  options: jsonb('options').$type<Array<{ value: any; label: string }>>(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  updatedBy: varchar('updated_by', { length: 100 }),
+});
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = typeof systemSettings.$inferInsert;
+
+// ========================================
 // RELATIONS
 // ========================================
 export const usersRelations = relations(users, ({ many }) => ({

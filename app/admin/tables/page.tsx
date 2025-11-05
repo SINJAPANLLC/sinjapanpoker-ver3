@@ -56,94 +56,61 @@ function TableManagementContent() {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [stats, setStats] = useState({ totalTables: 0, activeTables: 0, totalPlayers: 0, totalRevenue: 0 });
 
   useEffect(() => {
-    // モックテーブルデータ
-    const mockTables: Table[] = [
-      {
-        id: 'table_1',
-        name: '初心者歓迎テーブル',
-        type: 'cash',
-        buyIn: 1000,
-        currentPlayers: 6,
-        maxPlayers: 9,
-        isPrivate: false,
-        blinds: { small: 10, big: 20 },
-        status: 'playing',
-        createdBy: 'Player1',
-        createdById: 'user_1',
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        updatedAt: new Date(),
-        description: '初心者でも安心してプレイできるテーブルです',
-        rakePercentage: 0.05,
-        totalRake: 1250,
-        handsPlayed: 45,
-        avgPot: 1800
-      },
-      {
-        id: 'table_2',
-        name: 'ハイローラーズ',
-        type: 'cash',
-        buyIn: 10000,
-        currentPlayers: 8,
-        maxPlayers: 9,
-        isPrivate: false,
-        blinds: { small: 100, big: 200 },
-        status: 'playing',
-        createdBy: 'Player2',
-        createdById: 'user_2',
-        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        updatedAt: new Date(),
-        description: '高額バイインのテーブル',
-        rakePercentage: 0.05,
-        totalRake: 3500,
-        handsPlayed: 78,
-        avgPot: 8500
-      },
-      {
-        id: 'table_3',
-        name: '友達限定テーブル',
-        type: 'sit-and-go',
-        buyIn: 5000,
-        currentPlayers: 4,
-        maxPlayers: 6,
-        isPrivate: true,
-        status: 'waiting',
-        createdBy: 'Player3',
-        createdById: 'user_3',
-        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        updatedAt: new Date(),
-        description: '友達限定のシット&ゴー',
-        rakePercentage: 0.05,
-        totalRake: 0,
-        handsPlayed: 0,
-        avgPot: 0
-      },
-      {
-        id: 'table_4',
-        name: 'VIPテーブル',
-        type: 'cash',
-        buyIn: 50000,
-        currentPlayers: 9,
-        maxPlayers: 9,
-        isPrivate: true,
-        blinds: { small: 500, big: 1000 },
-        status: 'full',
-        createdBy: 'Player4',
-        createdById: 'user_4',
-        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        updatedAt: new Date(),
-        description: 'VIP専用の高額テーブル',
-        rakePercentage: 0.05,
-        totalRake: 8750,
-        handsPlayed: 156,
-        avgPot: 25000
-      }
-    ];
-    
-    setTables(mockTables);
-    setLoading(false);
+    fetchTables();
   }, []);
+
+  const fetchTables = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('adminToken');
+      const response = await fetch('/api/admin/tables', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // データをフロントエンドのTable型に変換
+        const formattedTables: Table[] = data.tables.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          type: t.type === 'tournament' ? 'sit-and-go' : 'cash',
+          buyIn: parseInt(t.stakes.split('/')[0]) || 0,
+          currentPlayers: t.currentPlayers || 0,
+          maxPlayers: t.maxPlayers || 9,
+          isPrivate: false,
+          blinds: t.stakes ? {
+            small: parseInt(t.stakes.split('/')[0]) || 0,
+            big: parseInt(t.stakes.split('/')[1]) || 0
+          } : undefined,
+          status: t.status === 'paused' ? 'paused' : t.currentPlayers >= t.maxPlayers ? 'full' : t.currentPlayers > 0 ? 'playing' : 'waiting',
+          createdBy: t.clubName || 'Unknown',
+          createdById: t.clubId || '',
+          createdAt: new Date(t.createdAt),
+          updatedAt: new Date(t.lastHandAt || t.createdAt),
+          rakePercentage: 0.05,
+          totalRake: t.clubRevenue || 0,
+          handsPlayed: t.totalHands || 0,
+          avgPot: t.totalHands > 0 ? Math.round((t.totalRakeCollected || 0) / t.totalHands / 0.05) : 0
+        }));
+        setTables(formattedTables);
+        setStats(data.stats);
+      } else {
+        setMessage('テーブル情報の取得に失敗しました');
+        setMessageType('error');
+      }
+    } catch (error) {
+      console.error('テーブル取得エラー:', error);
+      setMessage('テーブル情報の取得に失敗しました');
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredTables = tables.filter(table => {
     const matchesSearch = table.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -156,34 +123,50 @@ function TableManagementContent() {
 
   const handleTableAction = async (tableId: string, action: 'pause' | 'resume' | 'delete') => {
     try {
-      // 実際のAPI呼び出し
-      await new Promise(resolve => setTimeout(resolve, 1000)); // モック遅延
+      const token = sessionStorage.getItem('adminToken');
       
       if (action === 'delete') {
-        setTables(prev => prev.filter(table => table.id !== tableId));
-        setMessage('テーブルが削除されました');
+        const response = await fetch(`/api/admin/tables?id=${tableId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setMessage('テーブルが削除されました');
+          setMessageType('success');
+          fetchTables(); // リロード
+        } else {
+          const error = await response.json();
+          setMessage(error.message || 'テーブルの削除に失敗しました');
+          setMessageType('error');
+        }
       } else {
-        setTables(prev => prev.map(table => {
-          if (table.id === tableId) {
-            let newStatus = table.status;
-            switch (action) {
-              case 'pause':
-                newStatus = 'paused';
-                break;
-              case 'resume':
-                newStatus = 'waiting';
-                break;
-            }
-            return { ...table, status: newStatus, updatedAt: new Date() };
-          }
-          return table;
-        }));
-        setMessage(`テーブルが${action === 'pause' ? '一時停止' : '再開'}されました`);
+        // pause/resume
+        const newStatus = action === 'pause' ? 'paused' : 'active';
+        const response = await fetch('/api/admin/tables', {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ tableId, status: newStatus }),
+        });
+
+        if (response.ok) {
+          setMessage(`テーブルが${action === 'pause' ? '一時停止' : '再開'}されました`);
+          setMessageType('success');
+          fetchTables(); // リロード
+        } else {
+          const error = await response.json();
+          setMessage(error.message || 'テーブルの更新に失敗しました');
+          setMessageType('error');
+        }
       }
-      
-      setMessageType('success');
     } catch (error) {
-      setMessage('操作に失敗しました');
+      console.error('テーブルアクションエラー:', error);
+      setMessage('操作中にエラーが発生しました');
       setMessageType('error');
     }
   };

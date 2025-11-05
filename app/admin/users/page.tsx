@@ -84,8 +84,8 @@ function UserManagementContent() {
           email: u.email || `${u.username}@example.com`,
           status: 'active' as const,
           role: u.username === 'admin' ? 'admin' as const : 'user' as const,
-          realChips: 0,
-          gameChips: u.chips || 0,
+          realChips: u.realChips || 0,
+          gameChips: u.gameChips || u.chips || 0,
           diamonds: 0,
           energy: u.experience || 0,
           points: 0,
@@ -96,7 +96,7 @@ function UserManagementContent() {
           totalWinnings: u.totalWinnings || 0,
           kycStatus: 'not_submitted' as const,
           kycDocuments: [],
-          realMoneyEnabled: false,
+          realMoneyEnabled: (u.realChips || 0) > 0,
         }));
         setUsers(formattedUsers);
       }

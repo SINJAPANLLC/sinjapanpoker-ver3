@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import { 
@@ -44,86 +44,116 @@ function PaymentContent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
-
-  // ダミーの決済データ
-  const payments = [
-    {
-      id: 'PAY-001',
-      type: 'deposit',
-      user: 'user123',
-      amount: 10000,
-      method: 'credit_card',
-      status: 'completed',
-      date: '2025-10-22 18:30:00',
-    },
-    {
-      id: 'PAY-002',
-      type: 'withdrawal',
-      user: 'user456',
-      amount: 5000,
-      method: 'bank_transfer',
-      status: 'pending',
-      date: '2025-10-22 17:15:00',
-    },
-    {
-      id: 'PAY-003',
-      type: 'deposit',
-      user: 'user789',
-      amount: 25000,
-      method: 'crypto',
-      status: 'completed',
-      date: '2025-10-22 16:45:00',
-    },
-    {
-      id: 'PAY-004',
-      type: 'withdrawal',
-      user: 'user234',
-      amount: 15000,
-      method: 'bank_transfer',
-      status: 'completed',
-      date: '2025-10-22 15:20:00',
-    },
-    {
-      id: 'PAY-005',
-      type: 'deposit',
-      user: 'user567',
-      amount: 50000,
-      method: 'credit_card',
-      status: 'failed',
-      date: '2025-10-22 14:10:00',
-    },
-  ];
-
-  const stats = [
+  const [payments, setPayments] = useState<any[]>([]);
+  const [stats, setStats] = useState([
     {
       title: '総入金額',
-      value: '¥85,000',
-      change: '+12%',
+      value: '¥0',
+      change: '+0%',
       icon: <TrendingUp className="w-6 h-6 text-green-400" />,
       color: 'green',
     },
     {
       title: '総出金額',
-      value: '¥20,000',
-      change: '+5%',
+      value: '¥0',
+      change: '+0%',
       icon: <TrendingDown className="w-6 h-6 text-red-400" />,
       color: 'red',
     },
     {
       title: '保留中',
-      value: '3件',
-      change: '1件',
+      value: '0件',
+      change: '0件',
       icon: <Clock className="w-6 h-6 text-yellow-400" />,
       color: 'yellow',
     },
     {
       title: '純利益',
-      value: '¥65,000',
-      change: '+18%',
+      value: '¥0',
+      change: '+0%',
       icon: <DollarSign className="w-6 h-6 text-blue-400" />,
       color: 'blue',
     },
-  ];
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  // 決済データを取得
+  useEffect(() => {
+    fetchPaymentData();
+  }, []);
+
+  const fetchPaymentData = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('adminToken');
+      
+      // 出金申請データを取得
+      const response = await fetch('/api/admin/withdrawals', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // 出金データを決済フォーマットに変換
+        const formattedPayments = data.withdrawals.map((w: any) => ({
+          id: w.id.substring(0, 10),
+          type: 'withdrawal',
+          user: w.username,
+          amount: w.amount,
+          method: w.method === 'bank_transfer' ? 'bank_transfer' : 'crypto',
+          status: w.status === 'completed' ? 'completed' : w.status === 'rejected' ? 'failed' : 'pending',
+          date: new Date(w.createdAt).toLocaleString('ja-JP'),
+        }));
+
+        setPayments(formattedPayments);
+
+        // 統計情報を計算
+        const completedWithdrawals = data.withdrawals.filter((w: any) => w.status === 'completed');
+        const pendingWithdrawals = data.withdrawals.filter((w: any) => w.status === 'pending' || w.status === 'approved' || w.status === 'processing');
+        
+        const totalWithdrawals = completedWithdrawals.reduce((sum: number, w: any) => sum + w.amount, 0);
+        const pendingCount = pendingWithdrawals.length;
+
+        setStats([
+          {
+            title: '総入金額',
+            value: '¥0',
+            change: 'データなし',
+            icon: <TrendingUp className="w-6 h-6 text-green-400" />,
+            color: 'green',
+          },
+          {
+            title: '総出金額',
+            value: `¥${totalWithdrawals.toLocaleString()}`,
+            change: `${completedWithdrawals.length}件`,
+            icon: <TrendingDown className="w-6 h-6 text-red-400" />,
+            color: 'red',
+          },
+          {
+            title: '保留中',
+            value: `${pendingCount}件`,
+            change: `${pendingWithdrawals.reduce((sum: number, w: any) => sum + w.amount, 0).toLocaleString()}円`,
+            icon: <Clock className="w-6 h-6 text-yellow-400" />,
+            color: 'yellow',
+          },
+          {
+            title: '純利益',
+            value: `¥${(-totalWithdrawals).toLocaleString()}`,
+            change: '出金のみ',
+            icon: <DollarSign className="w-6 h-6 text-blue-400" />,
+            color: 'blue',
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('決済データ取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredPayments = payments.filter(payment => {
     const matchesTab = activeTab === 'all' || payment.type === activeTab.replace('s', '');

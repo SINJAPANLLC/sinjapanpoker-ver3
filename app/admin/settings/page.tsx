@@ -41,171 +41,91 @@ function SystemSettingsContent() {
   const router = useRouter();
   const { adminUser } = useAdminStore();
   
-  const [settings, setSettings] = useState<SystemSettings[]>([
-    // ゲーム設定
-    {
-      id: 'game_rake_percentage',
-      category: 'game',
-      name: 'レーキ率',
-      description: 'テーブルゲームでのレーキ率（%）',
-      value: 5,
-      type: 'number',
-      icon: Gamepad2
-    },
-    {
-      id: 'tournament_fee_percentage',
-      category: 'game',
-      name: 'トーナメント手数料率',
-      description: 'トーナメント参加時の手数料率（%）',
-      value: 10,
-      type: 'number',
-      icon: Gamepad2
-    },
-    {
-      id: 'max_players_per_table',
-      category: 'game',
-      name: 'テーブル最大人数',
-      description: '1つのテーブルの最大プレイヤー数',
-      value: 9,
-      type: 'number',
-      icon: Users
-    },
-    {
-      id: 'auto_disconnect_timeout',
-      category: 'game',
-      name: '自動切断タイムアウト',
-      description: 'プレイヤーの自動切断までの時間（分）',
-      value: 15,
-      type: 'number',
-      icon: Zap
-    },
-
-    // システム設定
-    {
-      id: 'maintenance_mode',
-      category: 'system',
-      name: 'メンテナンスモード',
-      description: 'システムメンテナンス中のアクセス制限',
-      value: false,
-      type: 'boolean',
-      icon: Server
-    },
-    {
-      id: 'registration_enabled',
-      category: 'system',
-      name: '新規登録許可',
-      description: '新規ユーザーの登録を許可する',
-      value: true,
-      type: 'boolean',
-      icon: Users
-    },
-    {
-      id: 'default_currency',
-      category: 'system',
-      name: 'デフォルト通貨',
-      description: '新規ユーザーの初期通貨',
-      value: 'JPY',
-      type: 'select',
-      options: [
-        { value: 'JPY', label: '日本円 (¥)' },
-        { value: 'USD', label: '米ドル ($)' },
-        { value: 'EUR', label: 'ユーロ (€)' }
-      ],
-      icon: DollarSign
-    },
-    {
-      id: 'session_timeout',
-      category: 'system',
-      name: 'セッションタイムアウト',
-      description: 'ユーザーセッションの有効期限（時間）',
-      value: 24,
-      type: 'number',
-      icon: Lock
-    },
-
-    // 通知設定
-    {
-      id: 'email_notifications',
-      category: 'notifications',
-      name: 'メール通知',
-      description: 'システムメール通知の送信',
-      value: true,
-      type: 'boolean',
-      icon: Mail
-    },
-    {
-      id: 'push_notifications',
-      category: 'notifications',
-      name: 'プッシュ通知',
-      description: 'ブラウザプッシュ通知の送信',
-      value: true,
-      type: 'boolean',
-      icon: Bell
-    },
-    {
-      id: 'tournament_reminders',
-      category: 'notifications',
-      name: 'トーナメントリマインダー',
-      description: 'トーナメント開始前の通知',
-      value: true,
-      type: 'boolean',
-      icon: Bell
-    },
-
-    // セキュリティ設定
-    {
-      id: 'two_factor_required',
-      category: 'security',
-      name: '二要素認証必須',
-      description: 'Adminユーザーの二要素認証を必須にする',
-      value: false,
-      type: 'boolean',
-      icon: SecurityIcon
-    },
-    {
-      id: 'password_min_length',
-      category: 'security',
-      name: 'パスワード最小長',
-      description: 'ユーザーパスワードの最小文字数',
-      value: 8,
-      type: 'number',
-      icon: Lock
-    },
-    {
-      id: 'max_login_attempts',
-      category: 'security',
-      name: '最大ログイン試行回数',
-      description: 'アカウントロック前の最大ログイン試行回数',
-      value: 5,
-      type: 'number',
-      icon: SecurityIcon
-    },
-
-    // 分析設定
-    {
-      id: 'analytics_enabled',
-      category: 'analytics',
-      name: '分析データ収集',
-      description: 'ユーザー行動の分析データを収集する',
-      value: true,
-      type: 'boolean',
-      icon: BarChart3
-    },
-    {
-      id: 'data_retention_days',
-      category: 'analytics',
-      name: 'データ保持期間',
-      description: '分析データの保持期間（日）',
-      value: 365,
-      type: 'number',
-      icon: Database
-    }
-  ]);
-
-  const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<SystemSettings[]>([]);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('adminToken');
+      const response = await fetch('/api/admin/settings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // アイコンを追加
+        const settingsWithIcons = data.settings.map((s: any) => ({
+          ...s,
+          icon: getCategoryIcon(s.category),
+        }));
+        setSettings(settingsWithIcons);
+      } else {
+        setMessage('設定の取得に失敗しました');
+        setMessageType('error');
+      }
+    } catch (error) {
+      console.error('設定取得エラー:', error);
+      setMessage('設定の取得に失敗しました');
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'game':
+        return Gamepad2;
+      case 'system':
+        return Server;
+      case 'security':
+        return SecurityIcon;
+      case 'notifications':
+        return Bell;
+      case 'analytics':
+        return BarChart3;
+      default:
+        return Settings;
+    }
+  };
+
+  const handleSaveSetting = async (settingId: string, value: any) => {
+    try {
+      const token = sessionStorage.getItem('adminToken');
+      const response = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settingId, value }),
+      });
+
+      if (response.ok) {
+        setMessage('設定を保存しました');
+        setMessageType('success');
+        fetchSettings(); // リロード
+      } else {
+        const error = await response.json();
+        setMessage(error.message || '設定の保存に失敗しました');
+        setMessageType('error');
+      }
+    } catch (error) {
+      console.error('設定保存エラー:', error);
+      setMessage('設定の保存に失敗しました');
+      setMessageType('error');
+    }
+  };
 
   const categories = [
     { id: 'all', name: 'すべて', icon: Settings },
@@ -226,26 +146,19 @@ function SystemSettingsContent() {
         ? { ...setting, value }
         : setting
     ));
+    // 自動保存
+    handleSaveSetting(settingId, value);
   };
 
-  const handleSaveSettings = async () => {
-    setLoading(true);
-    try {
-      // 実際のAPI呼び出し
-      await new Promise(resolve => setTimeout(resolve, 2000)); // モック遅延
-      
-      setMessage('設定が保存されました');
-      setMessageType('success');
-    } catch (error) {
-      setMessage('設定の保存に失敗しました');
-      setMessageType('error');
-    } finally {
-      setLoading(false);
+  const handleResetSettings = async () => {
+    if (!confirm('すべての設定をデフォルト値にリセットしますか？')) {
+      return;
     }
+    fetchSettings(); // リロードしてデフォルトを取得
   };
 
-  const handleResetSettings = () => {
-    // デフォルト値にリセット
+  const handleOldReset = () => {
+    // デフォルト値にリセット（削除）
     setSettings(prev => prev.map(setting => ({
       ...setting,
       value: setting.id === 'game_rake_percentage' ? 5 :
@@ -362,21 +275,14 @@ function SystemSettingsContent() {
                 <span>リセット</span>
               </button>
               <button
-                onClick={handleSaveSettings}
-                disabled={loading}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
+                onClick={() => {
+                  setMessage('設定は変更時に自動保存されています');
+                  setMessageType('success');
+                }}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>保存中...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    <span>保存</span>
-                  </>
-                )}
+                <CheckCircle className="w-4 h-4" />
+                <span>自動保存済み</span>
               </button>
             </div>
           </div>

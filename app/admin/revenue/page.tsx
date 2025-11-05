@@ -44,63 +44,6 @@ function RevenueManagementContent() {
     updateStats();
   }, [updateStats]);
 
-  // サンプルデータを追加（実際の実装では削除）
-  useEffect(() => {
-    if (transactions.length === 0) {
-      // サンプルレーキ取引
-      addTransaction({
-        type: 'rake',
-        gameId: 'game_1',
-        tableId: 'table_1',
-        playerId: 'user_1',
-        playerName: 'Player1',
-        amount: 250, // 5% of 5000 pot
-        rakePercentage: 0.05,
-        originalPot: 5000,
-        status: 'processed'
-      });
-
-      addTransaction({
-        type: 'rake',
-        gameId: 'game_2',
-        tableId: 'table_2',
-        playerId: 'user_2',
-        playerName: 'Player2',
-        amount: 500, // 5% of 10000 pot
-        rakePercentage: 0.05,
-        originalPot: 10000,
-        status: 'processed'
-      });
-
-      // サンプルトーナメント手数料
-      addTransaction({
-        type: 'tournament_fee',
-        gameId: 'tournament_1',
-        tournamentId: 'tournament_1',
-        playerId: 'user_3',
-        playerName: 'Player3',
-        amount: 500, // 10% of 5000 buy-in
-        feePercentage: 0.10,
-        rakePercentage: 0.10,
-        originalPot: 5000,
-        status: 'processed'
-      });
-
-      addTransaction({
-        type: 'tournament_fee',
-        gameId: 'tournament_2',
-        tournamentId: 'tournament_2',
-        playerId: 'user_4',
-        playerName: 'Player4',
-        amount: 1000, // 10% of 10000 buy-in
-        feePercentage: 0.10,
-        rakePercentage: 0.10,
-        originalPot: 10000,
-        status: 'processed'
-      });
-    }
-  }, [transactions.length, addTransaction]);
-
   const filteredTransactions = transactions.filter(tx => {
     const matchesType = selectedType === 'all' || tx.type === selectedType;
     const txDate = new Date(tx.createdAt);

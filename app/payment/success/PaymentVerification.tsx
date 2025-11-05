@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle, Loader, ArrowRight, Coins } from 'lucide-react';
+import { CheckCircle, Loader, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCurrencyStore } from '@/store/useCurrencyStore';
 
@@ -86,7 +86,7 @@ export default function PaymentVerification() {
             <h2 className="text-3xl font-bold text-white mb-2">決済完了！</h2>
             <div className="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl p-6 mb-6">
               <div className="flex items-center justify-center gap-3 mb-2">
-                <Coins className="w-8 h-8 text-white" />
+                <img src="/attached_assets/stock_images/casino_poker_chips_s_3c193188.jpg" alt="Chips" className="w-8 h-8 rounded-full object-cover" />
                 <p className="text-4xl font-bold text-white">{chipsAdded.toLocaleString()}</p>
               </div>
               <p className="text-white/80 text-sm">チップが追加されました</p>

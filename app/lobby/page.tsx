@@ -231,7 +231,7 @@ function LobbyContent() {
               <span className="text-white font-semibold">{currency.energy}</span>
             </div>
             <div className="flex items-center space-x-2 glass px-3 py-2 rounded-full">
-              <Coins className="text-yellow-500" />
+              <img src="/attached_assets/stock_images/casino_poker_chips_s_3c193188.jpg" alt="Chips" className="w-6 h-6 rounded-full object-cover" />
               <span className="text-white font-semibold">{(currency?.realChips || 0).toLocaleString()}</span>
             </div>
             <button
@@ -370,7 +370,7 @@ function LobbyContent() {
                   <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-white/10">
                     <div className="bg-black/30 rounded-lg p-3 backdrop-blur-sm">
                       <div className="flex items-center space-x-2 mb-1">
-                        <Coins className="text-yellow-500 text-sm" />
+                        <img src="/attached_assets/stock_images/casino_poker_chips_s_3c193188.jpg" alt="Chips" className="w-4 h-4 rounded-full object-cover" />
                         <span className="text-gray-400 text-xs">バイイン</span>
                       </div>
                       <div className="text-white font-bold text-sm md:text-base">

@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundManager } from '@/hooks/useSoundManager';
 import { useMoneyModeStore } from '@/store/useMoneyModeStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useCurrencyStore } from '@/store/useCurrencyStore';
 import { usePokerGame } from '@/hooks/usePokerGame';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -183,8 +184,9 @@ export default function ActiveGamePage() {
       // tableInfoが読み込まれるのを少し待つ
       setTimeout(() => {
         const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
-        // 練習モードの場合は10000チップ、通常モードは実際の所持チップ（デフォルト0）
-        const chips = isPracticeMode ? 10000 : (user.chips || 0);
+        // 練習モードの場合は10000チップ（gameChips）、通常モードは実際の所持チップ（realChips）
+        const { currency } = useCurrencyStore.getState();
+        const chips = isPracticeMode ? (currency.gameChips || 10000) : (currency.realChips || 0);
         joinGame(chips, blinds);
       }, 100);
     }

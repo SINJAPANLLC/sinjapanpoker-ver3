@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email,
         username,
         password: hashedPassword,
-        chips: 10000,
+        chips: 0,
         level: 1,
         experience: 0,
       })

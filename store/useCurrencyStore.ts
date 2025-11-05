@@ -26,6 +26,7 @@ interface CurrencyStore {
   
   // Actions
   addCurrency: (type: keyof Currency, amount: number, description: string, adminId?: string) => void;
+  setCurrency: (type: keyof Currency, amount: number, description: string) => void;
   deductCurrency: (type: keyof Currency, amount: number, description: string) => boolean;
   purchaseRealChips: (points: number, chips: number) => boolean;
   purchaseDiamonds: (points: number, diamonds: number) => boolean;
@@ -66,6 +67,25 @@ export const useCurrencyStore = create<CurrencyStore>()(
           currency: {
             ...state.currency,
             [type]: state.currency[type] + amount
+          },
+          transactions: [newTransaction, ...state.transactions]
+        }));
+      },
+
+      setCurrency: (type, amount, description) => {
+        const newTransaction: Transaction = {
+          id: Date.now().toString(),
+          type: 'admin',
+          currency: type as 'gameChips' | 'realChips' | 'diamonds' | 'energy' | 'points',
+          amount,
+          description,
+          timestamp: new Date()
+        };
+
+        set((state) => ({
+          currency: {
+            ...state.currency,
+            [type]: amount
           },
           transactions: [newTransaction, ...state.transactions]
         }));

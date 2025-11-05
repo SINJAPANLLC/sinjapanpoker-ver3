@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useCurrencyStore } from '@/store/useCurrencyStore';
 import { FaGoogle, FaApple } from 'react-icons/fa';
 import { Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
@@ -11,6 +12,7 @@ import axios from 'axios';
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuthStore();
+  const { setCurrency } = useCurrencyStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -44,7 +46,13 @@ export default function LoginPage() {
         password,
       });
 
-      login(response.data.user, response.data.token);
+      // ログイン成功時、データベースのチップ数をuseCurrencyStoreに同期
+      const userData = response.data.user;
+      login(userData, response.data.token);
+      
+      // データベースのチップ数をrealChipsとして設定（上書き）
+      setCurrency('realChips', userData.chips || 0, 'ログイン時にデータベースから同期');
+      
       router.push('/lobby');
     } catch (err: any) {
       setError(err.response?.data?.message || 'ログインに失敗しました');

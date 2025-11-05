@@ -327,6 +327,42 @@ export type ForumPost = typeof forumPosts.$inferSelect;
 export type InsertForumPost = typeof forumPosts.$inferInsert;
 
 // ========================================
+// KYC VERIFICATION TABLE
+// ========================================
+export const kycVerifications = pgTable('kyc_verifications', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar('user_id', { length: 100 }).notNull().unique(),
+  status: varchar('status', { length: 20 }).notNull().default('pending').$type<'pending' | 'approved' | 'rejected'>(),
+  firstName: varchar('first_name', { length: 100 }),
+  lastName: varchar('last_name', { length: 100 }),
+  dateOfBirth: varchar('date_of_birth', { length: 20 }),
+  nationality: varchar('nationality', { length: 100 }),
+  address: text('address'),
+  city: varchar('city', { length: 100 }),
+  postalCode: varchar('postal_code', { length: 20 }),
+  country: varchar('country', { length: 100 }),
+  phoneNumber: varchar('phone_number', { length: 30 }),
+  idDocumentType: varchar('id_document_type', { length: 50 }).$type<'passport' | 'drivers_license' | 'national_id'>(),
+  idDocumentNumber: varchar('id_document_number', { length: 100 }),
+  idDocumentUrl: text('id_document_url'),
+  selfieUrl: text('selfie_url'),
+  addressDocumentUrl: text('address_document_url'),
+  rejectionReason: text('rejection_reason'),
+  submittedAt: timestamp('submitted_at'),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewedBy: varchar('reviewed_by', { length: 100 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('kyc_user_id_idx').on(table.userId),
+  };
+});
+
+export type KYCVerification = typeof kycVerifications.$inferSelect;
+export type InsertKYCVerification = typeof kycVerifications.$inferInsert;
+
+// ========================================
 // RELATIONS
 // ========================================
 export const usersRelations = relations(users, ({ many }) => ({

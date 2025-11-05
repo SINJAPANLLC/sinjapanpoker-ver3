@@ -67,7 +67,9 @@ export default function PokerTable({
                 {/* プレイヤー情報 */}
                 <div className="text-center mb-2">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-1 flex items-center justify-center text-white font-bold overflow-hidden border-2 border-blue-400">
-                    {player.avatar && player.avatar.startsWith('data:') ? (
+                    {player.avatar && (player.avatar.startsWith('data:') || player.avatar.startsWith('http')) ? (
+                      <img src={player.avatar} alt={player.username} className="w-full h-full object-cover" />
+                    ) : player.avatar && player.avatar.startsWith('/') ? (
                       <img src={player.avatar} alt={player.username} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-xl">{player.username[0].toUpperCase()}</span>

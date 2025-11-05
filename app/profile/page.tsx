@@ -28,6 +28,7 @@ function ProfileContent() {
   const [uploadedAvatar, setUploadedAvatar] = useState<string | null>(null);
   const [ownedAvatars, setOwnedAvatars] = useState<string[]>(['default']);
   const [profileData, setProfileData] = useState<any>(null);
+  const [achievements, setAchievements] = useState<any[]>([]);
   
   // 出金機能関連
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -64,8 +65,11 @@ function ProfileContent() {
     setOwnedAvatars(owned);
 
     if (user?.id) {
+      const { token } = useAuthStore.getState();
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
       // データベースからユーザー情報（avatar含む）を取得
-      fetch(`/api/user/${user.id}`)
+      fetch(`/api/user/${user.id}`, { headers })
         .then(res => res.json())
         .then(data => {
           setUserStats(data);
@@ -83,6 +87,14 @@ function ProfileContent() {
           }
         })
         .catch(err => console.error('Failed to fetch user stats:', err));
+
+      // 実績を取得
+      fetch(`/api/achievements/user`, { headers })
+        .then(res => res.json())
+        .then(data => {
+          setAchievements(data.achievements || []);
+        })
+        .catch(err => console.error('Failed to fetch achievements:', err));
     }
   }, [user?.id]);
 
@@ -97,12 +109,18 @@ function ProfileContent() {
     
     // データベースにも保存
     if (user?.id && (currentAvatar || uploadedAvatar)) {
+      const { token } = useAuthStore.getState();
       const avatarValue = currentAvatar === 'uploaded' ? uploadedAvatar : currentAvatar;
+      const headers: any = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       fetch(`/api/user/${user.id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({ avatar: avatarValue }),
       })
         .then(res => res.json())
@@ -423,23 +441,32 @@ function ProfileContent() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { name: '初勝利', icon: <Award className="w-12 h-12" />, unlocked: true, color: 'text-blue-400' },
-              { name: '連勝王', icon: <Flame className="w-12 h-12" />, unlocked: true, color: 'text-blue-400' },
-              { name: 'ハイローラー', icon: <Sparkles className="w-12 h-12" />, unlocked: false, color: 'text-gray-600' },
-              { name: 'レジェンド', icon: <Crown className="w-12 h-12" />, unlocked: false, color: 'text-gray-600' }
-            ].map((achievement, i) => (
-              <div
-                key={i}
-                className={`glass-strong rounded-xl p-6 text-center transition-all ${
-                  achievement.unlocked ? 'border border-blue-400/30 hover-lift' : 'opacity-50'
-                }`}
-              >
-                <div className={`mb-3 flex justify-center ${achievement.color}`}>
-                  {achievement.icon}
+              { id: 'first_win', name: '初勝利', icon: <Award className="w-12 h-12" />, description: '初めてゲームに勝利' },
+              { id: 'win_streak', name: '連勝王', icon: <Flame className="w-12 h-12" />, description: '5連勝達成' },
+              { id: 'high_roller', name: 'ハイローラー', icon: <Sparkles className="w-12 h-12" />, description: '100,000チップ獲得' },
+              { id: 'legend', name: 'レジェンド', icon: <Crown className="w-12 h-12" />, description: '1000ゲーム達成' }
+            ].map((achievementDef, i) => {
+              const unlocked = achievements.some(a => a.id === achievementDef.id);
+              return (
+                <div
+                  key={i}
+                  className={`glass-strong rounded-xl p-6 text-center transition-all ${
+                    unlocked ? 'border border-blue-400/30 hover-lift' : 'opacity-50'
+                  }`}
+                  title={achievementDef.description}
+                >
+                  <div className={`mb-3 flex justify-center ${unlocked ? 'text-blue-400' : 'text-gray-600'}`}>
+                    {achievementDef.icon}
+                  </div>
+                  <div className="text-white text-sm font-medium">{achievementDef.name}</div>
+                  {unlocked && achievements.find(a => a.id === achievementDef.id)?.unlockedAt && (
+                    <div className="text-gray-500 text-xs mt-1">
+                      {new Date(achievements.find(a => a.id === achievementDef.id)?.unlockedAt).toLocaleDateString('ja-JP')}
+                    </div>
+                  )}
                 </div>
-                <div className="text-white text-sm font-medium">{achievement.name}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>

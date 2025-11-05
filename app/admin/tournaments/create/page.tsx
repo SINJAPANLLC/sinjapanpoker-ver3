@@ -158,7 +158,7 @@ function CreateTournamentContent() {
                     onChange={(e) => handleInputChange('buyIn', parseInt(e.target.value) || 0)}
                     required
                     min="1"
-                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                     placeholder="1000"
                   />
                 </div>
@@ -178,7 +178,7 @@ function CreateTournamentContent() {
                     required
                     min="2"
                     max="1000"
-                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                     placeholder="50"
                   />
                 </div>
@@ -197,7 +197,7 @@ function CreateTournamentContent() {
                     onChange={(e) => handleInputChange('prize', parseInt(e.target.value) || 0)}
                     required
                     min="1"
-                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                     placeholder="45000"
                   />
                 </div>
@@ -219,7 +219,7 @@ function CreateTournamentContent() {
                     onChange={(e) => handleInputChange('startTime', e.target.value)}
                     required
                     min={new Date().toISOString().slice(0, 16)}
-                    className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>

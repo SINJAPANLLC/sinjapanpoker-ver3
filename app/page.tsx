@@ -81,7 +81,7 @@ export default function HomePage() {
     <div className="relative min-h-screen overflow-hidden">
       {/* 背景アニメーション */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#1a0a0a] to-black"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0a0a1a] to-black"></div>
         
         {/* 流れるトランプカード */}
         <div className="absolute inset-0 opacity-40 pointer-events-none">

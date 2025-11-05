@@ -33,12 +33,26 @@ export default async function handler(
       ? and(eq(gameHistory.userId, userId), gte(gameHistory.createdAt, dateFilter))
       : eq(gameHistory.userId, userId);
 
-    const history = await db
+    // Get aggregate stats (no limit for accurate totals)
+    const allHistory = await db
+      .select()
+      .from(gameHistory)
+      .where(whereCondition);
+
+    const totalChipsChange = allHistory.reduce((sum, h) => sum + (h.chipsChange || 0), 0);
+    const gamesPlayed = allHistory.length;
+    const gamesWon = allHistory.filter(h => h.result === 'win').length;
+    const winRate = gamesPlayed > 0 ? (gamesWon / gamesPlayed) * 100 : 0;
+
+    // Get recent history separately (with limit for display)
+    const recentHistory = await db
       .select()
       .from(gameHistory)
       .where(whereCondition)
       .orderBy(sql`${gameHistory.createdAt} DESC`)
-      .limit(100);
+      .limit(20);
+
+    const recentEarnings = recentHistory.reduce((sum, h) => sum + (h.chipsChange || 0), 0);
 
     const stats = await db
       .select()
@@ -46,18 +60,11 @@ export default async function handler(
       .where(eq(playerStats.userId, userId))
       .limit(1);
 
-    const totalChipsChange = history.reduce((sum, h) => sum + (h.chipsChange || 0), 0);
-    const gamesPlayed = history.length;
-    const gamesWon = history.filter(h => h.result === 'win').length;
-    const winRate = gamesPlayed > 0 ? (gamesWon / gamesPlayed) * 100 : 0;
-
-    const recentHistory = history.slice(0, 10);
-    const recentEarnings = recentHistory.reduce((sum, h) => sum + (h.chipsChange || 0), 0);
-
     const chartData: { date: string; earnings: number }[] = [];
     const groupedByDay: { [key: string]: number } = {};
     
-    history.forEach(h => {
+    // Use all history for chart data to show accurate trends
+    allHistory.forEach(h => {
       const date = new Date(h.createdAt);
       const dateKey = `${date.getMonth() + 1}/${date.getDate()}`;
       

@@ -3,12 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useCurrencyStore } from '@/store/useCurrencyStore';
 import { FaGoogle, FaApple, FaWallet } from 'react-icons/fa';
 import { Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login } = useAuthStore();
+  const { setCurrency } = useCurrencyStore();
   const [step, setStep] = useState<'method' | 'email' | 'wallet'>('method');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -48,6 +52,13 @@ export default function RegisterPage() {
         username,
         password
       });
+
+      // 登録成功時、ユーザーをログイン状態にしてチップ数を同期
+      const userData = response.data.user;
+      login(userData, response.data.token);
+      
+      // データベースのチップ数をrealChipsとして設定
+      setCurrency('realChips', userData.chips || 0, '新規登録時の初期チップ');
 
       // デバイスタイプを判定
       const userAgent = navigator.userAgent.toLowerCase();

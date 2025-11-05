@@ -45,7 +45,7 @@ function KYCManagementContent() {
   const fetchVerifications = async () => {
     try {
       setLoading(true);
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       const response = await fetch(`/api/admin/kyc?status=${selectedStatus}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -64,7 +64,7 @@ function KYCManagementContent() {
   const handleAction = async (kycId: string, action: 'approve' | 'reject') => {
     try {
       setProcessing(true);
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       
       const response = await fetch('/api/admin/kyc', {
         method: 'POST',

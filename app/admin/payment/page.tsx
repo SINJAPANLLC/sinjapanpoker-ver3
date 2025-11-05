@@ -85,7 +85,7 @@ function PaymentContent() {
   const fetchPaymentData = async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       
       // 入金・出金データを統合して取得
       const response = await fetch('/api/admin/payments', {
@@ -215,7 +215,7 @@ function PaymentContent() {
   const loadUsers = async () => {
     setLoadingUsers(true);
     try {
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       const response = await fetch('/api/admin/users', {
         headers: {
           'Authorization': `Bearer ${token}`,

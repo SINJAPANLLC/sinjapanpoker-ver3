@@ -54,7 +54,7 @@ function SystemSettingsContent() {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       const response = await fetch('/api/admin/settings', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -101,7 +101,7 @@ function SystemSettingsContent() {
 
   const handleSaveSetting = async (settingId: string, value: any) => {
     try {
-      const token = sessionStorage.getItem('adminToken');
+      const token = sessionStorage.getItem('admin_token');
       const response = await fetch('/api/admin/settings', {
         method: 'PATCH',
         headers: {

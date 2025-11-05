@@ -15,7 +15,7 @@ function AdminAnalyticsContent() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = sessionStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('admin_token');
         const response = await fetch('/api/admin/stats', {
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -27,50 +27,9 @@ function HistoryContent() {
   const [selectedHistory, setSelectedHistory] = useState<HandHistory | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  // モックデータ
   useEffect(() => {
-    const mockHistories: HandHistory[] = [
-      {
-        id: '1',
-        date: '2024-01-15T14:30:00Z',
-        gameType: 'テキサスホールデム',
-        buyIn: 1000,
-        position: 1,
-        totalPlayers: 6,
-        winnings: 4500,
-        hands: [
-          { id: '1-1', cards: ['As', 'Kh'], action: 'Raise', result: 'win', amount: 500 },
-          { id: '1-2', cards: ['Qd', 'Qc'], action: 'Call', result: 'win', amount: 800 },
-          { id: '1-3', cards: ['9h', '9s'], action: 'Fold', result: 'fold', amount: 0 },
-        ]
-      },
-      {
-        id: '2',
-        date: '2024-01-14T20:15:00Z',
-        gameType: 'テキサスホールデム',
-        buyIn: 500,
-        position: 3,
-        totalPlayers: 8,
-        winnings: -500,
-        hands: [
-          { id: '2-1', cards: ['Jc', 'Tc'], action: 'Call', result: 'lose', amount: -200 },
-          { id: '2-2', cards: ['Ad', '7h'], action: 'Raise', result: 'lose', amount: -300 },
-        ]
-      },
-      {
-        id: '3',
-        date: '2024-01-13T16:45:00Z',
-        gameType: 'オマハ',
-        buyIn: 2000,
-        position: 2,
-        totalPlayers: 5,
-        winnings: 3200,
-        hands: [
-          { id: '3-1', cards: ['As', 'Ah', 'Kh', 'Kd'], action: 'Raise', result: 'win', amount: 1500 },
-          { id: '3-2', cards: ['Qc', 'Qd', 'Jc', 'Jd'], action: 'Call', result: 'win', amount: 1700 },
-        ]
-      }
-    ];
+    // TODO: Replace with actual API call
+    const mockHistories: HandHistory[] = [];
     setHandHistories(mockHistories);
   }, []);
 

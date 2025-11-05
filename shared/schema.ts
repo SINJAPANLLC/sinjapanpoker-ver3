@@ -16,6 +16,7 @@ export const users = pgTable('users', {
   chips: integer('chips').notNull().default(0),
   gameChips: integer('game_chips').notNull().default(10000),
   realChips: integer('real_chips').notNull().default(0),
+  energy: integer('energy').notNull().default(100),
   level: integer('level').notNull().default(1),
   experience: integer('experience').notNull().default(0),
   clubs: jsonb('clubs').$type<string[]>().default([]),

@@ -12,7 +12,8 @@ import {
   User,
   Save,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Zap
 } from 'lucide-react';
 
 interface User {
@@ -21,6 +22,7 @@ interface User {
   email: string;
   realChips: number;
   gameChips: number;
+  energy: number;
 }
 
 function CurrencyManagementContent() {
@@ -37,6 +39,7 @@ function CurrencyManagementContent() {
   const [currencyForm, setCurrencyForm] = useState({
     realChips: 0,
     gameChips: 0,
+    energy: 0,
     reason: ''
   });
 
@@ -60,6 +63,7 @@ function CurrencyManagementContent() {
             email: u.email,
             realChips: u.realChips || 0,
             gameChips: u.gameChips || 0,
+            energy: u.energy || 100,
           }));
           setUsers(mappedUsers);
         } else {
@@ -80,6 +84,7 @@ function CurrencyManagementContent() {
     setCurrencyForm({
       realChips: 0,
       gameChips: 0,
+      energy: 0,
       reason: ''
     });
     setMessage('');
@@ -93,9 +98,9 @@ function CurrencyManagementContent() {
     e.preventDefault();
     if (!selectedUser || !currencyForm.reason.trim()) return;
 
-    // リアルチップとゲームチップの両方がゼロの場合は何もしない
-    if (currencyForm.realChips === 0 && currencyForm.gameChips === 0) {
-      setMessage('付与するチップを入力してください');
+    // リアルチップ、ゲームチップ、エネルギーのすべてがゼロの場合は何もしない
+    if (currencyForm.realChips === 0 && currencyForm.gameChips === 0 && currencyForm.energy === 0) {
+      setMessage('付与する通貨を入力してください');
       setMessageType('error');
       return;
     }
@@ -150,6 +155,27 @@ function CurrencyManagementContent() {
         }
       }
 
+      // エネルギーを付与
+      if (currencyForm.energy !== 0) {
+        const response = await fetch('/api/admin/grant-currency', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId: selectedUser.id,
+            energy: currencyForm.energy,
+            reason: currencyForm.reason,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'エネルギーの付与に失敗しました');
+        }
+      }
+
       // 最新のユーザー情報を取得
       const userResponse = await fetch('/api/admin/users', {
         headers: {
@@ -166,6 +192,7 @@ function CurrencyManagementContent() {
           email: u.email,
           realChips: u.realChips || 0,
           gameChips: u.gameChips || 0,
+          energy: u.energy || 100,
         }));
         setUsers(mappedUsers);
         
@@ -182,6 +209,7 @@ function CurrencyManagementContent() {
       setCurrencyForm({
         realChips: 0,
         gameChips: 0,
+        energy: 0,
         reason: ''
       });
     } catch (error) {
@@ -304,7 +332,7 @@ function CurrencyManagementContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        リアルチップ
+                        リアルチップ（課金）
                       </label>
                       <div className="relative">
                         <input
@@ -320,7 +348,7 @@ function CurrencyManagementContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        ゲームチップ
+                        ゲームチップ（練習）
                       </label>
                       <div className="relative">
                         <input
@@ -331,6 +359,22 @@ function CurrencyManagementContent() {
                           placeholder="0"
                         />
                         <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        エネルギー
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={currencyForm.energy}
+                          onChange={(e) => handleCurrencyChange('energy', parseInt(e.target.value) || 0)}
+                          className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          placeholder="0"
+                        />
+                        <Zap className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
                       </div>
                     </div>
                   </div>

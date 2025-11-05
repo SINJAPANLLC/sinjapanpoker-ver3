@@ -15,13 +15,79 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { userId, chips, reason, chipType = 'real' } = body;
+    const { userId, chips, reason, chipType = 'real', energy } = body;
 
     if (!userId) {
       return NextResponse.json(
         { error: 'ユーザーIDが必要です' },
         { status: 400 }
       );
+    }
+
+    if (energy !== undefined) {
+      if (typeof energy !== 'number') {
+        return NextResponse.json(
+          { error: 'エネルギー数は数値である必要があります' },
+          { status: 400 }
+        );
+      }
+
+      if (!reason || !reason.trim()) {
+        return NextResponse.json(
+          { error: '付与理由が必要です' },
+          { status: 400 }
+        );
+      }
+
+      const userResult = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (userResult.length === 0) {
+        return NextResponse.json(
+          { error: 'ユーザーが見つかりません' },
+          { status: 404 }
+        );
+      }
+
+      const user = userResult[0];
+      const currentEnergy = user.energy || 0;
+
+      if (currentEnergy + energy < 0) {
+        return NextResponse.json(
+          { error: 'エネルギーがマイナスになります' },
+          { status: 400 }
+        );
+      }
+
+      await db
+        .update(users)
+        .set({
+          energy: sql`${users.energy} + ${energy}`,
+        })
+        .where(eq(users.id, userId));
+
+      const [updatedUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      console.log(`エネルギー付与: ${user.username} に ${energy} エネルギー付与（理由: ${reason}）`);
+
+      return NextResponse.json({
+        success: true,
+        message: `${user.username}に${Math.abs(energy)}エネルギーを${energy > 0 ? '付与' : '減算'}しました`,
+        user: {
+          id: updatedUser.id,
+          username: updatedUser.username,
+          realChips: updatedUser.realChips,
+          gameChips: updatedUser.gameChips,
+          energy: updatedUser.energy,
+        },
+      });
     }
 
     if (typeof chips !== 'number') {
@@ -85,6 +151,7 @@ export async function POST(request: NextRequest) {
         username: updatedUser.username,
         realChips: updatedUser.realChips,
         gameChips: updatedUser.gameChips,
+        energy: updatedUser.energy,
       },
     });
   } catch (error) {

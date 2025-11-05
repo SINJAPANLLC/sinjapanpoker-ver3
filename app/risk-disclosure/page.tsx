@@ -115,30 +115,7 @@ export default function RiskDisclosurePage() {
               </section>
 
               <section>
-                <h3 className="text-xl font-semibold text-blue-400 mb-3">7. サポート情報</h3>
-                <p>
-                  問題を抱えている場合、以下のサポートを利用してください：
-                </p>
-                <div className="bg-gray-800 p-4 rounded-lg mt-4">
-                  <p className="font-semibold mb-2">日本国内のサポート</p>
-                  <ul className="space-y-1 text-sm">
-                    <li>• ギャンブル依存症対策全国センター: 0570-066-000</li>
-                    <li>• 日本ギャンブル依存症問題を考える会</li>
-                    <li>• 各都道府県の精神保健福祉センター</li>
-                  </ul>
-                  
-                  <p className="font-semibold mb-2 mt-4">当社のサポート</p>
-                  <ul className="space-y-1 text-sm">
-                    <li>• Email: support@sinjapanpoker.com</li>
-                    <li>• セルフエクスクルージョン機能</li>
-                    <li>• 入金制限設定</li>
-                    <li>• クーリングオフ期間</li>
-                  </ul>
-                </div>
-              </section>
-
-              <section>
-                <h3 className="text-xl font-semibold text-blue-400 mb-3">8. 免責事項</h3>
+                <h3 className="text-xl font-semibold text-blue-400 mb-3">7. 免責事項</h3>
                 <p>
                   当社は、ユーザーの損失、損害、またはその他の問題について一切の責任を負いません。プレイは自己責任で行ってください。
                 </p>

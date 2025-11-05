@@ -455,21 +455,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
-          {/* CTA */}
-          <div className="card-blue text-center animate-scale-in" style={{ animationDelay: '0.4s' }}>
-            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-8 px-4 leading-relaxed">
-              今すぐ登録して、<br className="sm:hidden" />
-              <span className="text-blue-300">10,000チップ</span>の無料ボーナスを<br className="sm:hidden" />
-              獲得しましょう
-            </h3>
-            <Link
-              href="/auth/register"
-              className="btn-primary text-lg sm:text-xl px-8 sm:px-12 md:px-16 py-4 sm:py-5 inline-block animate-pulse-slow"
-            >
-              無料で始める
-            </Link>
-          </div>
         </div>
       </main>
 

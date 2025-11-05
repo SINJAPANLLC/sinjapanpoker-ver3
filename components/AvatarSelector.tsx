@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Check, Gem, Crown, Star, Sparkles, Flame, Award, Trophy, Zap } from 'lucide-react';
+import { X, Check, Gem, Crown, Star, Sparkles, Flame, Award, Trophy, Zap, User } from 'lucide-react';
 
 interface Avatar {
   id: string;
@@ -35,7 +35,7 @@ export default function AvatarSelector({
   const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar);
 
   const baseAvatars: Omit<Avatar, 'isOwned'>[] = [
-    { id: 'default', name: 'デフォルト', icon: <Award className="w-16 h-16" />, rarity: 'common' as const, price: 0, isDefault: true },
+    { id: 'default', name: 'デフォルト', icon: <User className="w-16 h-16" />, rarity: 'common' as const, price: 0, isDefault: true },
     { id: 'poker1', name: 'プレイヤー', icon: <Trophy className="w-16 h-16" />, rarity: 'common' as const, price: 100, isDefault: false },
     { id: 'poker2', name: 'ディーラー', icon: <Zap className="w-16 h-16" />, rarity: 'common' as const, price: 150, isDefault: false },
     { id: 'lucky', name: 'ラッキー', icon: <Star className="w-16 h-16" />, rarity: 'rare' as const, price: 300, isDefault: false },

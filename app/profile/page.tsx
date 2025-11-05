@@ -66,7 +66,10 @@ function ProfileContent() {
 
     if (user?.id) {
       const { token } = useAuthStore.getState();
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       // データベースからユーザー情報（avatar含む）を取得
       fetch(`/api/user/${user.id}`, { headers })
@@ -89,7 +92,11 @@ function ProfileContent() {
         .catch(err => console.error('Failed to fetch user stats:', err));
 
       // 実績を取得
-      fetch(`/api/achievements/user`, { headers })
+      const achievementHeaders: Record<string, string> = {};
+      if (token) {
+        achievementHeaders['Authorization'] = `Bearer ${token}`;
+      }
+      fetch(`/api/achievements/user`, { headers: achievementHeaders })
         .then(res => res.json())
         .then(data => {
           setAchievements(data.achievements || []);
@@ -341,7 +348,7 @@ function ProfileContent() {
                   <img src={uploadedAvatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-white">
-                    {currentAvatar === 'default' ? <Award className="w-20 h-20" /> : 
+                    {currentAvatar === 'default' ? <User className="w-20 h-20" /> : 
                      currentAvatar === 'poker1' ? <Trophy className="w-20 h-20" /> :
                      currentAvatar === 'poker2' ? <Zap className="w-20 h-20" /> :
                      currentAvatar === 'lucky' ? <Star className="w-20 h-20" /> :

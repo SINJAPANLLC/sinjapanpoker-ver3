@@ -1,6 +1,7 @@
 import { Player, Card as CardType } from '@/types';
 import Card from './Card';
 import { FaCoins } from 'react-icons/fa';
+import { User } from 'lucide-react';
 
 interface PokerTableProps {
   players: Player[];
@@ -72,7 +73,7 @@ export default function PokerTable({
                     ) : player.avatar && player.avatar.startsWith('/') ? (
                       <img src={player.avatar} alt={player.username} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xl">{player.username[0].toUpperCase()}</span>
+                      <User className="w-7 h-7" />
                     )}
                   </div>
                   <div className="text-white font-semibold text-sm">{player.username}</div>

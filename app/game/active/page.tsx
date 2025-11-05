@@ -2548,14 +2548,18 @@ export default function ActiveGamePage() {
 
             <div className="space-y-3">
               <div className="bg-white/20 rounded-lg p-4 border border-white/40 text-center">
-                <div className="w-20 h-20 mx-auto rounded-full border-4 border-white mb-2 overflow-hidden">
-                  <Image
-                    src={players[0].avatar || '/default-avatar.png'}
-                    alt={players[0].name}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-20 h-20 mx-auto rounded-full border-4 border-white mb-2 overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  {players[0].avatar ? (
+                    <Image
+                      src={players[0].avatar}
+                      alt={players[0].name}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-12 h-12 text-white" />
+                  )}
                 </div>
                 <p className="text-white text-sm font-bold">{players[0].name}</p>
                 <p className="text-white/80 text-xs">Level 5</p>
@@ -2657,16 +2661,20 @@ export default function ActiveGamePage() {
                 <div key={player.id} className="bg-white/20 rounded-lg p-3 border border-white/40">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden">
-                        <Image
-                          src={player.avatar || '/default-avatar.png'}
-                          alt={player.name}
-                          width={40}
-                          height={40}
-                          unoptimized
-                          priority
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        {player.avatar ? (
+                          <Image
+                            src={player.avatar}
+                            alt={player.name}
+                            width={40}
+                            height={40}
+                            unoptimized
+                            priority
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-6 h-6 text-white" />
+                        )}
                       </div>
                       <div>
                         <p className="text-white text-sm font-bold">{player.name}</p>

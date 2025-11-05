@@ -51,10 +51,6 @@ externalPort = 3003
 localPort = 34445
 externalPort = 3002
 
-[[ports]]
-localPort = 38079
-externalPort = 4200
-
 [deployment]
 deploymentTarget = "vm"
 run = ["bash", "-c", "node server.js"]

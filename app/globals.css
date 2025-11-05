@@ -1032,61 +1032,49 @@ input[type="range"]::-moz-range-thumb {
 
 /* アニメーションクラス */
 .animate-card-fall-1 {
-  animation: card-fall-1 15s linear infinite;
-  animation-delay: 0s;
+  animation: card-fall-1 15s linear infinite both;
 }
 
 .animate-card-fall-2 {
-  animation: card-fall-2 18s linear infinite;
-  animation-delay: 2s;
+  animation: card-fall-2 18s linear infinite both;
 }
 
 .animate-card-fall-3 {
-  animation: card-fall-3 20s linear infinite;
-  animation-delay: 4s;
+  animation: card-fall-3 20s linear infinite both;
 }
 
 .animate-card-fall-4 {
-  animation: card-fall-4 16s linear infinite;
-  animation-delay: 6s;
+  animation: card-fall-4 16s linear infinite both;
 }
 
 .animate-card-fall-5 {
-  animation: card-fall-5 22s linear infinite;
-  animation-delay: 8s;
+  animation: card-fall-5 22s linear infinite both;
 }
 
 .animate-card-fall-6 {
-  animation: card-fall-6 14s linear infinite;
-  animation-delay: 10s;
+  animation: card-fall-6 14s linear infinite both;
 }
 
 .animate-card-fall-7 {
-  animation: card-fall-7 25s linear infinite;
-  animation-delay: 12s;
+  animation: card-fall-7 25s linear infinite both;
 }
 
 .animate-card-fall-8 {
-  animation: card-fall-8 17s linear infinite;
-  animation-delay: 14s;
+  animation: card-fall-8 17s linear infinite both;
 }
 
 .animate-card-fall-9 {
-  animation: card-fall-9 12s linear infinite;
-  animation-delay: 1s;
+  animation: card-fall-9 12s linear infinite both;
 }
 
 .animate-card-fall-10 {
-  animation: card-fall-10 13s linear infinite;
-  animation-delay: 3s;
+  animation: card-fall-10 13s linear infinite both;
 }
 
 .animate-card-fall-11 {
-  animation: card-fall-11 11s linear infinite;
-  animation-delay: 5s;
+  animation: card-fall-11 11s linear infinite both;
 }
 
 .animate-card-fall-12 {
-  animation: card-fall-12 14s linear infinite;
-  animation-delay: 7s;
+  animation: card-fall-12 14s linear infinite both;
 }

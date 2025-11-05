@@ -187,6 +187,29 @@ export type PlayerStats = typeof playerStats.$inferSelect;
 export type InsertPlayerStats = typeof playerStats.$inferInsert;
 
 // ========================================
+// GAME HISTORY TABLE
+// ========================================
+export const gameHistory = pgTable('game_history', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar('user_id', { length: 100 }).notNull(),
+  gameId: varchar('game_id', { length: 100 }).notNull(),
+  gameType: varchar('game_type', { length: 50 }).notNull(),
+  blinds: varchar('blinds', { length: 50 }).notNull(),
+  chipsChange: integer('chips_change').notNull(),
+  result: varchar('result', { length: 20 }).notNull().$type<'win' | 'loss' | 'tie'>(),
+  hand: text('hand'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('game_history_user_id_idx').on(table.userId),
+    createdAtIdx: index('game_history_created_at_idx').on(table.createdAt),
+  };
+});
+
+export type GameHistory = typeof gameHistory.$inferSelect;
+export type InsertGameHistory = typeof gameHistory.$inferInsert;
+
+// ========================================
 // PETS TABLE
 // ========================================
 export const pets = pgTable('pets', {

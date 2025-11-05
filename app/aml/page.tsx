@@ -28,14 +28,14 @@ export default function AMLPage() {
               <section>
                 <h3 className="text-xl font-semibold text-blue-400 mb-3">基本方針</h3>
                 <p>
-                  SIN JAPAN LIBERIA CO.,INC.（以下「当社」）は、マネーロンダリング及びテロ資金供与の防止に関する法律（以下「犯罪収益移転防止法」）に基づき、アンチマネーロンダリング（以下「AML」）体制を構築し、適切に管理運営することを基本方針とします。
+                  SIN JAPAN LIBERIA CO.,INC.（以下「当社」）は、リベリア共和国の法律及び金融活動作業部会（FATF）の国際基準に基づき、アンチマネーロンダリング（以下「AML」）及びテロ資金供与対策（CFT）体制を構築し、適切に管理運営することを基本方針とします。
                 </p>
               </section>
 
               <section>
                 <h3 className="text-xl font-semibold text-blue-400 mb-3">1. 法令遵守</h3>
                 <p>
-                  当社は、犯罪収益移転防止法、その他関連法令を遵守し、マネーロンダリング及びテロ資金供与の防止に努めます。
+                  当社は、リベリア共和国の法律、FATF勧告、その他国際的なAML/CFT基準を遵守し、マネーロンダリング及びテロ資金供与の防止に努めます。
                 </p>
               </section>
 
@@ -67,7 +67,7 @@ export default function AMLPage() {
               <section>
                 <h3 className="text-xl font-semibold text-blue-400 mb-3">4. 疑わしい取引の監視・報告</h3>
                 <p>
-                  当社は、以下のような疑わしい取引を監視し、必要に応じて金融庁等に報告します。
+                  当社は、以下のような疑わしい取引を監視し、必要に応じてリベリア共和国金融当局及び国際的な関係機関に報告します。
                 </p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>大額の現金取引</li>

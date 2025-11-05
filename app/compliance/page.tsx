@@ -9,7 +9,7 @@ function ComplianceContent() {
     <div className="relative min-h-screen overflow-hidden page-transition">
       {/* 背景 */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#1a0a0a] to-black"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0a0a1a] to-black"></div>
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
         </div>
@@ -54,7 +54,7 @@ function ComplianceContent() {
             <div className="space-y-2 text-gray-300 text-sm">
               <p>• プレイ時間を管理し、休憩を取りましょう</p>
               <p>• 余裕のある金額でのみプレイしてください</p>
-              <p>• ギャンブル依存症相談窓口: 03-1234-5678</p>
+              <p>• ギャンブル依存症の方は専門機関にご相談ください</p>
             </div>
           </div>
         </div>

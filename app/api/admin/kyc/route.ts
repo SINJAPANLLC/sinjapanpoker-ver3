@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     const updateData: any = {
       status: newStatus,
       reviewedAt: new Date(),
-      reviewedBy: authResult.username,
+      reviewedBy: authResult.admin.username,
     };
 
     if (newStatus === 'rejected' && reviewNotes) {

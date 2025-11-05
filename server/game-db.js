@@ -41,7 +41,7 @@ const games = pgTable('games', {
   endedAt: timestamp('ended_at'),
 });
 
-const handHistory = pgTable('hand_history', {
+const gameHistory = pgTable('game_history', {
   id: varchar('id', { length: 100 }).primaryKey(),
   userId: varchar('user_id', { length: 100 }).notNull(),
   gameId: varchar('game_id', { length: 100 }).notNull(),
@@ -95,7 +95,7 @@ async function saveGameToDatabase(game) {
       const winAmount = winner ? winner.amount : 0;
       const chipsChange = winAmount - player.totalBet;
 
-      await db.insert(handHistory).values({
+      await db.insert(gameHistory).values({
         id: crypto.randomUUID(),
         userId: player.userId,
         gameId: game.id,

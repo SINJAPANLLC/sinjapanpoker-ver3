@@ -237,7 +237,7 @@ function ProfileContent() {
     setWithdrawMessage('出金申請を処理中...');
 
     try {
-      const token = localStorage.getItem('token');
+      const { token } = useAuthStore.getState();
       if (!token) {
         setWithdrawStatus('error');
         setWithdrawMessage('ログインが必要です');

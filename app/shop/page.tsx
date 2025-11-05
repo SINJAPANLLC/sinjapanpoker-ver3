@@ -120,7 +120,7 @@ function ShopContent() {
               <span className="text-white font-semibold">{currency.energy}</span>
             </div>
             <div className="flex items-center space-x-2 glass px-3 py-2 rounded-full">
-              <img src="/poker-chip.jpg" alt="Chips" className="w-6 h-6 rounded-full object-cover" />
+              <img src="/chip-icon.png" alt="Chips" className="w-6 h-6 object-contain" />
               <span className="text-white font-semibold">{(currency?.realChips || 0).toLocaleString()}</span>
             </div>
           </div>
@@ -163,7 +163,7 @@ function ShopContent() {
             {isRealMoneyEnabled && (
               <div className="card-blue mb-8 animate-fade-in">
                 <div className="text-center">
-                  <img src="/poker-chip.jpg" alt="Chips" className="w-16 h-16 rounded-full object-cover mx-auto mb-4" />
+                  <img src="/chip-icon.png" alt="Chips" className="w-16 h-16 object-contain mx-auto mb-4" />
                   <h3 className="text-2xl font-bold text-white mb-4">チップ購入システム</h3>
                   <div className="text-gray-300 space-y-2 max-w-2xl mx-auto">
                     <p><span className="text-blue-400 font-semibold">1チップ = 1円</span>の換算でリアルマネーゲームに参加できます</p>
@@ -189,8 +189,8 @@ function ShopContent() {
                   )}
 
                   <div className="text-center mb-6">
-                    <div className={`w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-yellow-500 ${!isRealMoneyEnabled ? 'opacity-50' : ''}`}>
-                      <img src="/poker-chip.jpg" alt="Chips" className="w-full h-full object-cover" />
+                    <div className={`w-20 h-20 mx-auto mb-4 flex items-center justify-center ${!isRealMoneyEnabled ? 'opacity-50' : ''}`}>
+                      <img src="/chip-icon.png" alt="Chips" className="w-full h-full object-contain" />
                     </div>
                     <h3 className="text-2xl font-bold text-white mb-2">
                       {pkg.chips.toLocaleString()}チップ

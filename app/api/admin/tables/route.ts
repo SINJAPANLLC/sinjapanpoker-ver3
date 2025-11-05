@@ -86,6 +86,50 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const authResult = requireAdmin(request);
+    if ('error' in authResult) {
+      return NextResponse.json({ message: authResult.error }, { status: authResult.status });
+    }
+
+    const body = await request.json();
+    const { name, clubId, stakes, maxPlayers } = body;
+
+    if (!name || !clubId || !stakes || !maxPlayers) {
+      return NextResponse.json({ message: '必須フィールドが不足しています' }, { status: 400 });
+    }
+
+    if (maxPlayers < 2 || maxPlayers > 9) {
+      return NextResponse.json({ message: 'プレイヤー数は2～9人です' }, { status: 400 });
+    }
+
+    const club = await db.select().from(clubs).where(eq(clubs.id, clubId)).limit(1);
+    if (club.length === 0) {
+      return NextResponse.json({ message: 'クラブが見つかりません' }, { status: 404 });
+    }
+
+    const [newTable] = await db
+      .insert(clubTables)
+      .values({
+        name,
+        clubId,
+        type: 'cash',
+        stakes: typeof stakes === 'string' ? stakes : JSON.stringify(stakes),
+        maxPlayers,
+      })
+      .returning();
+
+    return NextResponse.json({
+      message: 'テーブルを作成しました',
+      table: newTable,
+    });
+  } catch (error) {
+    console.error('テーブル作成エラー:', error);
+    return NextResponse.json({ message: 'テーブルの作成に失敗しました' }, { status: 500 });
+  }
+}
+
 export async function PATCH(request: NextRequest) {
   try {
     const authResult = requireAdmin(request);
@@ -100,13 +144,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'テーブルIDとステータスが必要です' }, { status: 400 });
     }
 
-    // 有効なステータス値を確認
     const validStatuses = ['active', 'paused', 'closed'];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ message: '無効なステータスです' }, { status: 400 });
     }
 
-    // テーブルのステータスを更新
     const [updatedTable] = await db
       .update(clubTables)
       .set({

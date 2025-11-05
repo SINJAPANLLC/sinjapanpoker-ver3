@@ -35,10 +35,15 @@ export async function GET(request: NextRequest) {
       .select({ count: sql<number>`COUNT(*)` })
       .from(users);
 
-    // 総チップ数（全ユーザー）
+    // 総チップ数（realChips + gameChips）
     const totalChipsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${users.chips}), 0)` })
+      .select({ 
+        totalReal: sql<number>`COALESCE(SUM(${users.realChips}), 0)`,
+        totalGame: sql<number>`COALESCE(SUM(${users.gameChips}), 0)`
+      })
       .from(users);
+
+    const totalChips = (totalChipsResult[0]?.totalReal || 0) + (totalChipsResult[0]?.totalGame || 0);
 
     // 総参加者数（アクティブトーナメント）
     const totalPlayers = activeTournaments.reduce(
@@ -68,15 +73,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // トッププレイヤー取得（チップ数順）
+    // トッププレイヤー取得（realChips順）
     const topPlayers = await db
       .select({
         id: users.id,
         username: users.username,
-        chips: users.chips,
+        realChips: users.realChips,
+        gameChips: users.gameChips,
       })
       .from(users)
-      .orderBy(sql`${users.chips} DESC`)
+      .orderBy(sql`${users.realChips} DESC`)
       .limit(10);
 
     // 新規ユーザー数
@@ -144,7 +150,7 @@ export async function GET(request: NextRequest) {
       },
       systemStats: {
         totalUsers: totalUsers[0]?.count || 0,
-        totalChips: totalChipsResult[0]?.total || 0,
+        totalChips: totalChips,
         todayGames,
       },
     });

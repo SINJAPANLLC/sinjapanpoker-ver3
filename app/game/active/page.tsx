@@ -26,6 +26,7 @@ export default function ActiveGamePage() {
   const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
   const { mode, isEnabled } = useMoneyModeStore();
   const { user: authUser } = useAuthStore();
+  const { currency } = useCurrencyStore();
   const searchParams = useSearchParams();
   
   // 練習モード検出
@@ -185,12 +186,11 @@ export default function ActiveGamePage() {
       setTimeout(() => {
         const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
         // 練習モードの場合は10000チップ（gameChips）、通常モードは実際の所持チップ（realChips）
-        const { currency } = useCurrencyStore.getState();
         const chips = isPracticeMode ? (currency.gameChips || 10000) : (currency.realChips || 0);
         joinGame(chips, blinds);
       }, 100);
     }
-  }, [connected, user, gameState, joinGame, isPracticeMode]);
+  }, [connected, user, gameState, joinGame, isPracticeMode, currency]);
 
   // 接続ステータスの同期
   useEffect(() => {

@@ -44,6 +44,7 @@ export const clubs = pgTable('clubs', {
   id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: varchar('name', { length: 200 }).notNull(),
   ownerId: varchar('owner_id', { length: 100 }).notNull(),
+  ownerUsername: varchar('owner_username', { length: 100 }).notNull().default(''),
   description: text('description').default(''),
   avatar: text('avatar'),
   members: jsonb('members').$type<Array<{
@@ -51,12 +52,32 @@ export const clubs = pgTable('clubs', {
     username: string;
     role: 'owner' | 'admin' | 'member';
     joinedAt: Date;
-    chips: number;
+    gamesPlayed: number;
+    rakePaid: number;
+    earnings: number;
+    status: 'active' | 'suspended';
+    lastActiveAt: Date;
   }>>().default([]),
-  games: jsonb('games').$type<string[]>().default([]),
+  maxMembers: integer('max_members').notNull().default(100),
+  memberCount: integer('member_count').notNull().default(1),
+  rakePercentage: integer('rake_percentage').notNull().default(20),
+  totalRevenue: integer('total_revenue').notNull().default(0),
+  totalGames: integer('total_games').notNull().default(0),
+  totalHands: integer('total_hands').notNull().default(0),
+  totalRakeCollected: integer('total_rake_collected').notNull().default(0),
+  dailyRevenue: integer('daily_revenue').notNull().default(0),
+  weeklyRevenue: integer('weekly_revenue').notNull().default(0),
+  monthlyRevenue: integer('monthly_revenue').notNull().default(0),
+  activeTables: integer('active_tables').notNull().default(0),
+  totalTables: integer('total_tables').notNull().default(0),
   isPrivate: boolean('is_private').notNull().default(false),
+  requiresApproval: boolean('requires_approval').notNull().default(false),
+  minLevel: integer('min_level').notNull().default(1),
   clubCode: varchar('club_code', { length: 50 }).notNull().unique(),
+  status: varchar('status', { length: 20 }).notNull().default('active').$type<'active' | 'suspended' | 'closed'>(),
+  tier: varchar('tier', { length: 20 }).notNull().default('bronze').$type<'bronze' | 'silver' | 'gold' | 'platinum'>(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => {
   return {
     clubCodeIdx: uniqueIndex('club_code_idx').on(table.clubCode),
@@ -66,6 +87,33 @@ export const clubs = pgTable('clubs', {
 
 export type Club = typeof clubs.$inferSelect;
 export type InsertClub = typeof clubs.$inferInsert;
+
+// ========================================
+// CLUB TABLES TABLE
+// ========================================
+export const clubTables = pgTable('club_tables', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  clubId: varchar('club_id', { length: 100 }).notNull(),
+  name: varchar('name', { length: 200 }).notNull(),
+  type: varchar('type', { length: 20 }).notNull().$type<'cash' | 'tournament'>(),
+  stakes: varchar('stakes', { length: 50 }).notNull(),
+  totalHands: integer('total_hands').notNull().default(0),
+  totalRakeCollected: integer('total_rake_collected').notNull().default(0),
+  clubRevenue: integer('club_revenue').notNull().default(0),
+  ownerRevenue: integer('owner_revenue').notNull().default(0),
+  currentPlayers: integer('current_players').notNull().default(0),
+  maxPlayers: integer('max_players').notNull().default(9),
+  status: varchar('status', { length: 20 }).notNull().default('active').$type<'active' | 'paused' | 'closed'>(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  lastHandAt: timestamp('last_hand_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    clubIdIdx: index('club_tables_club_id_idx').on(table.clubId),
+  };
+});
+
+export type ClubTable = typeof clubTables.$inferSelect;
+export type InsertClubTable = typeof clubTables.$inferInsert;
 
 // ========================================
 // GAMES TABLE
@@ -294,5 +342,16 @@ export const forumPostsRelations = relations(forumPosts, ({ one }) => ({
   user: one(users, {
     fields: [forumPosts.userId],
     references: [users.id],
+  }),
+}));
+
+export const clubsRelations = relations(clubs, ({ many }) => ({
+  clubTables: many(clubTables),
+}));
+
+export const clubTablesRelations = relations(clubTables, ({ one }) => ({
+  club: one(clubs, {
+    fields: [clubTables.clubId],
+    references: [clubs.id],
   }),
 }));

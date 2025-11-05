@@ -84,101 +84,101 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-black via-[#1a0a0a] to-black"></div>
         
         {/* 流れるトランプカード */}
-        <div className="absolute inset-0 opacity-20">
-          {/* カード1 - 左上から右下へ */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-blue-600 to-blue-800 rounded-md border border-blue-400/30 shadow-lg animate-card-fall-1">
+        <div className="absolute inset-0 opacity-30">
+          {/* カード1 - 左上から右下へ - スペードのA（黒） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-1">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-blue-200 text-xs font-bold">A</div>
-              <div className="text-blue-200 text-xs text-center">♠</div>
-              <div className="text-blue-200 text-xs font-bold rotate-180">A</div>
+              <div className="text-black text-xs font-bold">A</div>
+              <div className="text-black text-xs text-center">♠</div>
+              <div className="text-black text-xs font-bold rotate-180">A</div>
             </div>
           </div>
           
-          {/* カード2 - 右上から左下へ */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-red-600 to-red-800 rounded-md border border-red-400/30 shadow-lg animate-card-fall-2">
+          {/* カード2 - 右上から左下へ - ハートのK（赤） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-2">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-red-200 text-xs font-bold">K</div>
-              <div className="text-red-200 text-xs text-center">♥</div>
-              <div className="text-red-200 text-xs font-bold rotate-180">K</div>
+              <div className="text-red-600 text-xs font-bold">K</div>
+              <div className="text-red-600 text-xs text-center">♥</div>
+              <div className="text-red-600 text-xs font-bold rotate-180">K</div>
             </div>
           </div>
           
-          {/* カード3 - 左から右へ */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-green-600 to-green-800 rounded-md border border-green-400/30 shadow-lg animate-card-fall-3">
+          {/* カード3 - 左から右へ - クラブのQ（黒） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-3">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-green-200 text-xs font-bold">Q</div>
-              <div className="text-green-200 text-xs text-center">♣</div>
-              <div className="text-green-200 text-xs font-bold rotate-180">Q</div>
+              <div className="text-black text-xs font-bold">Q</div>
+              <div className="text-black text-xs text-center">♣</div>
+              <div className="text-black text-xs font-bold rotate-180">Q</div>
             </div>
           </div>
           
-          {/* カード4 - 右から左へ */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-purple-600 to-purple-800 rounded-md border border-purple-400/30 shadow-lg animate-card-fall-4">
+          {/* カード4 - 右から左へ - ダイヤのJ（赤） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-4">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-purple-200 text-xs font-bold">J</div>
-              <div className="text-purple-200 text-xs text-center">♦</div>
-              <div className="text-purple-200 text-xs font-bold rotate-180">J</div>
+              <div className="text-red-600 text-xs font-bold">J</div>
+              <div className="text-red-600 text-xs text-center">♦</div>
+              <div className="text-red-600 text-xs font-bold rotate-180">J</div>
             </div>
           </div>
           
-          {/* カード5 - 中央から斜め */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-yellow-600 to-yellow-800 rounded-md border border-yellow-400/30 shadow-lg animate-card-fall-5">
+          {/* カード5 - 中央から斜め - スペードの10（黒） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-5">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-yellow-200 text-xs font-bold">10</div>
-              <div className="text-yellow-200 text-xs text-center">♠</div>
-              <div className="text-yellow-200 text-xs font-bold rotate-180">10</div>
+              <div className="text-black text-xs font-bold">10</div>
+              <div className="text-black text-xs text-center">♠</div>
+              <div className="text-black text-xs font-bold rotate-180">10</div>
             </div>
           </div>
           
-          {/* カード6 - 下から上へ */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-pink-600 to-pink-800 rounded-md border border-pink-400/30 shadow-lg animate-card-fall-6">
+          {/* カード6 - 下から上へ - ハートの9（赤） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-6">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-pink-200 text-xs font-bold">9</div>
-              <div className="text-pink-200 text-xs text-center">♥</div>
-              <div className="text-pink-200 text-xs font-bold rotate-180">9</div>
+              <div className="text-red-600 text-xs font-bold">9</div>
+              <div className="text-red-600 text-xs text-center">♥</div>
+              <div className="text-red-600 text-xs font-bold rotate-180">9</div>
             </div>
           </div>
           
-          {/* カード7 - 複雑な軌道 */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-md border border-indigo-400/30 shadow-lg animate-card-fall-7">
+          {/* カード7 - 複雑な軌道 - クラブの8（黒） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-7">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-indigo-200 text-xs font-bold">8</div>
-              <div className="text-indigo-200 text-xs text-center">♣</div>
-              <div className="text-indigo-200 text-xs font-bold rotate-180">8</div>
+              <div className="text-black text-xs font-bold">8</div>
+              <div className="text-black text-xs text-center">♣</div>
+              <div className="text-black text-xs font-bold rotate-180">8</div>
             </div>
           </div>
           
-          {/* カード8 - 回転しながら落下 */}
-          <div className="absolute w-8 h-12 bg-gradient-to-br from-orange-600 to-orange-800 rounded-md border border-orange-400/30 shadow-lg animate-card-fall-8">
+          {/* カード8 - 回転しながら落下 - ダイヤの7（赤） */}
+          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-8">
             <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-orange-200 text-xs font-bold">7</div>
-              <div className="text-orange-200 text-xs text-center">♦</div>
-              <div className="text-orange-200 text-xs font-bold rotate-180">7</div>
+              <div className="text-red-600 text-xs font-bold">7</div>
+              <div className="text-red-600 text-xs text-center">♦</div>
+              <div className="text-red-600 text-xs font-bold rotate-180">7</div>
             </div>
           </div>
           
           {/* 追加のカード群 */}
-          <div className="absolute w-6 h-9 bg-gradient-to-br from-cyan-600 to-cyan-800 rounded-sm border border-cyan-400/30 shadow-md animate-card-fall-9">
+          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-9">
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-cyan-200 text-xs">A♠</span>
+              <span className="text-black text-xs font-bold">A♠</span>
             </div>
           </div>
           
-          <div className="absolute w-6 h-9 bg-gradient-to-br from-rose-600 to-rose-800 rounded-sm border border-rose-400/30 shadow-md animate-card-fall-10">
+          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-10">
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-rose-200 text-xs">K♥</span>
+              <span className="text-red-600 text-xs font-bold">K♥</span>
             </div>
           </div>
           
-          <div className="absolute w-6 h-9 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-sm border border-emerald-400/30 shadow-md animate-card-fall-11">
+          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-11">
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-emerald-200 text-xs">Q♣</span>
+              <span className="text-black text-xs font-bold">Q♣</span>
             </div>
           </div>
           
-          <div className="absolute w-6 h-9 bg-gradient-to-br from-violet-600 to-violet-800 rounded-sm border border-violet-400/30 shadow-md animate-card-fall-12">
+          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-12">
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-violet-200 text-xs">J♦</span>
+              <span className="text-red-600 text-xs font-bold">J♦</span>
             </div>
           </div>
         </div>

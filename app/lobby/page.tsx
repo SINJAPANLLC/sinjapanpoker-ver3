@@ -456,9 +456,6 @@ function LobbyContent() {
               <span className="text-gradient-blue">トーナメント</span>
               <span className="text-gray-400 text-sm md:text-base">({tournaments.length}件)</span>
             </h2>
-            <Link href="/tournaments" className="text-blue-400 hover:text-cyan-300 text-sm md:text-base">
-              すべて見る →
-            </Link>
           </div>
 
           {tournaments.length === 0 ? (

@@ -112,16 +112,17 @@ export async function POST(
       const feeCalc = calculateTournamentFee(currentTournament.buyIn);
       const totalCost = feeCalc.totalCost;
 
-      if (user[0].chips < totalCost) {
+      // realChipsから参加費を引く
+      if (user[0].realChips < totalCost) {
         return NextResponse.json(
-          { error: 'チップが不足しています' },
+          { error: 'リアルチップが不足しています' },
           { status: 400 }
         );
       }
 
       await db
         .update(users)
-        .set({ chips: user[0].chips - totalCost })
+        .set({ realChips: user[0].realChips - totalCost })
         .where(eq(users.id, actualUserId));
 
       const newPlayers = [
@@ -204,12 +205,12 @@ export async function POST(
         currentTournament.prizePool
       );
 
-      // 賞金をプレイヤーに分配
+      // 賞金をプレイヤーに分配（realChipsに追加）
       for (const prize of result.prizes) {
         await db
           .update(users)
           .set({
-            chips: sql`chips + ${prize.prize}`
+            realChips: sql`real_chips + ${prize.prize}`
           })
           .where(eq(users.id, prize.userId));
       }
@@ -262,7 +263,7 @@ export async function POST(
         await db
           .update(users)
           .set({
-            chips: sql`chips + ${feeCalc.totalCost}`
+            realChips: sql`real_chips + ${feeCalc.totalCost}`
           })
           .where(eq(users.id, player.userId));
       }

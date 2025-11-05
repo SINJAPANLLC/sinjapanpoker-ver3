@@ -621,7 +621,7 @@ app.prepare().then(() => {
     // 接続時に現在のロビー状態を送信
     broadcastLobbyUpdate();
 
-    socket.on('join-game', ({ gameId, player, blinds, difficulty }) => {
+    socket.on('join-game', async ({ gameId, player, blinds, difficulty }) => {
       try {
         console.log('join-game受信:', { gameId, player, blinds, difficulty });
         let game = games.get(gameId);
@@ -640,6 +640,31 @@ app.prepare().then(() => {
           players.set(socket.id, { gameId, userId: player.userId });
           io.to(gameId).emit('game-state', game.getState());
           return;
+        }
+
+        // 練習モード以外はバイインをデータベースから引き落とす
+        if (gameId !== 'practice-game' && player.chips > 0) {
+          try {
+            const { db } = require('./server/db');
+            const { users } = require('./shared/schema');
+            const { eq } = require('drizzle-orm');
+
+            const [user] = await db.select().from(users).where(eq(users.id, player.userId)).limit(1);
+            if (user && user.realChips >= player.chips) {
+              // バイイン額を引き落とす
+              await db.update(users)
+                .set({ realChips: user.realChips - player.chips })
+                .where(eq(users.id, player.userId));
+              console.log(`プレイヤー ${player.username} がバイイン ${player.chips} チップを支払いました`);
+            } else {
+              socket.emit('error', { message: 'チップが不足しています' });
+              return;
+            }
+          } catch (dbError) {
+            console.error('バイイン処理エラー:', dbError);
+            socket.emit('error', { message: 'バイイン処理に失敗しました' });
+            return;
+          }
         }
 
         const addedPlayer = game.addPlayer(player);

@@ -67,6 +67,9 @@ export async function GET(
     if (isSelf) {
       response.email = user.email;
       response.chips = user.chips;
+      response.realChips = user.realChips;
+      response.gameChips = user.gameChips;
+      response.energy = user.energy;
       response.experience = user.experience;
       response.clubs = user.clubs;
       response.friends = user.friends;

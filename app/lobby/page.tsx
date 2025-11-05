@@ -32,7 +32,7 @@ import { saveTables, loadTables, saveTournaments, loadTournaments } from '@/lib/
 function LobbyContent() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const { currency } = useCurrencyStore();
+  const { currency, setCurrency } = useCurrencyStore();
   const { getActiveTournaments, joinTournament } = useTournamentStore();
 
   const [showCreateTable, setShowCreateTable] = useState(false);
@@ -42,6 +42,36 @@ function LobbyContent() {
   const [selectedTableId, setSelectedTableId] = useState<string>('');
   const [passwordInput, setPasswordInput] = useState('');
   const [socket, setSocket] = useState<Socket | null>(null);
+
+  // データベースからユーザー情報を同期
+  useEffect(() => {
+    const syncUserData = async () => {
+      if (!user?.id) return;
+
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) return;
+
+        const response = await fetch(`/api/user/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // データベースの値でストアを更新
+          setCurrency('realChips', data.realChips || 0, 'データベースから同期');
+          setCurrency('gameChips', data.gameChips || 10000, 'データベースから同期');
+          setCurrency('energy', data.energy || 100, 'データベースから同期');
+        }
+      } catch (error) {
+        console.error('ユーザーデータ同期エラー:', error);
+      }
+    };
+
+    syncUserData();
+  }, [user?.id, setCurrency]);
 
   // Socket.io接続してリアルタイム更新を受信
   useEffect(() => {

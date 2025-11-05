@@ -8,6 +8,15 @@ SIN JAPAN POKER is a comprehensive online poker application, inspired by PPPOKER
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+**November 5, 2025 - Club & Table Persistence**
+- Migrated club system from in-memory Map storage to PostgreSQL database
+- Updated `clubs` table with comprehensive revenue tracking, member management, and configuration fields
+- Created `club_tables` table for poker table management  
+- All club API endpoints now use direct database queries via Drizzle ORM
+- Clubs and tables now persist across server restarts
+
 ## System Architecture
 
 ### Frontend Architecture

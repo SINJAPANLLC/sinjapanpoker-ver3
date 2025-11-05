@@ -84,102 +84,62 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-black via-[#1a0a0a] to-black"></div>
         
         {/* 流れるトランプカード */}
-        <div className="absolute inset-0 opacity-30">
-          {/* カード1 - 左上から右下へ - スペードのA（黒） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-1">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-black text-xs font-bold">A</div>
-              <div className="text-black text-xs text-center">♠</div>
-              <div className="text-black text-xs font-bold rotate-180">A</div>
-            </div>
+        <div className="absolute inset-0 opacity-40">
+          {/* カード1 - スペードのA */}
+          <div className="absolute w-12 h-16 animate-card-fall-1">
+            <Image src="/cards/ace_of_spades.png" alt="Ace of Spades" fill className="object-contain" />
           </div>
           
-          {/* カード2 - 右上から左下へ - ハートのK（赤） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-2">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-red-600 text-xs font-bold">K</div>
-              <div className="text-red-600 text-xs text-center">♥</div>
-              <div className="text-red-600 text-xs font-bold rotate-180">K</div>
-            </div>
+          {/* カード2 - ハートのK */}
+          <div className="absolute w-12 h-16 animate-card-fall-2">
+            <Image src="/cards/king_of_hearts.png" alt="King of Hearts" fill className="object-contain" />
           </div>
           
-          {/* カード3 - 左から右へ - クラブのQ（黒） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-3">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-black text-xs font-bold">Q</div>
-              <div className="text-black text-xs text-center">♣</div>
-              <div className="text-black text-xs font-bold rotate-180">Q</div>
-            </div>
+          {/* カード3 - クラブのQ */}
+          <div className="absolute w-12 h-16 animate-card-fall-3">
+            <Image src="/cards/queen_of_clubs.png" alt="Queen of Clubs" fill className="object-contain" />
           </div>
           
-          {/* カード4 - 右から左へ - ダイヤのJ（赤） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-4">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-red-600 text-xs font-bold">J</div>
-              <div className="text-red-600 text-xs text-center">♦</div>
-              <div className="text-red-600 text-xs font-bold rotate-180">J</div>
-            </div>
+          {/* カード4 - ダイヤのJ */}
+          <div className="absolute w-12 h-16 animate-card-fall-4">
+            <Image src="/cards/jack_of_diamonds.png" alt="Jack of Diamonds" fill className="object-contain" />
           </div>
           
-          {/* カード5 - 中央から斜め - スペードの10（黒） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-5">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-black text-xs font-bold">10</div>
-              <div className="text-black text-xs text-center">♠</div>
-              <div className="text-black text-xs font-bold rotate-180">10</div>
-            </div>
+          {/* カード5 - スペードの10 */}
+          <div className="absolute w-12 h-16 animate-card-fall-5">
+            <Image src="/cards/10_of_spades.png" alt="10 of Spades" fill className="object-contain" />
           </div>
           
-          {/* カード6 - 下から上へ - ハートの9（赤） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-6">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-red-600 text-xs font-bold">9</div>
-              <div className="text-red-600 text-xs text-center">♥</div>
-              <div className="text-red-600 text-xs font-bold rotate-180">9</div>
-            </div>
+          {/* カード6 - ハートの9 */}
+          <div className="absolute w-12 h-16 animate-card-fall-6">
+            <Image src="/cards/9_of_hearts.png" alt="9 of Hearts" fill className="object-contain" />
           </div>
           
-          {/* カード7 - 複雑な軌道 - クラブの8（黒） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-7">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-black text-xs font-bold">8</div>
-              <div className="text-black text-xs text-center">♣</div>
-              <div className="text-black text-xs font-bold rotate-180">8</div>
-            </div>
+          {/* カード7 - クラブの8 */}
+          <div className="absolute w-12 h-16 animate-card-fall-7">
+            <Image src="/cards/8_of_clubs.png" alt="8 of Clubs" fill className="object-contain" />
           </div>
           
-          {/* カード8 - 回転しながら落下 - ダイヤの7（赤） */}
-          <div className="absolute w-8 h-12 bg-white rounded-md border-2 border-gray-300 shadow-lg animate-card-fall-8">
-            <div className="w-full h-full flex flex-col justify-between p-1">
-              <div className="text-red-600 text-xs font-bold">7</div>
-              <div className="text-red-600 text-xs text-center">♦</div>
-              <div className="text-red-600 text-xs font-bold rotate-180">7</div>
-            </div>
+          {/* カード8 - ダイヤの7 */}
+          <div className="absolute w-12 h-16 animate-card-fall-8">
+            <Image src="/cards/7_of_diamonds.png" alt="7 of Diamonds" fill className="object-contain" />
           </div>
           
           {/* 追加のカード群 */}
-          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-9">
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-black text-xs font-bold">A♠</span>
-            </div>
+          <div className="absolute w-10 h-14 animate-card-fall-9">
+            <Image src="/cards/ace_of_hearts.png" alt="Ace of Hearts" fill className="object-contain" />
           </div>
           
-          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-10">
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-red-600 text-xs font-bold">K♥</span>
-            </div>
+          <div className="absolute w-10 h-14 animate-card-fall-10">
+            <Image src="/cards/king_of_spades.png" alt="King of Spades" fill className="object-contain" />
           </div>
           
-          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-11">
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-black text-xs font-bold">Q♣</span>
-            </div>
+          <div className="absolute w-10 h-14 animate-card-fall-11">
+            <Image src="/cards/queen_of_diamonds.png" alt="Queen of Diamonds" fill className="object-contain" />
           </div>
           
-          <div className="absolute w-6 h-9 bg-white rounded-sm border-2 border-gray-300 shadow-md animate-card-fall-12">
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-red-600 text-xs font-bold">J♦</span>
-            </div>
+          <div className="absolute w-10 h-14 animate-card-fall-12">
+            <Image src="/cards/jack_of_clubs.png" alt="Jack of Clubs" fill className="object-contain" />
           </div>
         </div>
         

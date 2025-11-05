@@ -149,7 +149,50 @@ function RealMoneyManagementContent() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
-    // モック取引データ
+    const fetchWithdrawalRequests = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          console.error('管理者トークンが見つかりません');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/admin/withdrawals?status=all', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          console.error('出金申請の取得に失敗しました');
+          setWithdrawalRequests([]);
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        const formattedWithdrawals = data.withdrawals.map((w: any) => ({
+          ...w,
+          submittedAt: new Date(w.submittedAt),
+          processedAt: w.processedAt ? new Date(w.processedAt) : undefined,
+          createdAt: new Date(w.createdAt),
+          updatedAt: new Date(w.updatedAt)
+        }));
+        
+        setWithdrawalRequests(formattedWithdrawals);
+        setLoading(false);
+      } catch (error) {
+        console.error('出金申請取得エラー:', error);
+        setWithdrawalRequests([]);
+        setLoading(false);
+      }
+    };
+
+    fetchWithdrawalRequests();
+
+    // モック取引データ（取引履歴は別途実装予定）
     const mockTransactions: Transaction[] = [
       {
         id: 'tx_1',
@@ -163,112 +206,10 @@ function RealMoneyManagementContent() {
         processedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
         fee: 1750,
         netAmount: 48250
-      },
-      {
-        id: 'tx_2',
-        userId: 'user_2',
-        username: 'Player2',
-        type: 'withdrawal',
-        amount: 100000,
-        method: 'bank_transfer',
-        status: 'processing',
-        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        fee: 0,
-        netAmount: 100000
-      },
-      {
-        id: 'tx_3',
-        userId: 'user_3',
-        username: 'Player3',
-        type: 'deposit',
-        amount: 25000,
-        method: 'credit_card',
-        status: 'pending',
-        createdAt: new Date(Date.now() - 30 * 60 * 1000),
-        fee: 875,
-        netAmount: 24125
-      },
-      {
-        id: 'tx_4',
-        userId: 'user_4',
-        username: 'Player4',
-        type: 'withdrawal',
-        amount: 75000,
-        method: 'bank_transfer',
-        status: 'completed',
-        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        processedAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
-        fee: 0,
-        netAmount: 75000
-      }
-    ];
-    
-    // モック出金申請データ
-    const mockWithdrawalRequests: WithdrawalRequest[] = [
-      {
-        id: 'wd_1',
-        userId: 'user_1',
-        username: 'Player1',
-        amount: 50000,
-        method: 'bank_transfer',
-        bankAccount: {
-          bankName: '三菱UFJ銀行',
-          accountNumber: '****1234',
-          accountHolder: 'タナカ タロウ'
-        },
-        status: 'pending',
-        reason: '生活費のため',
-        submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
-      },
-      {
-        id: 'wd_2',
-        userId: 'user_2',
-        username: 'Player2',
-        amount: 100000,
-        method: 'credit_card',
-        status: 'approved',
-        reason: '緊急の支払い',
-        adminNotes: '本人確認完了',
-        submittedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        processedAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
-        processedBy: 'admin1'
-      },
-      {
-        id: 'wd_3',
-        userId: 'user_3',
-        username: 'Player3',
-        amount: 25000,
-        method: 'bank_transfer',
-        bankAccount: {
-          bankName: 'みずほ銀行',
-          accountNumber: '****5678',
-          accountHolder: 'ヤマダ ハナコ'
-        },
-        status: 'processing',
-        reason: '投資のため',
-        adminNotes: '処理中',
-        submittedAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        processedAt: new Date(Date.now() - 30 * 60 * 1000),
-        processedBy: 'admin1'
-      },
-      {
-        id: 'wd_4',
-        userId: 'user_4',
-        username: 'Player4',
-        amount: 150000,
-        method: 'crypto',
-        status: 'rejected',
-        reason: '大口出金のため',
-        adminNotes: '本人確認書類不備',
-        submittedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        processedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-        processedBy: 'admin2'
       }
     ];
     
     setTransactions(mockTransactions);
-    setWithdrawalRequests(mockWithdrawalRequests);
-    setLoading(false);
   }, []);
 
   const handleToggleMethod = async (methodId: string) => {
@@ -327,36 +268,53 @@ function RealMoneyManagementContent() {
     try {
       setWithdrawalLoading(true);
       
-      // 実際のAPI呼び出し
-      await new Promise(resolve => setTimeout(resolve, 1000)); // モック遅延
-      
-      let newStatus: WithdrawalRequest['status'];
-      switch (action) {
-        case 'approve':
-          newStatus = 'approved';
-          break;
-        case 'reject':
-          newStatus = 'rejected';
-          break;
-        case 'process':
-          newStatus = 'processing';
-          break;
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setMessage('管理者トークンが見つかりません');
+        setMessageType('error');
+        setWithdrawalLoading(false);
+        return;
       }
-      
+
+      const response = await fetch('/api/admin/withdrawals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          withdrawalId: requestId,
+          action,
+          adminNotes: `${action === 'approve' ? '承認' : action === 'reject' ? '拒否' : '処理開始'}されました`
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || '出金申請の処理に失敗しました');
+        setMessageType('error');
+        setWithdrawalLoading(false);
+        return;
+      }
+
+      // 出金申請リストを更新
       setWithdrawalRequests(prev => prev.map(req => 
         req.id === requestId 
           ? { 
-              ...req, 
-              status: newStatus,
-              processedAt: new Date(),
-              processedBy: adminUser?.username || 'admin'
+              ...data.withdrawal,
+              submittedAt: new Date(data.withdrawal.submittedAt),
+              processedAt: data.withdrawal.processedAt ? new Date(data.withdrawal.processedAt) : undefined,
+              createdAt: new Date(data.withdrawal.createdAt),
+              updatedAt: new Date(data.withdrawal.updatedAt)
             }
           : req
       ));
       
-      setMessage(`出金申請が${action === 'approve' ? '承認' : action === 'reject' ? '拒否' : '処理開始'}されました`);
+      setMessage(data.message);
       setMessageType('success');
     } catch (error) {
+      console.error('出金申請処理エラー:', error);
       setMessage('操作に失敗しました');
       setMessageType('error');
     } finally {

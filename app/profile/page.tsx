@@ -237,25 +237,38 @@ function ProfileContent() {
     setWithdrawMessage('出金申請を処理中...');
 
     try {
-      // 実際の実装では、APIエンドポイントに出金申請を送信
-      await new Promise(resolve => setTimeout(resolve, 2000)); // シミュレーション
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setWithdrawStatus('error');
+        setWithdrawMessage('ログインが必要です');
+        return;
+      }
+
+      const response = await fetch('/api/withdraw/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          amount,
+          method: withdrawMethod === 'bank' ? 'bank_transfer' : 'crypto',
+          bankAccount: withdrawMethod === 'bank' ? bankInfo : null,
+          cryptoInfo: withdrawMethod === 'crypto' ? cryptoInfo : null,
+          reason: '出金申請'
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setWithdrawStatus('error');
+        setWithdrawMessage(data.message || '出金申請中にエラーが発生しました');
+        return;
+      }
 
       setWithdrawStatus('success');
       setWithdrawMessage(`${amount}チップの出金申請が完了しました。通常1-3営業日以内に処理されます。`);
-      
-      // 出金履歴をLocalStorageに保存
-      const withdrawHistory = JSON.parse(localStorage.getItem('withdraw_history') || '[]');
-      withdrawHistory.push({
-        id: Date.now().toString(),
-        amount,
-        method: withdrawMethod,
-        bankInfo: withdrawMethod === 'bank' ? bankInfo : null,
-        cryptoInfo: withdrawMethod === 'crypto' ? cryptoInfo : null,
-        status: 'pending',
-        date: new Date().toISOString(),
-        userId: user?.id
-      });
-      localStorage.setItem('withdraw_history', JSON.stringify(withdrawHistory));
 
       // モーダルを3秒後に閉じる
       setTimeout(() => {
@@ -263,8 +276,21 @@ function ProfileContent() {
         setWithdrawAmount('');
         setWithdrawStatus('idle');
         setWithdrawMessage('');
+        setBankInfo({
+          bankName: '',
+          branchName: '',
+          accountType: '普通',
+          accountNumber: '',
+          accountName: ''
+        });
+        setCryptoInfo({
+          currency: 'BTC',
+          walletAddress: '',
+          network: 'mainnet'
+        });
       }, 3000);
     } catch (error) {
+      console.error('出金申請エラー:', error);
       setWithdrawStatus('error');
       setWithdrawMessage('出金申請中にエラーが発生しました。もう一度お試しください。');
     }

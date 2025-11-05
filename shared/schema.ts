@@ -14,6 +14,8 @@ export const users = pgTable('users', {
   password: text('password').notNull(),
   avatar: text('avatar'),
   chips: integer('chips').notNull().default(0),
+  gameChips: integer('game_chips').notNull().default(10000),
+  realChips: integer('real_chips').notNull().default(0),
   level: integer('level').notNull().default(1),
   experience: integer('experience').notNull().default(0),
   clubs: jsonb('clubs').$type<string[]>().default([]),
@@ -361,6 +363,46 @@ export const kycVerifications = pgTable('kyc_verifications', {
 
 export type KYCVerification = typeof kycVerifications.$inferSelect;
 export type InsertKYCVerification = typeof kycVerifications.$inferInsert;
+
+// ========================================
+// WITHDRAWAL REQUESTS TABLE
+// ========================================
+export const withdrawalRequests = pgTable('withdrawal_requests', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar('user_id', { length: 100 }).notNull(),
+  username: varchar('username', { length: 100 }).notNull(),
+  amount: integer('amount').notNull(),
+  method: varchar('method', { length: 20 }).notNull().$type<'bank_transfer' | 'crypto'>(),
+  bankAccount: jsonb('bank_account').$type<{
+    bankName: string;
+    branchName: string;
+    accountType: string;
+    accountNumber: string;
+    accountName: string;
+  }>(),
+  cryptoInfo: jsonb('crypto_info').$type<{
+    currency: string;
+    walletAddress: string;
+    network?: string;
+  }>(),
+  status: varchar('status', { length: 20 }).notNull().default('pending').$type<'pending' | 'approved' | 'rejected' | 'processing' | 'completed'>(),
+  reason: text('reason'),
+  adminNotes: text('admin_notes'),
+  processedBy: varchar('processed_by', { length: 100 }),
+  submittedAt: timestamp('submitted_at').notNull().defaultNow(),
+  processedAt: timestamp('processed_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('withdrawal_user_id_idx').on(table.userId),
+    statusIdx: index('withdrawal_status_idx').on(table.status),
+    submittedAtIdx: index('withdrawal_submitted_at_idx').on(table.submittedAt),
+  };
+});
+
+export type WithdrawalRequest = typeof withdrawalRequests.$inferSelect;
+export type InsertWithdrawalRequest = typeof withdrawalRequests.$inferInsert;
 
 // ========================================
 // RELATIONS

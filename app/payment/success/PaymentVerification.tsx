@@ -11,7 +11,7 @@ export default function PaymentVerification() {
   const searchParams = useSearchParams();
   const sessionId = searchParams?.get('session_id') || null;
   const { user } = useAuthStore();
-  const { addCurrency } = useCurrencyStore();
+  const { setCurrency } = useCurrencyStore();
   
   const [verifying, setVerifying] = useState(true);
   const [success, setSuccess] = useState(false);
@@ -48,7 +48,8 @@ export default function PaymentVerification() {
           const addChipsData = await addChipsResponse.json();
 
           if (addChipsData.success) {
-            addCurrency('realChips', verifyData.chips, 'Stripe決済でチップ購入');
+            // データベース更新後の合計値をLocalStorageに同期
+            setCurrency('realChips', addChipsData.newChips, 'Stripe決済でチップ購入');
             setChipsAdded(verifyData.chips);
             setSuccess(true);
           } else {
@@ -66,7 +67,7 @@ export default function PaymentVerification() {
     };
 
     verifyPayment();
-  }, [sessionId, user, addCurrency]);
+  }, [sessionId, user, setCurrency]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900 flex items-center justify-center p-4">

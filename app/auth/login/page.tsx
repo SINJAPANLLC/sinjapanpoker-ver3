@@ -56,27 +56,71 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* 背景アニメーション */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0a0a1a] to-black"></div>
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
+        
+        {/* 流れるトランプカード */}
+        <div className="absolute inset-0 opacity-40 pointer-events-none">
+          {/* カード1 - スペードのA */}
+          <div className="absolute w-16 h-24 animate-card-fall-1 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/ace_of_spades.png" alt="Ace of Spades" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* カード2 - ハートのK */}
+          <div className="absolute w-16 h-24 animate-card-fall-2 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/king_of_hearts.png" alt="King of Hearts" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* カード3 - クラブのQ */}
+          <div className="absolute w-16 h-24 animate-card-fall-3 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/queen_of_clubs.png" alt="Queen of Clubs" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* カード4 - ダイヤのJ */}
+          <div className="absolute w-16 h-24 animate-card-fall-4 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/jack_of_diamonds.png" alt="Jack of Diamonds" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* カード5 - スペードの10 */}
+          <div className="absolute w-16 h-24 animate-card-fall-5 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/10_of_spades.png" alt="10 of Spades" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* カード6 - ハートの9 */}
+          <div className="absolute w-16 h-24 animate-card-fall-6 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/9_of_hearts.png" alt="9 of Hearts" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* カード7 - クラブの8 */}
+          <div className="absolute w-16 h-24 animate-card-fall-7 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/8_of_clubs.png" alt="8 of Clubs" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* カード8 - ダイヤの7 */}
+          <div className="absolute w-16 h-24 animate-card-fall-8 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/7_of_diamonds.png" alt="7 of Diamonds" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          {/* 追加のカード群 */}
+          <div className="absolute w-14 h-20 animate-card-fall-9 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/ace_of_hearts.png" alt="Ace of Hearts" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          <div className="absolute w-14 h-20 animate-card-fall-10 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/king_of_spades.png" alt="King of Spades" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          <div className="absolute w-14 h-20 animate-card-fall-11 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/queen_of_diamonds.png" alt="Queen of Diamonds" className="w-full h-full object-contain p-1" />
+          </div>
+          
+          <div className="absolute w-14 h-20 animate-card-fall-12 relative bg-white rounded-lg overflow-hidden shadow-xl">
+            <img src="/cards/jack_of_clubs.png" alt="Jack of Clubs" className="w-full h-full object-contain p-1" />
+          </div>
         </div>
-        <div className="absolute inset-0 bg-dots opacity-20"></div>
-      </div>
-
-      {/* フローティングカード */}
-      <div className="absolute top-20 left-10 animate-float opacity-20">
-        <span className="text-5xl text-blue-400">♠️</span>
-      </div>
-      <div className="absolute top-40 right-20 animate-float opacity-20" style={{ animationDelay: '1s' }}>
-        <span className="text-4xl text-white">♥️</span>
-      </div>
-      <div className="absolute bottom-40 left-20 animate-float opacity-20" style={{ animationDelay: '2s' }}>
-        <span className="text-6xl text-blue-400">♦️</span>
-      </div>
-      <div className="absolute bottom-20 right-10 animate-float opacity-20" style={{ animationDelay: '3s' }}>
-        <span className="text-5xl text-white">♣️</span>
+        
+        {/* 背景のドットパターン */}
+        <div className="absolute inset-0 bg-dots opacity-10"></div>
       </div>
 
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">

@@ -15,23 +15,38 @@ function AdminAnalyticsContent() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/admin/stats');
+        const token = sessionStorage.getItem('adminToken');
+        const response = await fetch('/api/admin/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch stats');
+        }
+        
         const data = await response.json();
         
         setStats({
-          revenue: data.revenue,
-          users: data.users,
-          games: data.games
+          revenue: data.revenue || { total: 0, rake: 0, tournament: 0, vip: 0 },
+          users: data.users || { total: 0, new: 0, active: 0, retention: 0 },
+          games: data.games || { total: 0, today: 0, week: 0, active: 0 }
         });
         
-        setTopPlayers(data.topRakePlayers.map((p: any, i: number) => ({
+        setTopPlayers((data.topRakePlayers || []).map((p: any, i: number) => ({
           rank: i + 1,
           name: p.username,
-          rakePaid: p.rakePaid,
-          games: p.gamesPlayed
+          rakePaid: p.rakePaid || 0,
+          games: p.gamesPlayed || 0
         })));
       } catch (error) {
         console.error('Stats fetch error:', error);
+        setStats({
+          revenue: { total: 0, rake: 0, tournament: 0, vip: 0 },
+          users: { total: 0, new: 0, active: 0, retention: 0 },
+          games: { total: 0, today: 0, week: 0, active: 0 }
+        });
       } finally {
         setLoading(false);
       }
@@ -180,8 +195,8 @@ function AdminAnalyticsContent() {
           <div className="card hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-gray-400 text-sm mb-1">リテンション率</div>
-                <div className="text-3xl font-bold text-yellow-400">{stats.users.retention}%</div>
+                <div className="text-gray-400 text-sm mb-1">総ユーザー数</div>
+                <div className="text-3xl font-bold text-yellow-400">{stats.users.total.toLocaleString()}</div>
               </div>
               <BarChart3 className="text-4xl text-yellow-400 opacity-20" />
             </div>

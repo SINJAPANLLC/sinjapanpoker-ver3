@@ -270,6 +270,10 @@ function ProfileContent() {
       setWithdrawStatus('success');
       setWithdrawMessage(`${amount}チップの出金申請が完了しました。通常1-3営業日以内に処理されます。`);
 
+      // 残高を更新
+      const { setCurrency } = useCurrencyStore.getState();
+      setCurrency('realChips', data.newBalance, '出金申請');
+
       // モーダルを3秒後に閉じる
       setTimeout(() => {
         setShowWithdrawModal(false);

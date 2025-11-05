@@ -62,6 +62,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: '残高が不足しています' });
     }
 
+    // 出金申請時に残高を減らす（保留状態）
+    await db.update(users)
+      .set({ realChips: user.realChips - amount })
+      .where(eq(users.id, userId));
+
     const [newWithdrawal] = await db.insert(withdrawalRequests).values({
       userId,
       username: user.username,
@@ -77,7 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       success: true,
       message: '出金申請が送信されました。通常1-3営業日以内に処理されます。',
-      withdrawal: newWithdrawal
+      withdrawal: newWithdrawal,
+      newBalance: user.realChips - amount
     });
   } catch (error) {
     console.error('出金申請エラー:', error);

@@ -95,7 +95,7 @@ export type InsertClub = typeof clubs.$inferInsert;
 // ========================================
 export const clubTables = pgTable('club_tables', {
   id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-  clubId: varchar('club_id', { length: 100 }).notNull(),
+  clubId: varchar('club_id', { length: 100 }),
   name: varchar('name', { length: 200 }).notNull(),
   type: varchar('type', { length: 20 }).notNull().$type<'cash' | 'tournament'>(),
   stakes: varchar('stakes', { length: 50 }).notNull(),

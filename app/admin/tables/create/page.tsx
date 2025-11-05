@@ -42,51 +42,37 @@ function CreateTableContent() {
     setLoading(true);
 
     try {
-      if (!adminUser) {
-        throw new Error('Admin認証が必要です');
-      }
-
-      if (formData.maxPlayers < 2 || formData.maxPlayers > 10) {
-        throw new Error('最大プレイヤー数は2-10人の範囲で設定してください');
-      }
-
-      if (formData.buyIn < 100) {
-        throw new Error('バイインは100チップ以上に設定してください');
+      if (formData.maxPlayers < 2 || formData.maxPlayers > 9) {
+        throw new Error('最大プレイヤー数は2-9人の範囲で設定してください');
       }
 
       if (formData.bigBlind <= formData.smallBlind) {
         throw new Error('ビッグブラインドはスモールブラインドより大きい値に設定してください');
       }
 
-      // テーブルオブジェクトを作成
-      const newTable = {
-        id: `table-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: formData.name,
-        type: formData.type,
-        buyIn: formData.buyIn,
-        maxPlayers: formData.maxPlayers,
-        currentPlayers: 0,
-        blinds: {
-          small: formData.smallBlind,
-          big: formData.bigBlind,
+      const token = sessionStorage.getItem('admin_token');
+      
+      // APIを使用してテーブルを作成
+      const response = await fetch('/api/admin/tables', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        rakePercentage: formData.rakePercentage,
-        isPrivate: formData.isPrivate,
-        description: formData.description,
-        status: 'waiting',
-        createdAt: new Date().toISOString(),
-        createdBy: adminUser.email,
-        players: [],
-      };
+        body: JSON.stringify({
+          name: formData.name,
+          stakes: `${formData.smallBlind}/${formData.bigBlind}`,
+          maxPlayers: formData.maxPlayers,
+        }),
+      });
 
-      // LocalStorageに保存
-      if (typeof window !== 'undefined') {
-        const { saveTables, loadTables } = await import('@/lib/storage');
-        const existingTables = loadTables();
-        saveTables([...existingTables, newTable]);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'テーブルの作成に失敗しました');
       }
 
-      console.log('Table created successfully:', newTable);
+      console.log('Table created successfully:', data.table);
       router.push('/admin/tables');
     } catch (err: any) {
       setError(err.message || 'テーブルの作成に失敗しました');

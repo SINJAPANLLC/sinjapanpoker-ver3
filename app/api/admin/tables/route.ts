@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, clubId, stakes, maxPlayers } = body;
 
-    if (!name || !clubId || !stakes || !maxPlayers) {
+    if (!name || !stakes || !maxPlayers) {
       return NextResponse.json({ message: '必須フィールドが不足しています' }, { status: 400 });
     }
 
@@ -104,16 +104,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'プレイヤー数は2～9人です' }, { status: 400 });
     }
 
-    const club = await db.select().from(clubs).where(eq(clubs.id, clubId)).limit(1);
-    if (club.length === 0) {
-      return NextResponse.json({ message: 'クラブが見つかりません' }, { status: 404 });
+    // clubIdが指定されている場合のみクラブ存在チェック
+    if (clubId) {
+      const club = await db.select().from(clubs).where(eq(clubs.id, clubId)).limit(1);
+      if (club.length === 0) {
+        return NextResponse.json({ message: 'クラブが見つかりません' }, { status: 404 });
+      }
     }
 
     const [newTable] = await db
       .insert(clubTables)
       .values({
         name,
-        clubId,
+        clubId: clubId || null,
         type: 'cash',
         stakes: typeof stakes === 'string' ? stakes : JSON.stringify(stakes),
         maxPlayers,

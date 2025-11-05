@@ -114,19 +114,6 @@ export default function AMLPage() {
                 </p>
               </section>
 
-              <section>
-                <h3 className="text-xl font-semibold text-blue-400 mb-3">9. お問い合わせ窓口</h3>
-                <p>
-                  AMLポリシーに関するお問い合わせは、下記の窓口までお願いいたします。
-                </p>
-                <div className="bg-gray-800 p-4 rounded-lg mt-4">
-                  <p className="font-semibold">SIN JAPAN LIBERIA CO.,INC.</p>
-                  <p>AML責任者</p>
-                  <p>Email: aml@sinjapanpoker.com</p>
-                  <p>受付時間: 平日 9:00-18:00（日本時間）</p>
-                </div>
-              </section>
-
               <div className="mt-8 pt-6 border-t border-gray-600">
                 <p className="text-sm text-gray-400">
                   制定日：2024年1月1日<br />

@@ -51,7 +51,7 @@ app.prepare().then(() => {
     return {
       userId: `cpu-${index}`,
       username: CPU_NAMES[index % CPU_NAMES.length],
-      chips: 1000,
+      chips: 10000,
       avatar: `https://i.pravatar.cc/150?img=${10 + index}`,
     };
   }

@@ -123,7 +123,7 @@ export async function PATCH(request: NextRequest) {
       .set({
         value,
         updatedAt: new Date(),
-        updatedBy: authResult.admin.userId,
+        updatedBy: authResult.admin.username,
       })
       .where(eq(systemSettings.id, settingId))
       .returning();

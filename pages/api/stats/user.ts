@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/server/db';
-import { handHistory, playerStats, users } from '@/shared/schema';
+import { gameHistory, playerStats, users } from '@/shared/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
 
 export default async function handler(
@@ -30,14 +30,14 @@ export default async function handler(
     }
 
     const whereCondition = dateFilter
-      ? and(eq(handHistory.userId, userId), gte(handHistory.createdAt, dateFilter))
-      : eq(handHistory.userId, userId);
+      ? and(eq(gameHistory.userId, userId), gte(gameHistory.createdAt, dateFilter))
+      : eq(gameHistory.userId, userId);
 
     const history = await db
       .select()
-      .from(handHistory)
+      .from(gameHistory)
       .where(whereCondition)
-      .orderBy(sql`${handHistory.createdAt} DESC`)
+      .orderBy(sql`${gameHistory.createdAt} DESC`)
       .limit(100);
 
     const stats = await db

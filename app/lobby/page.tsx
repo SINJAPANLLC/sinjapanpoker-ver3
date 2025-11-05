@@ -29,6 +29,17 @@ import { Trophy, Users, LogOut, Zap, Coins, Flame, Crown, ShoppingCart, BarChart
 import TableCreationModal from '@/components/TableCreationModal';
 import { saveTables, loadTables, saveTournaments, loadTournaments } from '@/lib/storage';
 
+// チップをK表示に変換する関数
+function formatChips(amount: number): string {
+  if (amount >= 1000000) {
+    return (amount / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (amount >= 1000) {
+    return (amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return amount.toString();
+}
+
 function LobbyContent() {
   const router = useRouter();
   const { user, logout, token } = useAuthStore();
@@ -278,7 +289,7 @@ function LobbyContent() {
             </div>
             <div className="flex items-center space-x-2 glass px-3 py-2 rounded-full">
               <img src="/chip-icon.png" alt="Chips" className="w-6 h-6 object-contain" />
-              <span className="text-white font-semibold">{(currency?.realChips || 0).toLocaleString()}</span>
+              <span className="text-white font-semibold">{formatChips(currency?.realChips || 0)}</span>
             </div>
             <button
               onClick={handleLogout}

@@ -1,66 +1,89 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-
-interface ForumPost {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  tags: string[];
-  type: 'text' | 'video';
-  videoUrl?: string;
-  username: string;
-  userId: string;
-  views: number;
-  comments: number;
-  likes: number;
-  date: string;
-  videoThumbnail?: string;
-  isPinned?: boolean;
-  isFeatured?: boolean;
-}
-
-// モックデータ（空）
-let posts: ForumPost[] = [];
+import { db } from '@/server/db-api';
+import { forumPosts } from '@/shared/schema';
+import { eq, desc, asc, and, sql } from 'drizzle-orm';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const { category = 'featured', limit = '20', offset = '0' } = req.query;
-    
-    let filteredPosts = [...posts];
-    
-    // カテゴリフィルタリング
-    if (category === 'featured') {
-      filteredPosts = posts.filter(post => post.isFeatured);
-    } else if (category === 'popular') {
-      // 人気順（ビュー数 + コメント数 + いいね数）
-      filteredPosts = posts.sort((a, b) => 
-        (b.views + b.comments + b.likes) - (a.views + a.comments + a.likes)
-      );
-    } else if (category === 'latest') {
-      // 最新順
-      filteredPosts = posts.sort((a, b) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-    } else {
-      // 特定のカテゴリ
-      filteredPosts = posts.filter(post => post.category === category);
+    try {
+      const { category = 'featured', limit = '20', offset = '0' } = req.query;
+      
+      const limitNum = parseInt(limit as string);
+      const offsetNum = parseInt(offset as string);
+      
+      // カテゴリフィルタリング & ソート & ページネーション
+      let allPosts;
+      let total = 0;
+      
+      if (category === 'featured') {
+        allPosts = await db.select()
+          .from(forumPosts)
+          .where(eq(forumPosts.isFeatured, true))
+          .orderBy(desc(forumPosts.isPinned), desc(forumPosts.createdAt))
+          .limit(limitNum)
+          .offset(offsetNum);
+        
+        const [result] = await db.select({ count: sql<number>`count(*)` })
+          .from(forumPosts)
+          .where(eq(forumPosts.isFeatured, true));
+        total = Number(result.count);
+        
+      } else if (category === 'popular') {
+        allPosts = await db.select()
+          .from(forumPosts)
+          .orderBy(desc(sql`${forumPosts.views} + ${forumPosts.comments} + ${forumPosts.likes}`))
+          .limit(limitNum)
+          .offset(offsetNum);
+        
+        const [result] = await db.select({ count: sql<number>`count(*)` })
+          .from(forumPosts);
+        total = Number(result.count);
+        
+      } else if (category === 'latest') {
+        allPosts = await db.select()
+          .from(forumPosts)
+          .orderBy(desc(forumPosts.isPinned), desc(forumPosts.createdAt))
+          .limit(limitNum)
+          .offset(offsetNum);
+        
+        const [result] = await db.select({ count: sql<number>`count(*)` })
+          .from(forumPosts);
+        total = Number(result.count);
+        
+      } else {
+        // 特定のカテゴリ
+        allPosts = await db.select()
+          .from(forumPosts)
+          .where(eq(forumPosts.category, category as any))
+          .orderBy(desc(forumPosts.isPinned), desc(forumPosts.createdAt))
+          .limit(limitNum)
+          .offset(offsetNum);
+        
+        const [result] = await db.select({ count: sql<number>`count(*)` })
+          .from(forumPosts)
+          .where(eq(forumPosts.category, category as any));
+        total = Number(result.count);
+      }
+      
+      // レスポンス形式を変換（date フィールドを追加）
+      const postsWithDate = allPosts.map(post => ({
+        ...post,
+        date: post.createdAt.toISOString().split('T')[0],
+        tags: post.tags || [],
+      }));
+      
+      return res.status(200).json({
+        posts: postsWithDate,
+        total,
+        hasMore: offsetNum + limitNum < total
+      });
+      
+    } catch (error) {
+      console.error('投稿取得エラー:', error);
+      return res.status(500).json({ 
+        error: '投稿の取得に失敗しました' 
+      });
     }
-    
-    // ピン留めされた投稿を最初に表示
-    const pinnedPosts = filteredPosts.filter(post => post.isPinned);
-    const regularPosts = filteredPosts.filter(post => !post.isPinned);
-    filteredPosts = [...pinnedPosts, ...regularPosts];
-    
-    // ページネーション
-    const limitNum = parseInt(limit as string);
-    const offsetNum = parseInt(offset as string);
-    const paginatedPosts = filteredPosts.slice(offsetNum, offsetNum + limitNum);
-    
-    return res.status(200).json({
-      posts: paginatedPosts,
-      total: filteredPosts.length,
-      hasMore: offsetNum + limitNum < filteredPosts.length
-    });
   }
   
   if (req.method === 'POST') {
@@ -92,30 +115,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
       
-      // 新しい投稿を作成
-      const newPost: ForumPost = {
-        id: Date.now().toString(),
+      // タグ配列を処理
+      const tagsArray = tags ? tags.split(' ').filter((tag: string) => tag.trim()) : [];
+      
+      // ビデオサムネイル生成
+      const videoThumbnail = type === 'video' && videoUrl 
+        ? `https://img.youtube.com/vi/${extractVideoId(videoUrl)}/maxresdefault.jpg` 
+        : null;
+      
+      // データベースに投稿を挿入
+      const [newPost] = await db.insert(forumPosts).values({
+        userId,
+        username,
         title: title.trim(),
         content: content.trim(),
         category,
-        tags: tags ? tags.split(' ').filter((tag: string) => tag.trim()) : [],
+        tags: tagsArray,
         type,
-        videoUrl: type === 'video' ? videoUrl : undefined,
-        username,
-        userId,
-        views: 0,
-        comments: 0,
-        likes: 0,
-        date: new Date().toISOString().split('T')[0],
-        videoThumbnail: type === 'video' ? `https://img.youtube.com/vi/${extractVideoId(videoUrl)}/maxresdefault.jpg` : undefined
-      };
+        videoUrl: type === 'video' ? videoUrl : null,
+        videoThumbnail,
+      }).returning();
       
-      // 投稿を追加（最新を最初に）
-      posts.unshift(newPost);
+      // レスポンス形式を変換
+      const postWithDate = {
+        ...newPost,
+        date: newPost.createdAt.toISOString().split('T')[0],
+      };
       
       return res.status(201).json({
         message: '投稿が作成されました',
-        post: newPost
+        post: postWithDate
       });
       
     } catch (error) {

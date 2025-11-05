@@ -2,13 +2,7 @@
 
 ## Overview
 
-SIN JAPAN POKER is a comprehensive online poker application inspired by PPPOKER, featuring real-time multiplayer gameplay, club management, tournaments, and social features. Built with Next.js 14 and Socket.io, the platform supports multiple poker variants including Texas Hold'em, Omaha, and Open Face Chinese (OFC).
-
-The application serves as a full-featured poker platform with both play money and real money modes (configurable), club systems for private games, tournament management, and extensive player statistics tracking.
-
-**Security Status (2025-10-23):** Comprehensive security implementation complete - Rate limiting, Zod validation, XSS/CSRF protection, security headers, and input sanitization fully deployed.
-
-**Deployment Status (2025-10-23):** Production-ready deployment configuration complete. MongoDB dependencies removed, PostgreSQL-only architecture. Build optimizations applied. Ready for deployment to VM target.
+SIN JAPAN POKER is a comprehensive online poker application, inspired by PPPOKER, offering real-time multiplayer gameplay. It features club management, tournaments, and social functionalities, supporting poker variants like Texas Hold'em, Omaha, and Open Face Chinese (OFC). The platform is built with Next.js 14 and Socket.io, designed for both play money and configurable real money modes, with extensive player statistics tracking.
 
 ## User Preferences
 
@@ -17,248 +11,58 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
-
-**Framework & Core Technologies**
-- **Next.js 14** with App Router for server-side rendering and routing
-- **TypeScript** for type safety across the application
-- **React 18** with hooks-based component architecture
-- **Tailwind CSS 3.x** for styling with custom poker-themed design system
-
-**State Management Strategy**
-- **Zustand** with persist middleware for global state management
-- Multiple specialized stores for different domains:
-  - `useAuthStore` - Authentication and user session
-  - `useAppStore` - General application state and user data
-  - `useCurrencyStore` - In-game currency and transactions
-  - `useGameStore` - Active game state and Socket.io connection
-  - `useTournamentStore` - Tournament data and registration
-  - `useRevenueStore` - Revenue tracking and rake calculations
-  - `useMoneyModeStore` - Play money vs real money mode toggling
-  - `useAdminStore` - Admin authentication and permissions
-
-The state is persisted to localStorage/sessionStorage for offline resilience and session recovery.
-
-**UI Component Patterns**
-- Protected routes via `ProtectedRoute` and `AdminProtectedRoute` components for authentication gates
-- Custom loading states with `LoadingSpinner` and `PageTransition` components
-- Reusable poker-specific components (`PokerTable`, `ActionButtons`, `GameChat`)
-- Modal-based interactions for table creation, avatar selection, and tournaments
-- Real-time game UI at `/game/active` with Socket.io integration (2025-10-22)
+- **Frameworks**: Next.js 14 (App Router), React 18, TypeScript.
+- **Styling**: Tailwind CSS 3.x with a custom poker-themed design system.
+- **State Management**: Zustand with persist middleware for global state, including specialized stores for authentication, game state, currency, tournaments, revenue, and admin.
+- **UI/UX**: Protected routes, custom loading states, reusable poker components (e.g., `PokerTable`), modal-based interactions, and real-time game UI with Framer Motion animations.
 
 ### Backend Architecture
-
-**Server Framework**
-- **Express.js** HTTP server for REST API endpoints
-- **Socket.io** server for real-time game communication
-- Separate `/server` directory contains game logic independent of Next.js
-
-**Real-time Game Engine**
-- **Socket.io** manages game rooms with event-driven architecture (Port 3001)
-- `PokerGame` class encapsulates game state machine:
-  - Phases: waiting → preflop → flop → turn → river → showdown
-  - Player action validation and turn management
-  - Pot calculation with side pot support
-  - Dealer/blind rotation logic
-  - **Automatic PostgreSQL persistence** on game end via `server/game-db.js`:
-    - Saves game results to `games` table
-    - Saves each player's hand to `hand_history` table
-    - Updates `player_stats` with win/loss statistics
-    - Updates `users` chips balance
-- **Client-side real-time UI** at `/game/active` (2025-10-22):
-  - `usePokerGame` hook for Socket.io connection and state management
-  - `PokerTable` component with circular player positioning and card display
-  - `ActionButtons` for fold, check, call, raise, all-in actions
-  - `GameChat` for in-game messaging
-  - Framer Motion animations for cards and player actions (500ms duration)
-  - **Footer chip display** (2025-10-23): Real-time chip balance display in game footer, synchronized with user.chips
-
-**Chip System Implementation** (2025-10-23)
-- **Practice Mode**: Players start with 10,000 practice chips (no admin grant required)
-- **Regular Mode**: Players start with 0 chips (admin must grant chips via `/admin/currency`)
-- **Game Join Logic**: `isPracticeMode ? 10000 : (user.chips || 0)` determines initial chips
-- **Footer Display**: Shows current chip balance in game page footer, updates in real-time
-- **Avatar System** (2025-10-23):
-  - Avatar saved to database (`users.avatar` field) via PATCH `/api/user/[id]`
-  - `useAuthStore.updateUser()` function for synchronizing avatar changes across app
-  - LocalStorage used for caching avatar data
-  - Database-first approach ensures avatar persistence across sessions and devices
-
-**Game Logic Libraries**
-- `lib/poker-engine.ts` - Card deck management, hand evaluation (royal flush to high card)
-- `lib/poker-side-pot.ts` - Side pot calculation for all-in scenarios
-- `lib/rake-system.ts` - 5% rake calculation with configurable caps
-- `lib/table-revenue.ts` - Per-table revenue tracking
-- `server/poker-helpers.js` - Hand ranking algorithms and winner determination
-
-**Authentication & Security** (Complete Security Implementation - 2025-10-23)
-- **JWT Authentication:**
-  - JWT-based authentication with `jsonwebtoken` (7-day expiration)
-  - Password hashing via `bcryptjs` (10 salt rounds)
-  - Token storage in sessionStorage for API requests
-  - Session validation on protected routes
-- **Admin Authentication System:**
-  - JWT-based admin authentication via `/api/admin/login`
-  - `lib/auth/admin-auth.ts` provides `requireAdmin()` helper for API route protection
-  - All admin API endpoints require valid JWT token in Authorization header
-  - JWT_SECRET environment variable required for token signing/verification
-  - Admin user identified by email `info@sinjapan.jp` in database
-- **Rate Limiting** (express-rate-limit):
-  - General API: 100 requests/15 min
-  - Auth API: 5 attempts/15 min
-  - Payment API: 10 requests/hour
-  - Admin API: 200 requests/15 min
-  - Socket.io: 30 connections/min
-- **Input Validation** (Zod schemas):
-  - Comprehensive validation for all user inputs
-  - Type-safe schemas in `lib/validation/schemas.ts`
-  - 13+ validation schemas covering auth, payments, games, tournaments
-- **XSS Protection**:
-  - DOMPurify sanitization for all user-generated content
-  - Security headers (X-XSS-Protection, X-Frame-Options, etc.)
-  - CSP headers for script/style source control
-  - Sanitization utilities in `lib/security/sanitize.ts`
-- **CSRF Protection**:
-  - Token-based CSRF validation
-  - Session-bound CSRF tokens with HMAC signatures
-  - Auto-expiration (1 hour)
-  - Implementation in `lib/security/csrf.ts`
-- **Security Headers** (next.config.js):
-  - X-XSS-Protection: 1; mode=block
-  - X-Content-Type-Options: nosniff
-  - X-Frame-Options: DENY
-  - Referrer-Policy: strict-origin-when-cross-origin
-  - Permissions-Policy: camera=(), microphone=(), geolocation=()
-- **SQL Injection Prevention**: Drizzle ORM with parameterized queries
-- **Documentation**: Complete security guide in `SECURITY.md`
+- **Server**: Express.js for REST APIs and Socket.io for real-time game communication.
+- **Real-time Game Engine**: Socket.io manages game rooms with a server-authoritative `PokerGame` class handling game state, player actions, pot calculation, and dealer/blind rotation.
+- **Game Logic**: Libraries for card deck management, hand evaluation, side pot calculation, and a 5% rake system with configurable caps.
+- **Authentication & Security**: JWT authentication with bcryptjs for password hashing, robust admin authentication, comprehensive Zod-based input validation, XSS/CSRF protection, rate limiting (express-rate-limit), and security headers. SQL injection prevention is handled by Drizzle ORM.
+- **Chip System**: Supports both practice and regular money modes, with chip balances updated in real-time and an admin system for chip distribution.
+- **Avatar System**: User avatars are persisted in the database and cached locally.
 
 ### Data Layer
-
-**Database Strategy**
-- **PostgreSQL** with Drizzle ORM for persistent data storage (fully migrated from MongoDB on 2025-10-22)
-- Database connection strategy (2025-10-23):
-  - `server/db.ts` - Neon Serverless driver for server-side code (server.js, game-db.js)
-  - `server/db-api.ts` - Standard pg driver for Next.js API routes (avoids WebSocket issues in Node.js runtime)
-- Real-time game data automatically saved to PostgreSQL on game completion
-- MongoDB/Mongoose completely removed (2025-10-22)
-- Schema defined in `shared/schema.ts` with UUID-based primary keys
-- Tables include:
-  - `users` - Player accounts, chips (auto-updated on game end), levels, achievements, clubs, friends
-  - `clubs` - Club metadata, members, roles, privacy settings
-  - `games` - Game state, players, community cards, pot, blinds, winner (auto-saved on game end)
-  - `player_stats` - Win rates, total games, chips won/lost, biggest pot (auto-updated on game end)
-  - `pets` - Virtual pet system for gamification
-  - `tournaments` - Tournament metadata, players, prize pools
-  - `hand_history` - Individual hand results per player (userId, gameId, chipsChange, result, date, auto-saved for each player on game end)
-- All game data relationships properly linked via userId and gameId foreign keys
-
-**In-Memory State**
-- Active games stored in `Map` structures on the Socket.io server
-- Real-time game state not persisted until completion
-- LocalStorage fallback for client-side data when API unavailable
-
-**Storage Utilities**
-- `lib/storage.ts` - LocalStorage helpers for tables, tournaments, forum posts
-- Used as cache layer and offline fallback
-
-**Statistics & Analytics**
-- `/api/stats/user` - Retrieves player statistics with period filtering (day/week/month/all)
-- Real-time chart data generation from hand_history table
-- Cumulative earnings tracking for career page graphs
-- `/api/stats/seed-test-data` - Development endpoint for populating test data
+- **Database**: PostgreSQL with Drizzle ORM for all persistent data storage, including user accounts, clubs, games, player statistics, hand history, and forum posts.
+- **Database Connection**: Uses Neon Serverless driver for server-side code and standard `pg` driver for Next.js API routes.
+- **In-Memory State**: Active game states are stored in `Map` structures on the Socket.io server and persisted to PostgreSQL upon game completion.
 
 ### Key Architectural Decisions
-
-**1. Dual Money System & Admin Grant System**
-- **Problem**: Need to support both practice play and real money gambling with controlled chip distribution
-- **Solution**: Two-tier currency system managed by `useCurrencyStore`:
-  - `gameChips` - Practice chips (new users start with 0 chips as of 2025-10-23)
-  - `realChips` - Purchased chips (1 chip = 1 yen conversion)
-  - `useMoneyModeStore` controls which mode is active
-  - Admin grant system via `/admin/currency` page for manual chip distribution
-  - API endpoints: `/api/admin/grant-currency` (POST) and `/api/admin/users` (GET)
-- **Rationale**: Prevents abuse by requiring admin approval for initial chips; allows compliance with gambling regulations by default (play money), while supporting real money when admin enables it
-
-**2. Club-Based Revenue Sharing**
-- **Problem**: Need to track rake and distribute revenue to club owners
-- **Solution**: `lib/club-system.ts` implements:
-  - Per-club rake percentage (0-50%)
-  - Revenue tracking at club, table, and hand levels
-  - Separate statistics for daily/weekly/monthly periods
-- **Rationale**: Mimics PPPOKER's club economy where club owners earn from games hosted
-
-**3. Socket.io Game State Management**
-- **Problem**: Real-time synchronization of poker game state across multiple clients
-- **Solution**: Server-authoritative state in `server/index.js`:
-  - All game logic executes on server
-  - Clients send action requests, receive state updates
-  - Game state stored in `Map<gameId, PokerGame>`
-- **Rationale**: Prevents cheating, ensures consistency, enables spectator mode
-
-**4. Compliance & AML Systems**
-- **Problem**: Need to comply with anti-money laundering regulations
-- **Solution**: `lib/compliance.ts` defines:
-  - Restricted countries list (US, UK, CN, etc.)
-  - High-risk country monitoring
-  - KYC verification workflow
-- **Rationale**: Legal requirement for real-money gambling operations
-
-**5. Rake & Revenue Tracking**
-- **Problem**: Need transparent, auditable revenue collection
-- **Solution**: Multi-layered tracking:
-  - `lib/rake-system.ts` - 5% rake with stake-based caps
-  - `useRevenueStore` - Transaction log with timestamps
-  - `lib/table-revenue.ts` - Per-table analytics
-- **Rationale**: Supports financial reporting, fraud detection, and club owner payouts
+- **Dual Money System**: Supports both practice play and real money gambling with admin-controlled chip distribution, ensuring compliance and preventing abuse.
+- **Club-Based Revenue Sharing**: Implements rake tracking and revenue distribution to club owners, mirroring real-world poker club economies.
+- **Socket.io Game State Management**: Ensures real-time, server-authoritative synchronization of game state across clients for fairness and consistency.
+- **Compliance & AML Systems**: Includes features for restricted countries, high-risk country monitoring, and KYC verification for regulatory compliance.
+- **Rake & Revenue Tracking**: Provides transparent and auditable revenue collection for financial reporting and club owner payouts.
 
 ## External Dependencies
 
 ### Core Infrastructure
-- **PostgreSQL (Neon)** - Primary database (connection via `DATABASE_URL` environment variable)
-- **Node.js 18+** - Runtime environment
+- **PostgreSQL (Neon)**: Primary database.
+- **Node.js 18+**: Runtime environment.
 
-### Cloud Services (Configured but Optional)
-- **AWS S3** - Image storage via `@aws-sdk/client-s3` (logo/avatars currently use external CDN)
-- **SendGrid** - Email service via `@sendgrid/mail` (for notifications) - **Note**: User declined Replit integration. Manual API key setup required via `SENDGRID_API_KEY` environment variable if needed.
-- **Redis/IORedis** - Caching layer (configured but not currently required)
-- **Replit Object Storage** - Available via blueprint:javascript_object_storage for file uploads and storage
+### Cloud Services (Optional/Configured)
+- **AWS S3**: For image storage (currently uses external CDN).
+- **SendGrid**: Email service (requires manual API key setup).
+- **Redis/IORedis**: Caching layer (configured but not actively used).
+- **Replit Object Storage**: For file uploads and storage.
 
 ### Payment & Real Money
-- **Stripe Payment Integration** - Fully implemented for chip purchases (2025-10-22)
-  - Stripe Checkout for credit card payments (1 chip = 1 yen)
-  - API endpoints:
-    - `/api/stripe/create-checkout-session` - Creates Stripe Checkout session
-    - `/api/stripe/verify-session` - Verifies payment completion
-    - `/api/stripe/create-payment-link` - Admin payment link generation
-  - Payment flow pages:
-    - `/app/payment/success` - Post-payment success handling with chip addition
-    - `/app/payment/cancel` - Payment cancellation page
-  - Shop page integration: `/app/shop/page.tsx` with purchase button handlers
-  - Admin payment management: `/admin/payment` with payment link creation modal
-- **Cryptocurrency Payment System** - Fully implemented in `lib/crypto-payment.ts`
-  - Supports: BTC, ETH, USDT, USDC, LTC
-  - Invoice generation, QR codes, webhook processing
-  - Real-time status tracking with blockchain confirmations
-  - API endpoints: `/api/payment/crypto/*`
-  - Frontend UI: `/app/payment/crypto/page.tsx`
-- Real money mode controlled by admin via `useMoneyModeStore`
-- Chip purchase packages: 1,000 to 100,000 chips (1:1 yen conversion)
-
-### Authentication
-- JWT token-based (self-hosted, no third-party auth service)
-- Planned: Firebase Auth integration (noted in TECH_STACK.md)
+- **Stripe Payment Integration**: Fully implemented for chip purchases (1 chip = 1 yen) via Stripe Checkout, including API endpoints for session creation and verification.
+- **Cryptocurrency Payment System**: Supports BTC, ETH, USDT, USDC, LTC with invoice generation, QR codes, and webhook processing.
 
 ### UI & Styling
-- **Tailwind CSS** - Utility-first styling
-- **Framer Motion** - Animations (card dealing, chip toss)
-- **Lucide React** - Icon library
-- **Recharts** - Data visualization for statistics
+- **Tailwind CSS**: Utility-first styling.
+- **Framer Motion**: Animations.
+- **Lucide React**: Icon library.
+- **Recharts**: Data visualization.
 
 ### Development Tools
-- **ESLint** - Code linting with Next.js config
-- **TypeScript** - Type checking
-- **Autoprefixer/PostCSS** - CSS processing
+- **ESLint**: Code linting.
+- **TypeScript**: Type checking.
+- **Autoprefixer/PostCSS**: CSS processing.
 
 ### Deployment
-- Railway.app configuration (`railway.json`) for cloud deployment
-- Standalone Next.js build output for containerization
-- Socket.io requires sticky sessions or Redis adapter for horizontal scaling
+- **Railway.app**: Configuration for cloud deployment.
+- **Standalone Next.js build output**: For containerization.

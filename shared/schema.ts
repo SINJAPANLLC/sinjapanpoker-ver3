@@ -224,12 +224,45 @@ export type HandHistory = typeof handHistory.$inferSelect;
 export type InsertHandHistory = typeof handHistory.$inferInsert;
 
 // ========================================
+// FORUM POSTS TABLE
+// ========================================
+export const forumPosts = pgTable('forum_posts', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar('user_id', { length: 100 }).notNull(),
+  username: varchar('username', { length: 100 }).notNull(),
+  title: varchar('title', { length: 100 }).notNull(),
+  content: text('content').notNull(),
+  category: varchar('category', { length: 50 }).notNull().$type<'strategy' | 'tournament' | 'community' | 'news'>(),
+  tags: jsonb('tags').$type<string[]>().default([]),
+  type: varchar('type', { length: 10 }).notNull().$type<'text' | 'video'>(),
+  videoUrl: text('video_url'),
+  videoThumbnail: text('video_thumbnail'),
+  views: integer('views').notNull().default(0),
+  comments: integer('comments').notNull().default(0),
+  likes: integer('likes').notNull().default(0),
+  isPinned: boolean('is_pinned').notNull().default(false),
+  isFeatured: boolean('is_featured').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('forum_posts_user_id_idx').on(table.userId),
+    categoryIdx: index('forum_posts_category_idx').on(table.category),
+    createdAtIdx: index('forum_posts_created_at_idx').on(table.createdAt),
+  };
+});
+
+export type ForumPost = typeof forumPosts.$inferSelect;
+export type InsertForumPost = typeof forumPosts.$inferInsert;
+
+// ========================================
 // RELATIONS
 // ========================================
 export const usersRelations = relations(users, ({ many }) => ({
   playerStats: many(playerStats),
   pets: many(pets),
   handHistory: many(handHistory),
+  forumPosts: many(forumPosts),
 }));
 
 export const playerStatsRelations = relations(playerStats, ({ one }) => ({
@@ -254,5 +287,12 @@ export const handHistoryRelations = relations(handHistory, ({ one }) => ({
   game: one(games, {
     fields: [handHistory.gameId],
     references: [games.gameId],
+  }),
+}));
+
+export const forumPostsRelations = relations(forumPosts, ({ one }) => ({
+  user: one(users, {
+    fields: [forumPosts.userId],
+    references: [users.id],
   }),
 }));

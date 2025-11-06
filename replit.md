@@ -10,6 +10,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**November 7, 2025 - Background Themes & Game Menu Complete**
+- **3 Background Themes**: Dynamic table backgrounds based on table type
+  - 🟢 Standard (Green) - Default for all regular tables and practice mode
+  - 🟡 VIP (Gold) - Premium member tables (`?type=vip`)
+  - 🟣 Premium (Pink) - Special high-stakes tables (`?type=premium`)
+  - Backgrounds auto-switch based on URL parameter, same logo position across all themes
+
 **November 7, 2025 - Game Menu APIs & Spectator/Away Features Complete**
 - **Hand History API** (`/api/hand-history`): JWT-authenticated endpoint retrieves user's game history from `gameHistory` table with pagination (limit/offset)
 - **User Stats API** (`/api/user/stats`): Comprehensive statistics endpoint with daily and cumulative stats (hands played, win rate, chips won/lost, biggest pot) from `playerStats` and `gameHistory` tables

@@ -66,12 +66,14 @@ export async function GET(request: NextRequest) {
     
     for (const game of activeGames) {
       const rake = (game as any).rake || 0;
-      const fee = (game as any).fee || 0;
       totalRake += rake;
-      if (game.type === 'tournament') {
-        totalTournamentFees += fee;
-      }
     }
+    
+    // トーナメントフィーの計算（トーナメントテーブルから）
+    totalTournamentFees = activeTournaments.reduce(
+      (sum, t) => sum + ((t.buyIn || 0) * (t.currentPlayers || 0) * 0.1),
+      0
+    );
 
     // トッププレイヤー取得（realChips順）
     const topPlayers = await db

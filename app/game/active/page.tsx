@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Menu, MessageCircle, Volume2, VolumeX, Music, Wifi, WifiOff, Maximize, Minimize, Info, History, Eye } from 'lucide-react';
+import { User, Menu, MessageCircle, Wifi, WifiOff, Maximize, Minimize, Info, History, Eye } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSoundManager } from '@/hooks/useSoundManager';
 import { useMoneyModeStore } from '@/store/useMoneyModeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCurrencyStore } from '@/store/useCurrencyStore';
@@ -23,7 +22,6 @@ const CPU_NAMES = [
 
 export default function ActiveGamePage() {
   const router = useRouter();
-  const { playSound, setSoundEnabled: setSoundManagerEnabled } = useSoundManager();
   const { mode, isEnabled } = useMoneyModeStore();
   const { user: authUser } = useAuthStore();
   const { currency } = useCurrencyStore();
@@ -73,8 +71,6 @@ export default function ActiveGamePage() {
   const [autoCheck, setAutoCheck] = useState(false);
   const [autoCheckFold, setAutoCheckFold] = useState(false);
   const [showEmotes, setShowEmotes] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [musicEnabled, setMusicEnabled] = useState(true);
   const [showRebuy, setShowRebuy] = useState(false);
   const [showTableInfo, setShowTableInfo] = useState(false);
   const [showHandHistory, setShowHandHistory] = useState(false);
@@ -163,21 +159,12 @@ export default function ActiveGamePage() {
           }
           return 15;
         }
-        if (prev === 5) {
-          playSound('timerWarning');
-        } else if (prev < 5) {
-          playSound('timerTick');
-        }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [playSound, gameState, user, performAction]);
-
-  useEffect(() => {
-    setSoundManagerEnabled(soundEnabled);
-  }, [soundEnabled, setSoundManagerEnabled]);
+  }, [gameState, user, performAction]);
 
   // ゲームに参加（ブラインド設定を含む）
   useEffect(() => {
@@ -269,73 +256,12 @@ export default function ActiveGamePage() {
     return () => clearTimeout(timeoutId);
   }, [socketMessages.length]);
 
-  // アニメーションに応じたサウンド再生
-  useEffect(() => {
-    if (dealingCards) {
-      playSound('cardDeal');
-    }
-  }, [dealingCards, playSound]);
-
-  useEffect(() => {
-    if (revealFlop || revealTurn || revealRiver) {
-      playSound('cardFlip');
-    }
-  }, [revealFlop, revealTurn, revealRiver, playSound]);
-
-  useEffect(() => {
-    if (showWinnerChips) {
-      playSound('chipCollect');
-    }
-  }, [showWinnerChips, playSound]);
-
-  useEffect(() => {
-    if (showCelebration) {
-      playSound('win');
-    }
-  }, [showCelebration, playSound]);
-
   // 離席状態が変更されたらサーバーに送信
   useEffect(() => {
     if (setAwayStatus) {
       setAwayStatus(isAway);
     }
   }, [isAway, setAwayStatus]);
-
-  useEffect(() => {
-    if (allInPlayer !== null) {
-      playSound('allIn');
-    }
-  }, [allInPlayer, playSound]);
-
-  useEffect(() => {
-    if (showShuffling) {
-      playSound('shuffle');
-    }
-  }, [showShuffling, playSound]);
-
-  useEffect(() => {
-    if (joiningPlayer !== null) {
-      playSound('playerJoin');
-    }
-  }, [joiningPlayer, playSound]);
-
-  useEffect(() => {
-    if (leavingPlayer !== null) {
-      playSound('playerLeave');
-    }
-  }, [leavingPlayer, playSound]);
-
-  useEffect(() => {
-    if (showLevelUp) {
-      playSound('levelUp');
-    }
-  }, [showLevelUp, playSound]);
-
-  useEffect(() => {
-    if (showBadBeat) {
-      playSound('lose');
-    }
-  }, [showBadBeat, playSound]);
   
   // 実際のゲームステートからデータを取得
   const convertSocketCard = (card: any): CardType => {
@@ -1412,9 +1338,7 @@ export default function ActiveGamePage() {
                 zIndex: cardIndex,
               }}
               onAnimationStart={() => {
-                if (soundEnabled) {
-                  setTimeout(() => playSound('cardDeal'), cardIndex * 150);
-                }
+                // Animation started
               }}
             >
               <motion.div 
@@ -1553,7 +1477,6 @@ export default function ActiveGamePage() {
           <div className="flex gap-2 items-center">
             <button 
               onClick={() => {
-                playSound('fold');
                 performAction('fold');
                 setShowRaiseSlider(false);
               }}
@@ -1566,7 +1489,6 @@ export default function ActiveGamePage() {
               onClick={() => {
                 const actualCallAmount = getCallAmount();
                 if (actualCallAmount > 0) {
-                  playSound('call');
                   performAction('call');
                   const newChipAnim = { id: Date.now(), playerId: 1 };
                   setChipAnimations([...chipAnimations, newChipAnim]);
@@ -1574,7 +1496,6 @@ export default function ActiveGamePage() {
                     setChipAnimations(prev => prev.filter(a => a.id !== newChipAnim.id));
                   }, 500);
                 } else {
-                  playSound('bet');
                   performAction('check');
                 }
               }}
@@ -1590,10 +1511,8 @@ export default function ActiveGamePage() {
                 if (showRaiseSlider) {
                   const currentPlayerChips = getCurrentPlayer()?.chips || 0;
                   if (raiseAmount >= currentPlayerChips) {
-                    playSound('allIn');
                     performAction('all-in');
                   } else {
-                    playSound('raise');
                     performAction('raise', raiseAmount);
                   }
                   setShowRaiseSlider(false);
@@ -2897,41 +2816,6 @@ export default function ActiveGamePage() {
             </div>
 
             <div className="space-y-4">
-              {/* サウンド設定 */}
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white text-sm font-bold mb-2">🔊 オーディオ</p>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white text-xs">サウンドエフェクト</span>
-                    <button
-                      onClick={() => setSoundEnabled(!soundEnabled)}
-                      className={`w-12 h-6 rounded-full transition-colors ${
-                        soundEnabled ? 'bg-green-500' : 'bg-white/30'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                        soundEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-white text-xs">BGM</span>
-                    <button
-                      onClick={() => setMusicEnabled(!musicEnabled)}
-                      className={`w-12 h-6 rounded-full transition-colors ${
-                        musicEnabled ? 'bg-green-500' : 'bg-white/30'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                        musicEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               {/* アニメーション設定 */}
               <div className="bg-white/20 rounded-lg p-3 border border-white/40">
                 <p className="text-white text-sm font-bold mb-2">⚡ アニメーション速度</p>

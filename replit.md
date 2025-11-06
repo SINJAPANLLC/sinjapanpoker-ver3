@@ -30,19 +30,17 @@ Preferred communication style: Simple, everyday language.
 - **All Game Menu Features Complete**: 14/14 menu items fully functional (UI + backend APIs):
   - ✅ Home Return, Table Info, Hand History, Player List, Statistics, Action Log, Settings, Rules, Share, Feedback, Language Settings, Account Settings, Spectator Mode, Away Status
 
-**November 6, 2025 - Sound Effects, Chat Fix & Dramatic Card Bias Complete**
+**November 7, 2025 - Pre-Deployment Security Fix**
+- **CRITICAL FIX**: Removed card bias system from production to ensure 100% fair gameplay
+  - Deleted `applyDramaticBias()` function that was affecting real-money games
+  - Now uses pure Fisher-Yates shuffle algorithm for completely random card distribution
+  - Ensures compliance with fair gaming standards for production deployment
+
+**November 6, 2025 - Sound Effects & Chat Fix**
 - **Fixed chat message duplication bug**: Properly cleaned up Socket.io event listeners using named functions and `socket.off()`
 - **Implemented action sound effects**: Web Audio API generates short beep sound (800Hz, 0.1s) when players fold/call/raise
 - **Implemented 5-second warning sound**: Dual-beep alert (1200Hz, 0.25s) plays when turn timer reaches 5 seconds remaining
-- **Dramatic card bias system**: Subtle card distribution biases for more exciting gameplay
-  - Practice mode: 30% chance of bias activation
-  - Real money mode: 10% chance of bias activation (more conservative)
-  - Four bias patterns (each 25% when activated):
-    - Strong cards (A, K, Q, J, 10) distributed to create premium starting hands
-    - Pairs more likely by positioning same-rank cards near each other
-    - Balanced distribution of mid-high cards for closer competitions
-    - Increased flush possibilities by grouping same-suit cards
-- **Enhanced UX**: Audio feedback confirms user actions and prevents timeouts; subtle biases create more dramatic and engaging games
+- **Enhanced UX**: Audio feedback confirms user actions and prevents timeouts
 
 **November 6, 2025 - Admin Currency & Tournament Management Complete**
 - **Currency Granting API** (`/api/admin/grant-currency`): Comprehensive chip and energy management

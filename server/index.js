@@ -175,102 +175,13 @@ class PokerGame {
       }
     }
 
-    // 基本のシャッフル
+    // Fisher-Yates シャッフル（完全ランダム）
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
 
-    // ドラマチックな展開を演出する偏り
-    // 練習モード：30%の確率、本番環境：10%の確率
-    const biasChance = this.difficulty ? 0.30 : 0.10;
-    if (Math.random() < biasChance) {
-      this.applyDramaticBias(deck);
-    }
-
     return deck;
-  }
-
-  // ドラマチックな展開を演出する微妙な偏り
-  applyDramaticBias(deck) {
-    const highCards = ['A', 'K', 'Q', 'J', '10'];
-    const midCards = ['9', '8', '7', '6'];
-    
-    // 25%の確率で強いカードを上部に配置（プレイヤーに強い手札）
-    if (Math.random() < 0.25) {
-      const topCards = deck.filter(card => highCards.includes(card.rank));
-      const otherCards = deck.filter(card => !highCards.includes(card.rank));
-      
-      // 上位カードの一部をデッキ上部に移動
-      for (let i = 0; i < Math.min(8, topCards.length); i++) {
-        if (Math.random() < 0.6) {
-          const randomIndex = Math.floor(Math.random() * topCards.length);
-          const card = topCards.splice(randomIndex, 1)[0];
-          otherCards.splice(Math.floor(Math.random() * 20), 0, card);
-        }
-      }
-      
-      deck.splice(0, deck.length, ...otherCards.concat(topCards));
-    }
-    
-    // 25%の確率でペアを作りやすくする
-    else if (Math.random() < 0.33) {
-      for (let i = 0; i < deck.length - 1; i += 2) {
-        // 同じランクのカードを近くに配置
-        if (Math.random() < 0.4) {
-          const currentRank = deck[i].rank;
-          const sameRankIndex = deck.findIndex((card, idx) => 
-            idx > i + 2 && card.rank === currentRank
-          );
-          
-          if (sameRankIndex !== -1 && Math.random() < 0.5) {
-            [deck[i + 1], deck[sameRankIndex]] = [deck[sameRankIndex], deck[i + 1]];
-          }
-        }
-      }
-    }
-    
-    // 25%の確率で中位カードをバランス良く配置（接戦演出）
-    else if (Math.random() < 0.5) {
-      const balancedCards = deck.filter(card => 
-        midCards.includes(card.rank) || highCards.includes(card.rank)
-      );
-      const lowCards = deck.filter(card => 
-        !midCards.includes(card.rank) && !highCards.includes(card.rank)
-      );
-      
-      // バランス良く混ぜる
-      const result = [];
-      while (balancedCards.length > 0 || lowCards.length > 0) {
-        if (balancedCards.length > 0 && Math.random() < 0.6) {
-          result.push(balancedCards.pop());
-        }
-        if (lowCards.length > 0) {
-          result.push(lowCards.pop());
-        }
-      }
-      
-      deck.splice(0, deck.length, ...result);
-    }
-    
-    // 25%の確率でフラッシュの可能性を少し高める
-    else {
-      const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-      const selectedSuit = suits[Math.floor(Math.random() * suits.length)];
-      const suitCards = deck.filter(card => card.suit === selectedSuit);
-      const otherSuitCards = deck.filter(card => card.suit !== selectedSuit);
-      
-      // 選択されたスートのカードの一部を上部に配置
-      for (let i = 0; i < Math.min(5, suitCards.length); i++) {
-        if (Math.random() < 0.4) {
-          const randomIndex = Math.floor(Math.random() * suitCards.length);
-          const card = suitCards.splice(randomIndex, 1)[0];
-          otherSuitCards.splice(Math.floor(Math.random() * 15), 0, card);
-        }
-      }
-      
-      deck.splice(0, deck.length, ...otherSuitCards.concat(suitCards));
-    }
   }
 
   playerAction(playerId, action, amount = 0) {

@@ -135,22 +135,52 @@ function LobbyContent() {
     };
   }, []);
 
-  // LocalStorageとAPIからデータを読み込む
+  // APIからデータを読み込む
   useEffect(() => {
-    // テーブルデータを読み込み
-    const savedTables = loadTables();
-    if (savedTables.length > 0) {
-      // Date型に変換
-      const parsedTables = savedTables.map(table => ({
-        ...table,
-        createdAt: new Date(table.createdAt)
-      }));
-      setTables(parsedTables);
-    }
+    // テーブルデータをAPIから取得
+    fetchTables();
 
     // トーナメントデータをAPIから取得
     fetchTournaments();
   }, []);
+
+  const fetchTables = async () => {
+    try {
+      const response = await fetch('/api/tables');
+      const data = await response.json();
+      if (data.tables && Array.isArray(data.tables)) {
+        const formattedTables: Table[] = data.tables.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          type: t.type === 'cash' ? 'cash' : 'sit-and-go',
+          buyIn: parseInt(t.stakes.split('/')[0]) || 0,
+          currentPlayers: t.currentPlayers || 0,
+          maxPlayers: t.maxPlayers || 9,
+          isPrivate: false,
+          blinds: t.stakes ? {
+            small: parseInt(t.stakes.split('/')[0]) || 0,
+            big: parseInt(t.stakes.split('/')[1]) || 0
+          } : undefined,
+          status: t.status === 'paused' ? 'waiting' : t.currentPlayers >= t.maxPlayers ? 'full' : t.currentPlayers > 0 ? 'playing' : 'waiting',
+          createdBy: t.clubName || 'System',
+          createdAt: new Date(t.createdAt),
+          description: `レーキ: ${(t.rakePercentage || 5)}% (キャップ: ${t.rakeCap || 10}チップ)`,
+        }));
+        setTables(formattedTables);
+      }
+    } catch (error) {
+      console.error('テーブル取得エラー:', error);
+      // フォールバック：LocalStorageから読み込み
+      const savedTables = loadTables();
+      if (savedTables.length > 0) {
+        const parsedTables = savedTables.map(table => ({
+          ...table,
+          createdAt: new Date(table.createdAt)
+        }));
+        setTables(parsedTables);
+      }
+    }
+  };
 
   const fetchTournaments = async () => {
     try {
@@ -199,16 +229,54 @@ function LobbyContent() {
     router.push('/');
   };
 
-  const handleCreateTable = (tableData: any) => {
-    const newTable = {
-      id: tableData.id || Date.now().toString(),
-      ...tableData,
-      currentPlayers: 1,
-      status: 'waiting' as const,
-      createdBy: user?.username || 'You',
-      createdAt: new Date()
-    };
-    setTables(prev => [newTable, ...prev]);
+  const handleCreateTable = async (tableData: any) => {
+    try {
+      const response = await fetch('/api/tables', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: tableData.name,
+          stakes: `${tableData.blinds.small}/${tableData.blinds.big}`,
+          maxPlayers: tableData.maxPlayers,
+          type: tableData.type,
+          rakePercentage: 0.05,
+          rakeCap: 10,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // データベースからテーブルリストを再取得
+        await fetchTables();
+      } else {
+        console.error('テーブル作成失敗:', await response.text());
+        // フォールバック：ローカルに追加
+        const newTable = {
+          id: tableData.id || Date.now().toString(),
+          ...tableData,
+          currentPlayers: 1,
+          status: 'waiting' as const,
+          createdBy: user?.username || 'You',
+          createdAt: new Date()
+        };
+        setTables(prev => [newTable, ...prev]);
+      }
+    } catch (error) {
+      console.error('テーブル作成エラー:', error);
+      // フォールバック：ローカルに追加
+      const newTable = {
+        id: tableData.id || Date.now().toString(),
+        ...tableData,
+        currentPlayers: 1,
+        status: 'waiting' as const,
+        createdBy: user?.username || 'You',
+        createdAt: new Date()
+      };
+      setTables(prev => [newTable, ...prev]);
+    }
     setShowCreateTable(false);
   };
 

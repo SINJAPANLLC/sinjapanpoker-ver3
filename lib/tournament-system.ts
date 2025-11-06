@@ -75,23 +75,31 @@ export interface PrizeCalculation {
 export function calculatePrizes(
   prizePool: number,
   totalPlayers: number,
-  rankings: Array<{ userId: string; username: string; position: number }>
+  rankings: Array<{ userId: string; username: string; position: number }>,
+  customPrizeStructure?: Array<{ position: number; percentage: number }>
 ): PrizeCalculation[] {
-  // 最も近いプレイヤー数の分配率を取得
-  const playerCounts = Object.keys(PRIZE_DISTRIBUTION)
-    .map(Number)
-    .sort((a, b) => a - b);
-  
-  let distributionKey = playerCounts[0];
-  for (const count of playerCounts) {
-    if (totalPlayers >= count) {
-      distributionKey = count;
-    } else {
-      break;
-    }
-  }
+  let distribution: Array<{ position: number; percentage: number }>;
 
-  const distribution = PRIZE_DISTRIBUTION[distributionKey as keyof typeof PRIZE_DISTRIBUTION];
+  if (customPrizeStructure && customPrizeStructure.length > 0) {
+    // カスタム賞金構造を使用
+    distribution = customPrizeStructure;
+  } else {
+    // デフォルトの賞金分配率を取得
+    const playerCounts = Object.keys(PRIZE_DISTRIBUTION)
+      .map(Number)
+      .sort((a, b) => a - b);
+    
+    let distributionKey = playerCounts[0];
+    for (const count of playerCounts) {
+      if (totalPlayers >= count) {
+        distributionKey = count;
+      } else {
+        break;
+      }
+    }
+
+    distribution = PRIZE_DISTRIBUTION[distributionKey as keyof typeof PRIZE_DISTRIBUTION];
+  }
 
   return rankings
     .filter(r => r.position <= distribution.length)
@@ -233,10 +241,11 @@ export function completeTournament(
     chips: number;
     position?: number;
   }>,
-  prizePool: number
+  prizePool: number,
+  customPrizeStructure?: Array<{ position: number; percentage: number }>
 ): TournamentCompletionResult {
   const finalRankings = calculateRankings(players);
-  const prizes = calculatePrizes(prizePool, players.length, finalRankings);
+  const prizes = calculatePrizes(prizePool, players.length, finalRankings, customPrizeStructure);
 
   return {
     finalRankings,

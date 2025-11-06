@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db-api';
-import { tournaments, games, users } from '@/shared/schema';
+import { tournaments, games, users, clubTables } from '@/shared/schema';
 import { eq, sql, and, gte } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth/admin-auth';
 
@@ -99,6 +99,12 @@ export async function GET(request: NextRequest) {
       .from(users)
       .where(gte(users.lastLogin, oneWeekAgo));
 
+    // アクティブテーブル取得（clubTables）
+    const activeTables = await db
+      .select()
+      .from(clubTables)
+      .where(eq(clubTables.status, 'active'));
+
     return NextResponse.json({
       revenue: {
         total: totalRake + totalTournamentFees,
@@ -146,6 +152,20 @@ export async function GET(request: NextRequest) {
           pot: g.pot,
           phase: g.phase,
           createdAt: g.createdAt,
+        })),
+      },
+      activeTables: {
+        count: activeTables.length,
+        tables: activeTables.map(t => ({
+          id: t.id,
+          name: t.name,
+          type: t.type,
+          stakes: t.stakes,
+          currentPlayers: t.currentPlayers,
+          maxPlayers: t.maxPlayers,
+          status: t.status,
+          totalHands: t.totalHands,
+          clubId: t.clubId,
         })),
       },
       systemStats: {

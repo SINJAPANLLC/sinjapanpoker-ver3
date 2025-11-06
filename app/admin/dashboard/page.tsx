@@ -62,6 +62,7 @@ function AdminDashboardContent() {
   const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
   const [myTournaments, setMyTournaments] = useState<Tournament[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [activeTables, setActiveTables] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // データベースから統計を取得
@@ -77,6 +78,7 @@ function AdminDashboardContent() {
         if (response.ok) {
           setAdminStats(data);
           setActiveTournaments(data.activeTournaments.tournaments || []);
+          setActiveTables(data.activeTables?.tables || []);
         } else {
           console.error('Failed to fetch admin stats:', data);
         }
@@ -446,8 +448,8 @@ function AdminDashboardContent() {
                 <Banknote className="w-4 h-4 md:w-6 md:h-6 text-emerald-400" />
               </div>
               <div className="text-center md:text-left">
-                <h3 className="text-white font-semibold mb-1 text-xs md:text-base">出金申請管理</h3>
-                <p className="text-gray-400 text-xs hidden md:block">出金申請の承認・拒否</p>
+                <h3 className="text-white font-semibold mb-1 text-xs md:text-base">リアルマネー管理</h3>
+                <p className="text-gray-400 text-xs hidden md:block">入出金・残高管理</p>
               </div>
             </div>
           </button>
@@ -527,35 +529,34 @@ function AdminDashboardContent() {
             </div>
             
             <div className="p-4 md:p-6">
-              {!activeGames || activeGames.length === 0 ? (
+              {!activeTables || activeTables.length === 0 ? (
                 <div className="text-center py-8">
                   <Gamepad2 className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-3" />
                   <p className="text-gray-400 text-sm md:text-base">アクティブなテーブルはありません</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {(activeGames || []).slice(0, 5).map((game) => (
-                    <div key={game.id} className="bg-gray-700/30 rounded-lg p-3 hover:bg-gray-700/50 transition-all">
+                  {activeTables.slice(0, 5).map((table) => (
+                    <div key={table.id} className="bg-gray-700/30 rounded-lg p-3 hover:bg-gray-700/50 transition-all">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-white font-semibold text-sm md:text-base">
-                          {game.type === 'cash' ? 'キャッシュゲーム' : 
-                           game.type === 'tournament' ? 'トーナメント' : 'シット&ゴー'}
+                          {table.name}
                         </h3>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          game.status === 'playing' ? 'bg-green-500/20 text-green-400 animate-pulse' :
-                          game.status === 'waiting' ? 'bg-blue-500/20 text-blue-400' :
+                          table.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                          table.status === 'paused' ? 'bg-yellow-500/20 text-yellow-400' :
                           'bg-gray-500/20 text-gray-400'
                         }`}>
-                          {game.status === 'playing' ? 'プレイ中' : 
-                           game.status === 'waiting' ? '待機中' : game.status === 'paused' ? '一時停止' : '終了'}
+                          {table.status === 'active' ? 'アクティブ' : 
+                           table.status === 'paused' ? '一時停止' : '終了'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs md:text-sm">
                         <span className="text-gray-400">
-                          {game.players.length}名 | ハンド#{game.currentHand}
+                          {table.currentPlayers || 0}/{table.maxPlayers}名 | {table.type === 'cash' ? 'キャッシュ' : 'トーナメント'}
                         </span>
-                        <span className="text-green-400">
-                          ¥{(game.pot || 0).toLocaleString()}
+                        <span className="text-blue-400">
+                          {table.stakes}
                         </span>
                       </div>
                     </div>

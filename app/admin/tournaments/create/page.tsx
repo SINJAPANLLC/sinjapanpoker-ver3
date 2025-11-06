@@ -28,6 +28,12 @@ function CreateTournamentContent() {
     description: ''
   });
   
+  const [prizeStructure, setPrizeStructure] = useState<Array<{ position: number; percentage: number }>>([
+    { position: 1, percentage: 50 },
+    { position: 2, percentage: 30 },
+    { position: 3, percentage: 20 },
+  ]);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -49,6 +55,12 @@ function CreateTournamentContent() {
         throw new Error('バイインは10チップ以上に設定してください');
       }
 
+      // 賞金構造のバリデーション
+      const totalPercentage = prizeStructure.reduce((sum, p) => sum + p.percentage, 0);
+      if (totalPercentage !== 100) {
+        throw new Error(`賞金配分の合計は100%にしてください（現在: ${totalPercentage}%）`);
+      }
+
       const token = sessionStorage.getItem('admin_token');
       
       // データベースに保存するためにAPIにPOSTリクエスト
@@ -65,6 +77,7 @@ function CreateTournamentContent() {
           maxPlayers: formData.maxPlayers,
           description: formData.description || '',
           startTime: formData.startTime || null,
+          prizeStructure: prizeStructure,
         }),
       });
 
@@ -85,6 +98,31 @@ function CreateTournamentContent() {
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePrizeChange = (index: number, percentage: number) => {
+    setPrizeStructure(prev => {
+      const newStructure = [...prev];
+      newStructure[index].percentage = percentage;
+      return newStructure;
+    });
+  };
+
+  const addPrizePosition = () => {
+    setPrizeStructure(prev => [
+      ...prev,
+      { position: prev.length + 1, percentage: 0 }
+    ]);
+  };
+
+  const removePrizePosition = (index: number) => {
+    if (prizeStructure.length > 1) {
+      setPrizeStructure(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const getTotalPercentage = () => {
+    return prizeStructure.reduce((sum, p) => sum + p.percentage, 0);
   };
 
   return (
@@ -255,6 +293,70 @@ function CreateTournamentContent() {
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all resize-none"
                   placeholder="トーナメントの詳細説明（任意）"
                 />
+              </div>
+
+              {/* 賞金分配設定（インマネ） */}
+              <div className="border-t border-gray-700/50 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300">
+                      賞金分配設定（インマネ）
+                    </label>
+                    <p className="text-xs text-gray-400 mt-1">
+                      順位ごとの賞金配分率を設定します（合計100%）
+                    </p>
+                  </div>
+                  <div className={`text-sm font-semibold px-3 py-1 rounded ${
+                    getTotalPercentage() === 100 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    合計: {getTotalPercentage()}%
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {prizeStructure.map((prize, index) => (
+                    <div key={index} className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 flex-1">
+                        <div className="w-16 px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-center">
+                          <span className="text-white font-semibold">{prize.position}位</span>
+                        </div>
+                        <div className="relative flex-1">
+                          <input
+                            type="number"
+                            value={prize.percentage}
+                            onChange={(e) => handlePrizeChange(index, parseInt(e.target.value) || 0)}
+                            min="0"
+                            max="100"
+                            className="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                            placeholder="0"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                            %
+                          </span>
+                        </div>
+                      </div>
+                      {prizeStructure.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePrizePosition(index)}
+                          className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+                        >
+                          削除
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addPrizePosition}
+                  className="mt-4 w-full px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg font-semibold transition-colors border border-blue-500/30"
+                >
+                  + 順位を追加
+                </button>
               </div>
 
               {/* ボタン */}

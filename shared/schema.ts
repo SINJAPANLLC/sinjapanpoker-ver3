@@ -19,6 +19,10 @@ export const users = pgTable('users', {
   energy: integer('energy').notNull().default(100),
   level: integer('level').notNull().default(1),
   experience: integer('experience').notNull().default(0),
+  status: varchar('status', { length: 20 }).notNull().default('active').$type<'active' | 'banned' | 'suspended'>(),
+  role: varchar('role', { length: 20 }).notNull().default('user').$type<'user' | 'vip' | 'admin' | 'super-admin'>(),
+  suspendedUntil: timestamp('suspended_until'),
+  banReason: text('ban_reason'),
   clubs: jsonb('clubs').$type<string[]>().default([]),
   friends: jsonb('friends').$type<string[]>().default([]),
   achievements: jsonb('achievements').$type<Array<{
@@ -255,6 +259,10 @@ export const tournaments = pgTable('tournaments', {
   maxPlayers: integer('max_players').notNull(),
   currentPlayers: integer('current_players').notNull().default(0),
   status: varchar('status', { length: 20 }).notNull().default('registering').$type<'registering' | 'in-progress' | 'completed' | 'cancelled'>(),
+  prizeStructure: jsonb('prize_structure').$type<Array<{
+    position: number;
+    percentage: number;
+  }>>(),
   startTime: timestamp('start_time'),
   endTime: timestamp('end_time'),
   players: jsonb('players').$type<Array<{

@@ -30,6 +30,7 @@ function CreateTableContent() {
     bigBlind: 20,
     isPrivate: false,
     rakePercentage: 0.05,
+    rakeCap: 10,
     description: ''
   });
   
@@ -63,8 +64,9 @@ function CreateTableContent() {
           name: formData.name,
           stakes: `${formData.smallBlind}/${formData.bigBlind}`,
           maxPlayers: formData.maxPlayers,
+          type: formData.type,
           rakePercentage: formData.rakePercentage,
-          rakeCap: Math.round(formData.buyIn * 0.1),
+          rakeCap: formData.rakeCap,
         }),
       });
 
@@ -186,7 +188,7 @@ function CreateTableContent() {
                       value={formData.buyIn}
                       onChange={(e) => handleInputChange('buyIn', parseInt(e.target.value) || 0)}
                       required
-                      min="100"
+                      min="0"
                       className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       placeholder="1000"
                     />
@@ -255,23 +257,46 @@ function CreateTableContent() {
               </div>
 
               {/* レーキ設定 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  レーキ率 *
-                </label>
-                <select
-                  value={formData.rakePercentage}
-                  onChange={(e) => handleInputChange('rakePercentage', parseFloat(e.target.value))}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value={0.03}>3%</option>
-                  <option value={0.05}>5% (推奨)</option>
-                  <option value={0.07}>7%</option>
-                  <option value={0.10}>10%</option>
-                </select>
-                <p className="text-gray-500 text-sm mt-1">
-                  各ハンドのポットから差し引かれる手数料
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    レーキ率 *
+                  </label>
+                  <select
+                    value={formData.rakePercentage}
+                    onChange={(e) => handleInputChange('rakePercentage', parseFloat(e.target.value))}
+                    className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  >
+                    <option value={0.03}>3%</option>
+                    <option value={0.05}>5% (推奨)</option>
+                    <option value={0.07}>7%</option>
+                    <option value={0.10}>10%</option>
+                  </select>
+                  <p className="text-gray-500 text-sm mt-1">
+                    各ハンドのポットから差し引かれる手数料
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    レーキキャップ（チップ） *
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <input
+                      type="number"
+                      value={formData.rakeCap}
+                      onChange={(e) => handleInputChange('rakeCap', parseInt(e.target.value) || 0)}
+                      required
+                      min="1"
+                      className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="10"
+                    />
+                  </div>
+                  <p className="text-gray-500 text-sm mt-1">
+                    1ハンドあたりの最大レーキ額
+                  </p>
+                </div>
               </div>
 
               {/* プライベート設定 */}

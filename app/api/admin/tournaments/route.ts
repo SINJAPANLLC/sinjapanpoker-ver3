@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, type, buyIn, maxPlayers, startTime } = body;
+    const { name, description, type, buyIn, maxPlayers, startTime, prizeStructure } = body;
 
     if (!name || !type || !buyIn || !maxPlayers) {
       return NextResponse.json({ message: '必須項目が不足しています' }, { status: 400 });
@@ -60,6 +60,14 @@ export async function POST(request: NextRequest) {
 
     if (buyIn < 10) {
       return NextResponse.json({ message: 'バイインは10チップ以上に設定してください' }, { status: 400 });
+    }
+
+    // prizeStructureのバリデーション
+    if (prizeStructure && Array.isArray(prizeStructure)) {
+      const totalPercentage = prizeStructure.reduce((sum: number, p: any) => sum + p.percentage, 0);
+      if (totalPercentage !== 100) {
+        return NextResponse.json({ message: '賞金配分の合計は100%にしてください' }, { status: 400 });
+      }
     }
 
     const feeCalc = calculateTournamentFee(buyIn, maxPlayers);
@@ -74,6 +82,7 @@ export async function POST(request: NextRequest) {
       currentPlayers: 0,
       status: 'registering',
       startTime: startTime ? new Date(startTime) : null,
+      prizeStructure: prizeStructure || null,
       players: [],
     }).returning();
 

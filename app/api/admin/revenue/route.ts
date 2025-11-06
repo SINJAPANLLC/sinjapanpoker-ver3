@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         date: sql<string>`DATE(${games.createdAt})`,
         games: sql<number>`COUNT(*)`,
         totalPot: sql<number>`COALESCE(SUM(${games.pot}), 0)`,
-        rake: sql<number>`COALESCE(SUM(${games.pot}) * ${rakeRate}, 0)`,
+        rake: sql<number>`FLOOR(COALESCE(SUM(${games.pot}), 0) * 0.05)`,
       })
       .from(games)
       .where(gte(games.createdAt, startDate))

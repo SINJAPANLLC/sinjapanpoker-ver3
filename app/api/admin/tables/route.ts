@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, clubId, stakes, maxPlayers, rakePercentage, rakeCap } = body;
+    const { name, clubId, stakes, maxPlayers, type, rakePercentage, rakeCap } = body;
 
     if (!name || !stakes || !maxPlayers) {
       return NextResponse.json({ message: '必須フィールドが不足しています' }, { status: 400 });
@@ -116,13 +116,14 @@ export async function POST(request: NextRequest) {
 
     const rakePercent = rakePercentage !== undefined ? Math.round(rakePercentage * 100) : 5;
     const rakeCapValue = rakeCap !== undefined ? rakeCap : 10;
+    const tableType = type === 'sit-and-go' ? 'tournament' : 'cash';
 
     const [newTable] = await db
       .insert(clubTables)
       .values({
         name,
         clubId: clubId || null,
-        type: 'cash',
+        type: tableType,
         stakes: typeof stakes === 'string' ? stakes : JSON.stringify(stakes),
         maxPlayers,
         rakePercentage: rakePercent,

@@ -82,12 +82,12 @@ function UserManagementContent() {
           id: u.id,
           username: u.username,
           email: u.email || `${u.username}@example.com`,
-          status: 'active' as const,
-          role: u.username === 'admin' ? 'admin' as const : 'user' as const,
+          status: u.status || 'active',
+          role: u.role || 'user',
           realChips: u.realChips || 0,
           gameChips: u.gameChips || u.chips || 0,
           diamonds: 0,
-          energy: u.experience || 0,
+          energy: u.energy || u.experience || 0,
           points: 0,
           level: u.level || 1,
           joinDate: new Date(u.createdAt || Date.now()),
@@ -119,32 +119,56 @@ function UserManagementContent() {
 
   const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'suspend' | 'delete') => {
     try {
-      // 実際のAPI呼び出し
-      await new Promise(resolve => setTimeout(resolve, 1000)); // モック遅延
-      
-      setUsers(prev => prev.map(user => {
-        if (user.id === userId) {
-          switch (action) {
-            case 'ban':
-              return { ...user, status: 'banned' as const };
-            case 'unban':
-              return { ...user, status: 'active' as const };
-            case 'suspend':
-              return { ...user, status: 'suspended' as const };
-            default:
-              return user;
-          }
-        }
-        return user;
-      }));
-
       if (action === 'delete') {
-        setUsers(prev => prev.filter(user => user.id !== userId));
-      }
+        const response = await fetch(`/api/admin/users?userId=${userId}`, {
+          method: 'DELETE',
+        });
 
-      setMessage(`${action}操作が完了しました`);
-      setMessageType('success');
+        if (!response.ok) {
+          throw new Error('削除に失敗しました');
+        }
+
+        setUsers(prev => prev.filter(user => user.id !== userId));
+        setMessage('ユーザーを削除しました');
+        setMessageType('success');
+      } else {
+        const reason = action === 'ban' 
+          ? '利用規約違反のため' 
+          : action === 'suspend' 
+          ? '不正行為の疑いのため' 
+          : '';
+        
+        const response = await fetch('/api/admin/users', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            action,
+            reason,
+            suspendDays: action === 'suspend' ? 7 : undefined,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('操作に失敗しました');
+        }
+
+        const data = await response.json();
+        
+        setUsers(prev => prev.map(user => {
+          if (user.id === userId) {
+            return { ...user, status: data.user.status };
+          }
+          return user;
+        }));
+
+        setMessage(`${action}操作が完了しました`);
+        setMessageType('success');
+      }
     } catch (error) {
+      console.error('ユーザーアクションエラー:', error);
       setMessage('操作に失敗しました');
       setMessageType('error');
     }

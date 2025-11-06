@@ -202,7 +202,8 @@ export async function POST(
       
       const result = completeTournament(
         currentTournament.players || [],
-        currentTournament.prizePool
+        currentTournament.prizePool,
+        currentTournament.prizeStructure || undefined
       );
 
       // 賞金をプレイヤーに分配（realChipsに追加）

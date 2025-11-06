@@ -442,13 +442,25 @@ app.prepare().then(() => {
     }
 
     startNextHand() {
-      this.dealerIndex = (this.dealerIndex + 1) % this.players.length;
+      // チップが0のプレイヤーを退出させる
+      const playersWithChips = this.players.filter(p => p.chips > 0);
+      const removedPlayers = this.players.filter(p => p.chips <= 0);
       
-      const activePlayers = this.players.filter(p => p.chips > 0);
-      if (activePlayers.length < this.minPlayers) {
+      // 退出したプレイヤーをログに記録
+      removedPlayers.forEach(player => {
+        console.log(`プレイヤー退出: ${player.username} (チップ: ${player.chips})`);
+      });
+      
+      // プレイヤーリストを更新
+      this.players = playersWithChips;
+      
+      if (this.players.length < this.minPlayers) {
         this.phase = 'waiting';
         return false;
       }
+      
+      // ディーラーインデックスを調整
+      this.dealerIndex = (this.dealerIndex + 1) % this.players.length;
 
       this.startGame();
       return true;

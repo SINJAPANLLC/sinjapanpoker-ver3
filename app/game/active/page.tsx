@@ -1273,7 +1273,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー1 - 中央下（少し左） */}
-      <div className="absolute bottom-44 left-[45%] transform -translate-x-1/2">
+      <div className="absolute bottom-48 left-[45%] transform -translate-x-1/2">
         <PlayerComponent player={players[0]} />
       </div>
 

@@ -12,7 +12,7 @@ import { saveUserProfile, loadUserProfile } from '@/lib/storage';
 function EditProfileContent() {
   const router = useRouter();
   const { user: appUser, updateUserStats } = useAppStore();
-  const { user: authUser } = useAuthStore();
+  const { user: authUser, token } = useAuthStore();
   
   // メールアドレスはauthStoreから、その他の情報はappStoreから取得
   const user = {
@@ -76,16 +76,19 @@ function EditProfileContent() {
       saveUserProfile(profileData);
 
       // 画像をデータベースに保存
-      if (user?.id && profileImage) {
+      if (user?.id && profileImage && token) {
         const response = await fetch(`/api/user/${user.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({ avatar: profileImage }),
         });
 
         if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Avatar save failed:', response.status, errorData);
           throw new Error('画像の保存に失敗しました');
         }
 

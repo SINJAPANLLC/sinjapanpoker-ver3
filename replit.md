@@ -10,6 +10,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**November 7, 2025 - Profile Avatar Authentication Fix**
+- **CRITICAL FIX**: Added missing JWT authentication token to profile avatar upload API calls
+- Fixed `app/profile/edit/page.tsx` to include `Authorization: Bearer ${token}` header in avatar save requests
+- Added error logging for avatar upload failures to aid debugging
+- Issue: Profile images were not saving to database because API requests lacked authentication
+- Resolution: Avatar changes now properly persist to PostgreSQL and sync with AuthStore
+
 **November 7, 2025 - Background Themes & Game Menu Complete**
 - **3 Background Themes**: Dynamic table backgrounds based on table type
   - 🟢 Standard (Green) - Default for all regular tables and practice mode

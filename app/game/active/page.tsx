@@ -715,7 +715,7 @@ export default function ActiveGamePage() {
 
         {/* ポジションマーカー（D, SB, BB） */}
         {player.position && (
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
             <p className="text-white text-xs font-bold">{player.position}</p>
           </div>
         )}

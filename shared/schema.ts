@@ -100,6 +100,8 @@ export const clubTables = pgTable('club_tables', {
   name: varchar('name', { length: 200 }).notNull(),
   type: varchar('type', { length: 20 }).notNull().$type<'cash' | 'tournament'>(),
   stakes: varchar('stakes', { length: 50 }).notNull(),
+  rakePercentage: integer('rake_percentage').notNull().default(5),
+  rakeCap: integer('rake_cap').notNull().default(10),
   totalHands: integer('total_hands').notNull().default(0),
   totalRakeCollected: integer('total_rake_collected').notNull().default(0),
   clubRevenue: integer('club_revenue').notNull().default(0),

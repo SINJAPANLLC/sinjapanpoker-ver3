@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, clubId, stakes, maxPlayers } = body;
+    const { name, clubId, stakes, maxPlayers, rakePercentage, rakeCap } = body;
 
     if (!name || !stakes || !maxPlayers) {
       return NextResponse.json({ message: '必須フィールドが不足しています' }, { status: 400 });
@@ -112,6 +112,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const rakePercent = rakePercentage !== undefined ? Math.round(rakePercentage * 100) : 5;
+    const rakeCapValue = rakeCap !== undefined ? rakeCap : 10;
+
     const [newTable] = await db
       .insert(clubTables)
       .values({
@@ -120,8 +123,12 @@ export async function POST(request: NextRequest) {
         type: 'cash',
         stakes: typeof stakes === 'string' ? stakes : JSON.stringify(stakes),
         maxPlayers,
+        rakePercentage: rakePercent,
+        rakeCap: rakeCapValue,
       })
       .returning();
+
+    console.log(`テーブル作成: ${newTable.name} (レーキ: ${rakePercent}%, キャップ: ${rakeCapValue}) by ${authResult.admin.username}`);
 
     return NextResponse.json({
       message: 'テーブルを作成しました',

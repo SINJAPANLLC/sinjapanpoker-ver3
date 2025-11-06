@@ -63,6 +63,8 @@ function CreateTableContent() {
           name: formData.name,
           stakes: `${formData.smallBlind}/${formData.bigBlind}`,
           maxPlayers: formData.maxPlayers,
+          rakePercentage: formData.rakePercentage,
+          rakeCap: Math.round(formData.buyIn * 0.1),
         }),
       });
 

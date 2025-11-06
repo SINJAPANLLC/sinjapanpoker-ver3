@@ -253,19 +253,29 @@ export default function ActiveGamePage() {
   useEffect(() => {
     if (socketMessages.length === 0) return;
     
-    // チャット履歴を更新
-    setChatMessages(socketMessages.map((msg, idx) => ({
-      id: idx,
-      player: msg.username,
-      message: msg.message,
-      time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
-    })));
-    
     // 最新メッセージのみ処理
     const latestMsg = socketMessages[socketMessages.length - 1];
     if (!latestMsg || latestMsg.timestamp <= lastProcessedTimestampRef.current) {
       return;
     }
+    
+    // チャット履歴を更新（重複チェック付き）
+    setChatMessages(prev => {
+      const existingIds = new Set(prev.map(msg => `${msg.player}-${msg.time}-${msg.message}`));
+      const newMessages = socketMessages
+        .filter(msg => {
+          const msgId = `${msg.username}-${new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}-${msg.message}`;
+          return !existingIds.has(msgId);
+        })
+        .map((msg, idx) => ({
+          id: prev.length + idx,
+          player: msg.username,
+          message: msg.message,
+          time: new Date(msg.timestamp).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+        }));
+      
+      return [...prev, ...newMessages];
+    });
     
     const username = latestMsg.username;
     const msgTimestamp = latestMsg.timestamp;
@@ -293,7 +303,7 @@ export default function ActiveGamePage() {
     
     // クリーンアップ
     return () => clearTimeout(timeoutId);
-  }, [socketMessages.length]);
+  }, [socketMessages]);
 
   // 離席状態が変更されたらサーバーに送信
   useEffect(() => {

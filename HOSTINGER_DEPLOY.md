@@ -1,196 +1,359 @@
-# Hostingerデプロイメントガイド
+# HOSTINGER VPS デプロイメントガイド - SIN JAPAN POKER
 
 ## 概要
-このガイドでは、SIN JAPAN POKERアプリケーションをHostingerホスティングサービスにデプロイする方法を説明します。
+このガイドでは、SIN JAPAN POKERアプリケーションをHostinger VPS（sinjapan-poker.com）にデプロイする完全な手順を説明します。
 
 ## 前提条件
 
 ### 必要なもの
-- Hostingerアカウント（Business以上のプランを推奨）
-- Node.js対応プラン
-- MongoDB Atlas アカウント（データベース用）
-- GitHubアカウント
+- Hostinger VPS（既に契約済み）
+- ドメイン: sinjapan-poker.com
+- PostgreSQL（Neon）データベース（既に設定済み）
+- Node.js 18.x以上
+- PM2（プロセスマネージャー）
 
-### 推奨スペック
-- RAM: 2GB以上
-- ストレージ: 20GB以上
-- Node.js: 18.x以上
+## 📦 1. GitHubへのプッシュ
 
-## 1. データベースの準備（MongoDB Atlas）
+### ローカル環境で実行（Replit外）
+```bash
+# プロジェクトをダウンロード
+git clone <your-replit-git-url>
+cd sinjapan-poker
 
-### MongoDB Atlasセットアップ
-1. [MongoDB Atlas](https://www.mongodb.com/atlas)にアクセス
-2. 無料のクラスターを作成
-3. データベースユーザーを作成
-4. IPアドレスをホワイトリストに追加（0.0.0.0/0 推奨）
-5. 接続文字列をコピー
-
-### 接続文字列の例
-```
-mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/<database>?retryWrites=true&w=majority
+# GitHubにプッシュ
+git remote add origin https://github.com/SINJAPANLLC/sinjapan-poker-ver2.git
+git add .
+git commit -m "Production ready deployment - Card bias removed"
+git push -u origin main
 ```
 
-## 2. Hostingerでの初期設定
-
-### cPanelアクセス
-1. Hostingerの管理パネルにログイン
-2. 「Website」セクションから対象ドメインを選択
-3. 「Manage」をクリック
-4. 「Advanced」タブの「Control Panel」を開く
-
-### Node.jsアプリケーションの設定
-1. cPanelで「Node.js App」を選択
-2. 「Create Application」をクリック
-3. 以下の設定を行う：
-   - Node.js Version: 18.x 以上
-   - Application Mode: Production
-   - Application Root: `/public_html/poker-app`
-   - Startup File: `server.js`
-
-## 3. ファイルのアップロード
-
-### 方法1: File Managerを使用
-1. cPanelの「File Manager」を開く
-2. `public_html/poker-app`フォルダを作成
-3. プロジェクトファイルをアップロード
-
-### 方法2: GitHubから直接デプロイ（推奨）
-1. TerminalまたはSSHでHostingerサーバーに接続
-2. 以下のコマンドを実行：
+## 🖥️ 2. Hostinger VPSへのSSH接続
 
 ```bash
-cd public_html
-git clone https://github.com/SINJAPANLLC/sinjapan-poker-ver2.git poker-app
-cd poker-app
+ssh root@<your-hostinger-vps-ip>
+# または
+ssh root@sinjapan-poker.com
 ```
 
-## 4. 環境変数の設定
+## 📥 3. アプリケーションのデプロイ
 
-### Hostingerでの環境変数設定
-1. Node.jsアプリケーション管理画面を開く
-2. 「Environment Variables」セクションで以下を追加：
-
-```env
-NODE_ENV=production
-MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/poker-app?retryWrites=true&w=majority
-JWT_SECRET=your-very-secure-random-string-change-this-in-production
-NEXT_PUBLIC_SOCKET_URL=https://yourdomain.com
-NEXT_PUBLIC_APP_URL=https://yourdomain.com
-```
-
-### 重要なセキュリティ設定
-- `JWT_SECRET`: 32文字以上のランダムな文字列を生成
-- 本番環境用のMongoDB接続文字列を使用
-- HTTPSを必ず使用
-
-## 5. 依存関係のインストールとビルド
-
-### Terminal/SSHでの実行
+### プロジェクトのクローン
 ```bash
-cd public_html/poker-app
+cd /var/www
+git clone https://github.com/SINJAPANLLC/sinjapan-poker-ver2.git poker
+cd poker
+```
 
-# 依存関係のインストール
+### Node.jsとnpmのインストール確認
+```bash
+node -v  # v18.x以上
+npm -v
+```
+
+Node.jsがインストールされていない場合：
+```bash
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+### 依存関係のインストール
+```bash
 npm install --production
-
-# Next.jsアプリケーションをビルド
-npm run build
-
-# Socket.ioサーバー用の追加設定（必要に応じて）
-npm install pm2 -g
 ```
 
-## 6. アプリケーションの起動
-
-### 起動方法
-1. Hostingerの管理画面で「Start」ボタンをクリック
-2. または、TerminalでPM2を使用：
-
+### 環境変数の設定
 ```bash
-# PM2でアプリケーションを起動
-pm2 start server.js --name "poker-app"
+nano .env
+```
+
+以下の内容を貼り付け：
+```env
+# 本番環境
+NODE_ENV=production
+
+# データベース（Neon PostgreSQL）
+DATABASE_URL=postgresql://neondb_owner:your-password@your-host.neon.tech/neondb?sslmode=require
+PGHOST=your-host.neon.tech
+PGDATABASE=neondb
+PGUSER=neondb_owner
+PGPASSWORD=your-password
+PGPORT=5432
+
+# JWT認証
+JWT_SECRET=your-super-secure-jwt-secret-minimum-32-characters-long
+
+# アプリケーションURL
+NEXT_PUBLIC_APP_URL=https://sinjapan-poker.com
+NEXT_PUBLIC_SOCKET_URL=https://sinjapan-poker.com
+
+# Stripe（決済）
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
+
+# SendGrid（メール）
+SENDGRID_API_KEY=SG.your_sendgrid_api_key
+SENDGRID_FROM_EMAIL=noreply@sinjapan-poker.com
+```
+
+**Ctrl+X** → **Y** → **Enter** で保存
+
+### Next.jsアプリケーションのビルド
+```bash
+npm run build
+```
+
+## 🚀 4. PM2でアプリケーションを起動
+
+### PM2のインストール
+```bash
+npm install -g pm2
+```
+
+### アプリケーション起動
+```bash
+pm2 start server.js --name "poker-app" --max-memory-restart 1G
+```
+
+### PM2の自動起動設定
+```bash
 pm2 startup
 pm2 save
 ```
 
-## 7. ドメインとSSLの設定
-
-### SSL証明書の設定
-1. Hostingerの管理画面で「SSL」を選択
-2. Let's Encrypt SSL証明書を有効化
-3. HTTPからHTTPSへのリダイレクトを有効化
-
-### DNS設定の確認
-- Aレコードがサーバーの正しいIPアドレスを指していることを確認
-- CNAMEレコード（www）が正しく設定されていることを確認
-
-## 8. トラブルシューティング
-
-### よくある問題と解決方法
-
-#### アプリケーションが起動しない
+### PM2コマンド一覧
 ```bash
-# ログを確認
-npm run dev
-# または
-pm2 logs poker-app
+pm2 status           # アプリの状態確認
+pm2 logs poker-app   # ログ確認
+pm2 restart poker-app # 再起動
+pm2 stop poker-app   # 停止
+pm2 delete poker-app # 削除
+pm2 monit            # リアルタイム監視
 ```
 
-#### データベース接続エラー
-- MongoDB Atlasの接続文字列を確認
-- IPアドレスがホワイトリストに登録されているか確認
-- データベースユーザーの権限を確認
+## 🌐 5. Nginx リバースプロキシ設定
 
-#### 静的ファイルが読み込まれない
-- `.htaccess`ファイルが正しく配置されているか確認
-- ファイルパーミッションを確認（755または644）
+### Nginxのインストール
+```bash
+sudo apt update
+sudo apt install nginx -y
+```
 
-#### Socket.io接続エラー
-- WebSocketが有効化されているか確認
-- ファイアウォール設定を確認
-- HTTPSでの接続を確認
+### Nginx設定ファイル作成
+```bash
+sudo nano /etc/nginx/sites-available/poker
+```
 
-## 9. パフォーマンス最適化
+以下の内容を貼り付け：
+```nginx
+upstream poker_backend {
+    server 127.0.0.1:5000;
+    keepalive 64;
+}
 
-### 推奨設定
-```javascript
-// next.config.js の最適化
-const nextConfig = {
-  output: 'standalone',
-  experimental: {
-    serverComponentsExternalPackages: ['ws'],
-  },
-  compress: true,
-  poweredByHeader: false,
-  images: {
-    unoptimized: true,
-    minimumCacheTTL: 31536000,
-  },
+server {
+    listen 80;
+    server_name sinjapan-poker.com www.sinjapan-poker.com;
+
+    # HTTPSへリダイレクト
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name sinjapan-poker.com www.sinjapan-poker.com;
+
+    # SSL証明書（Let's Encryptで後で設定）
+    ssl_certificate /etc/letsencrypt/live/sinjapan-poker.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/sinjapan-poker.com/privkey.pem;
+
+    # セキュリティヘッダー
+    add_header X-Frame-Options "DENY";
+    add_header X-Content-Type-Options "nosniff";
+    add_header X-XSS-Protection "1; mode=block";
+
+    # 最大アップロードサイズ
+    client_max_body_size 10M;
+
+    # プロキシ設定
+    location / {
+        proxy_pass http://poker_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # WebSocket対応
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    # 静的ファイル（Next.js）
+    location /_next/static {
+        proxy_pass http://poker_backend;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
 }
 ```
 
-### キャッシュ設定
-- 静的アセットの長期キャッシュを設定
-- API レスポンスの適切なキャッシュヘッダーを設定
+### Nginx設定の有効化
+```bash
+sudo ln -s /etc/nginx/sites-available/poker /etc/nginx/sites-enabled/
+sudo nginx -t  # 設定テスト
+sudo systemctl restart nginx
+```
 
-## 10. 監視とメンテナンス
+## 🔒 6. SSL証明書の設定（Let's Encrypt）
 
-### 定期的なチェック項目
-- アプリケーションの稼働状況
-- データベース接続状況
-- SSL証明書の有効期限
-- セキュリティーアップデート
+### Certbotのインストール
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+```
 
-### バックアップ
-- 定期的なデータベースバックアップ
-- コードベースのGitHub同期
+### SSL証明書の取得
+```bash
+sudo certbot --nginx -d sinjapan-poker.com -d www.sinjapan-poker.com
+```
 
-## サポート
+指示に従って：
+1. メールアドレスを入力
+2. 利用規約に同意
+3. HTTPからHTTPSへのリダイレクトを選択
 
-問題が発生した場合：
-1. 本ドキュメントのトラブルシューティングセクションを確認
-2. HostingerのサポートTicketを作成
-3. GitHubのIssuesで報告
+### 自動更新の設定
+```bash
+sudo certbot renew --dry-run
+```
+
+## 📊 7. データベースマイグレーション
+
+```bash
+cd /var/www/poker
+npm run db:push
+```
+
+## 🔄 8. コードの更新手順（今後）
+
+GitHubで更新した後：
+```bash
+cd /var/www/poker
+git pull origin main
+npm install --production
+npm run build
+pm2 restart poker-app
+```
+
+## 🛡️ 9. ファイアウォール設定
+
+```bash
+sudo ufw allow 22    # SSH
+sudo ufw allow 80    # HTTP
+sudo ufw allow 443   # HTTPS
+sudo ufw enable
+sudo ufw status
+```
+
+## 📈 10. 監視とログ
+
+### アプリケーションログ
+```bash
+pm2 logs poker-app
+pm2 logs poker-app --lines 100
+```
+
+### Nginxログ
+```bash
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+```
+
+### システムリソース監視
+```bash
+pm2 monit
+htop
+```
+
+## 🚨 11. トラブルシューティング
+
+### アプリが起動しない
+```bash
+# ログ確認
+pm2 logs poker-app --lines 200
+
+# ポート確認
+sudo lsof -i :5000
+
+# 手動起動でエラー確認
+cd /var/www/poker
+node server.js
+```
+
+### データベース接続エラー
+```bash
+# 環境変数確認
+cat .env
+
+# データベース接続テスト
+psql $DATABASE_URL
+```
+
+### Nginxエラー
+```bash
+# 設定テスト
+sudo nginx -t
+
+# エラーログ確認
+sudo tail -f /var/log/nginx/error.log
+
+# 再起動
+sudo systemctl restart nginx
+```
+
+### Socket.io接続エラー
+- WebSocket接続がブロックされていないか確認
+- Nginx設定でUpgradeヘッダーが正しく設定されているか確認
+- ファイアウォールでポート443が開いているか確認
+
+## 🔐 12. セキュリティチェックリスト
+
+- [x] SSL証明書が有効
+- [x] HTTPSへの強制リダイレクト
+- [x] ファイアウォールが有効
+- [x] 環境変数が.envファイルに保存
+- [x] JWT_SECRETが32文字以上
+- [x] データベース認証情報が安全
+- [x] 不要なポートが閉じられている
+- [x] SSH鍵認証が設定されている
+
+## 📝 13. 環境変数チェックリスト
+
+デプロイ前に以下の環境変数が設定されていることを確認：
+
+```bash
+# 確認コマンド
+cd /var/www/poker
+cat .env | grep -v "^#" | grep "="
+```
+
+必須の環境変数：
+- ✅ DATABASE_URL
+- ✅ JWT_SECRET
+- ✅ NEXT_PUBLIC_APP_URL
+- ✅ NEXT_PUBLIC_SOCKET_URL
+
+オプション（機能によって必要）：
+- STRIPE_SECRET_KEY（決済機能）
+- SENDGRID_API_KEY（メール機能）
+
+## 🎉 デプロイ完了！
+
+アプリケーションは以下のURLでアクセス可能です：
+- https://sinjapan-poker.com
+- https://www.sinjapan-poker.com
 
 ---
 
-**注意**: このガイドは一般的なデプロイ手順です。Hostingerのプランや設定によっては一部手順が異なる場合があります。
+**サポート**: 問題が発生した場合は、GitHub Issuesで報告してください。

@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SIN JAPAN POKER - オンラインポーカーアプリ',
-  description: 'PPPOKER風の本格的なオンラインポーカーアプリケーション',
+  title: 'SJP',
+  description: 'SIN JAPAN POKER',
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
 };
 
@@ -22,7 +22,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="apple-mobile-web-app-title" content="SIN JAPAN POKER" />
+        <meta name="apple-mobile-web-app-title" content="SJP" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body>{children}</body>

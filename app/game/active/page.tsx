@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { User, Menu, MessageCircle, Wifi, WifiOff, Maximize, Minimize, Info, History, Eye } from 'lucide-react';
 import Card from '@/components/Card';
 import { Card as CardType, Suit, Rank } from '@/types';

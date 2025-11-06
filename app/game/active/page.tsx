@@ -515,8 +515,7 @@ export default function ActiveGamePage() {
                         !player.folded && (
                           (typeof player.position === 'number' && player.position === 0) || 
                           (typeof player.position === 'string' && player.position === '0') ||
-                          gameState?.phase === 'showdown' || 
-                          gameState?.phase === 'finished'
+                          ((gameState?.phase === 'showdown' || gameState?.phase === 'finished') && !(gameState as any)?.winByFold)
                         )
                       } 
                     />

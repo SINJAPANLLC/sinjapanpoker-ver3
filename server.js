@@ -223,6 +223,7 @@ app.prepare().then(() => {
       this.currentBet = 0;
       this.lastRaiserIndex = -1;
       this.bettingRound = 0;
+      this.winByFold = false;
       
       for (const player of this.players) {
         player.bet = 0;
@@ -386,6 +387,7 @@ app.prepare().then(() => {
           handDescription: 'フォールド勝ち',
         }];
         this.phase = 'finished';
+        this.winByFold = true;
         console.log(`レーキ徴収: ${rake} チップ（ポット: ${this.pot + rake}）`);
         return;
       }
@@ -771,6 +773,7 @@ app.prepare().then(() => {
         winningHand: this.winningHand,
         winners: this.winners,
         blinds: this.blinds,
+        winByFold: this.winByFold,
       };
     }
   }

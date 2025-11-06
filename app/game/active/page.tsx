@@ -1177,7 +1177,7 @@ export default function ActiveGamePage() {
       <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-3 items-center">
         {/* サイドポット（複数オールインがある場合） */}
         {hasSidePots && (
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
             <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
             <div className="flex items-center justify-center gap-0.5">
               <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
@@ -1222,7 +1222,7 @@ export default function ActiveGamePage() {
           
           <motion.div 
             style={{
-              background: 'linear-gradient(to bottom right, rgb(34, 211, 238), rgb(37, 99, 235))',
+              background: 'linear-gradient(to bottom right, rgb(37, 99, 235), rgb(30, 64, 175))',
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
               border: '2px solid rgba(255, 255, 255, 0.3)',

@@ -50,6 +50,38 @@ export async function GET(request: NextRequest) {
           value: 15,
           type: 'number' as const,
         },
+        {
+          id: 'game_rake_cap_micro',
+          category: 'game',
+          name: 'レーキキャップ（マイクロステークス）',
+          description: 'マイクロステークスのレーキ上限（チップ）',
+          value: 3,
+          type: 'number' as const,
+        },
+        {
+          id: 'game_rake_cap_low',
+          category: 'game',
+          name: 'レーキキャップ（ローステークス）',
+          description: 'ローステークスのレーキ上限（チップ）',
+          value: 5,
+          type: 'number' as const,
+        },
+        {
+          id: 'game_rake_cap_medium',
+          category: 'game',
+          name: 'レーキキャップ（ミディアムステークス）',
+          description: 'ミディアムステークスのレーキ上限（チップ）',
+          value: 10,
+          type: 'number' as const,
+        },
+        {
+          id: 'game_rake_cap_high',
+          category: 'game',
+          name: 'レーキキャップ（ハイステークス）',
+          description: 'ハイステークスのレーキ上限（チップ）',
+          value: 20,
+          type: 'number' as const,
+        },
         // システム設定
         {
           id: 'maintenance_mode',

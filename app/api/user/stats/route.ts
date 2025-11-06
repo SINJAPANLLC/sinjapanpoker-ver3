@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/server/storage';
-import { playerStats, gameHistory } from '@/shared/schema';
-import { eq, and, gte, sql } from 'drizzle-orm';
-import { verifyAuth } from '@/lib/auth';
+import { db } from '@/server/db';
+import { playerStats, gameHistory, GameHistory } from '@shared/schema';
+import { eq, and, gte } from 'drizzle-orm';
+import { verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = verifyAuth(request);
-    if (!authResult.authenticated || !authResult.userId) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
-    const userId = authResult.userId;
+    const token = authHeader.substring(7);
+    const payload = verifyToken(token);
+    
+    if (!payload || !payload.userId) {
+      return NextResponse.json({ error: '無効なトークンです' }, { status: 401 });
+    }
+
+    const userId = payload.userId;
 
     // プレイヤーの累計統計を取得
     let stats = await db
@@ -61,14 +68,14 @@ export async function GET(request: NextRequest) {
     // 今日の統計を計算
     const todayStats = {
       handsPlayed: todayGames.length,
-      wins: todayGames.filter(g => g.result === 'win').length,
+      wins: todayGames.filter((g: GameHistory) => g.result === 'win').length,
       winRate: todayGames.length > 0 
-        ? Math.round((todayGames.filter(g => g.result === 'win').length / todayGames.length) * 100)
+        ? Math.round((todayGames.filter((g: GameHistory) => g.result === 'win').length / todayGames.length) * 100)
         : 0,
       chipsWon: todayGames
-        .filter(g => g.chipsChange > 0)
-        .reduce((sum, g) => sum + g.chipsChange, 0),
-      biggestPot: Math.max(...todayGames.map(g => g.chipsChange), 0),
+        .filter((g: GameHistory) => g.chipsChange > 0)
+        .reduce((sum: number, g: GameHistory) => sum + g.chipsChange, 0),
+      biggestPot: Math.max(...todayGames.map((g: GameHistory) => g.chipsChange), 0),
     };
 
     return NextResponse.json({

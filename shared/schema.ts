@@ -340,6 +340,30 @@ export type ForumPost = typeof forumPosts.$inferSelect;
 export type InsertForumPost = typeof forumPosts.$inferInsert;
 
 // ========================================
+// FEEDBACK TABLE
+// ========================================
+export const feedback = pgTable('feedback', {
+  id: varchar('id', { length: 100 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: varchar('user_id', { length: 100 }).notNull(),
+  username: varchar('username', { length: 100 }).notNull(),
+  category: varchar('category', { length: 50 }).notNull().$type<'bug' | 'feature' | 'improvement' | 'other'>(),
+  message: text('message').notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('pending').$type<'pending' | 'in-review' | 'resolved' | 'closed'>(),
+  response: text('response'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index('feedback_user_id_idx').on(table.userId),
+    statusIdx: index('feedback_status_idx').on(table.status),
+    createdAtIdx: index('feedback_created_at_idx').on(table.createdAt),
+  };
+});
+
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = typeof feedback.$inferInsert;
+
+// ========================================
 // KYC VERIFICATION TABLE
 // ========================================
 export const kycVerifications = pgTable('kyc_verifications', {
@@ -512,5 +536,12 @@ export const clubTablesRelations = relations(clubTables, ({ one }) => ({
   club: one(clubs, {
     fields: [clubTables.clubId],
     references: [clubs.id],
+  }),
+}));
+
+export const feedbackRelations = relations(feedback, ({ one }) => ({
+  user: one(users, {
+    fields: [feedback.userId],
+    references: [users.id],
   }),
 }));

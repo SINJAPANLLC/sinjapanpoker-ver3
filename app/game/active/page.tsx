@@ -759,29 +759,40 @@ export default function ActiveGamePage() {
           )}
         </AnimatePresence>
 
-        {/* ショーダウン時の役表示 - アバターの上に表示 */}
+        {/* ショーダウン時の役表示 - カードの横に表示 */}
         <AnimatePresence mode="wait">
           {!player.folded && (player as any).handDescription && (gameState?.phase === 'showdown' || gameState?.phase === 'finished') && (
             <motion.div
               key={`hand-${player.name}-${(player as any).handDescription}`}
               style={{
                 position: 'absolute',
-                bottom: '100%',
-                left: '50%',
-                marginBottom: '8px',
-                transform: 'translateX(-50%)',
-                zIndex: 30
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 30,
+                ...(player.cardSide === 'right' 
+                  ? { left: '100%', marginLeft: '12px' } 
+                  : { right: '100%', marginRight: '12px' })
               }}
-              initial={{ y: 20, opacity: 0, scale: 0.8 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
+              initial={{ 
+                x: player.cardSide === 'right' ? -20 : 20, 
+                opacity: 0, 
+                scale: 0.8 
+              }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <div className="relative bg-gradient-to-br from-yellow-400 to-orange-500 px-3 py-1.5 rounded-lg border-2 border-white shadow-xl whitespace-nowrap">
-                <p className="text-white text-[11px] font-bold drop-shadow-md">{(player as any).handDescription}</p>
+              <div className="relative bg-gradient-to-br from-yellow-400 to-orange-500 px-2 py-1 rounded-lg border-2 border-white shadow-xl whitespace-nowrap">
+                <p className="text-white text-[10px] font-bold drop-shadow-md">{(player as any).handDescription}</p>
                 {/* 吹き出しの三角形 */}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                  <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-yellow-400"></div>
+                <div className={`absolute top-1/2 transform -translate-y-1/2 ${
+                  player.cardSide === 'right' ? '-left-2' : '-right-2'
+                }`}>
+                  <div className={`w-0 h-0 ${
+                    player.cardSide === 'right' 
+                      ? 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-yellow-400'
+                      : 'border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[8px] border-l-yellow-400'
+                  }`}></div>
                 </div>
               </div>
             </motion.div>

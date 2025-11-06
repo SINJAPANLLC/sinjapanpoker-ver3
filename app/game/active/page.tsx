@@ -759,6 +759,35 @@ export default function ActiveGamePage() {
           )}
         </AnimatePresence>
 
+        {/* ショーダウン時の役表示 - アバターの上に表示 */}
+        <AnimatePresence mode="wait">
+          {!player.folded && (player as any).handDescription && (gameState?.phase === 'showdown' || gameState?.phase === 'finished') && (
+            <motion.div
+              key={`hand-${player.name}-${(player as any).handDescription}`}
+              style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: '50%',
+                marginBottom: '8px',
+                transform: 'translateX(-50%)',
+                zIndex: 30
+              }}
+              initial={{ y: 20, opacity: 0, scale: 0.8 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              <div className="relative bg-gradient-to-br from-yellow-400 to-orange-500 px-3 py-1.5 rounded-lg border-2 border-white shadow-xl whitespace-nowrap">
+                <p className="text-white text-[11px] font-bold drop-shadow-md">{(player as any).handDescription}</p>
+                {/* 吹き出しの三角形 */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                  <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-yellow-400"></div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* ユーザー情報（アバターの下部に被せる） */}
         <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(50%+10px)] bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10 ${player.folded ? 'opacity-40' : ''}`}>
           <p className="text-white text-[10px] font-bold text-center whitespace-nowrap">

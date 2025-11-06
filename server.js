@@ -350,6 +350,7 @@ app.prepare().then(() => {
         const winAmount = this.pot - rake;
         
         activePlayers[0].chips += winAmount;
+        activePlayers[0].handDescription = 'フォールド勝ち';
         this.pot = 0;
         this.winner = activePlayers[0].username;
         this.winningHand = 'フォールド勝ち';
@@ -393,6 +394,14 @@ app.prepare().then(() => {
           handDescription: handResult.description,
           cards: player.cards,
         };
+      });
+      
+      // 全てのアクティブプレイヤーに役の説明を設定
+      handsWithInfo.forEach(handInfo => {
+        const player = this.players.find(p => p.userId === handInfo.playerId);
+        if (player) {
+          player.handDescription = handInfo.handDescription;
+        }
       });
 
       const winningsMap = new Map();

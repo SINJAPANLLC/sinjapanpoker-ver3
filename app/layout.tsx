@@ -8,6 +8,28 @@ export const metadata: Metadata = {
     icon: '/favicon.png',
     apple: '/favicon.png',
   },
+  openGraph: {
+    title: 'SJP',
+    description: 'SIN JAPAN POKER',
+    url: 'https://sinjapan-poker.com',
+    siteName: 'SJP',
+    images: [
+      {
+        url: 'https://sinjapan-poker.com/logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'SIN JAPAN POKER',
+      }
+    ],
+    locale: 'ja_JP',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SJP',
+    description: 'SIN JAPAN POKER',
+    images: ['https://sinjapan-poker.com/logo.png'],
+  },
 };
 
 export default function RootLayout({

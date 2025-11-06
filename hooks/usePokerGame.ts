@@ -73,52 +73,69 @@ export function usePokerGame(gameId: string | null, difficulty?: string) {
       reconnectionDelay: 1000,
     });
 
-    newSocket.on('connect', () => {
+    const handleConnect = () => {
       console.log('Socket connected:', newSocket.id);
       setConnected(true);
       setError(null);
-    });
+    };
 
-    newSocket.on('disconnect', () => {
+    const handleDisconnect = () => {
       console.log('Socket disconnected');
       setConnected(false);
-    });
+    };
 
-    newSocket.on('connect_error', (err: Error) => {
+    const handleConnectError = (err: Error) => {
       console.error('Connection error:', err);
       setError('接続エラーが発生しました');
       setConnected(false);
-    });
+    };
 
-    newSocket.on('game-state', (state: GameState) => {
+    const handleGameState = (state: GameState) => {
       console.log('Game state updated:', state);
       setGameState(state);
-    });
+    };
 
-    newSocket.on('chat-message', (data: { username: string; message: string; timestamp: number }) => {
+    const handleChatMessage = (data: { username: string; message: string; timestamp: number }) => {
       setMessages((prev) => [...prev, data]);
-    });
+    };
 
-    newSocket.on('error', (data: { message: string }) => {
+    const handleError = (data: { message: string }) => {
       console.error('Error:', data.message);
       setError(data.message);
       setTimeout(() => setError(null), 3000);
-    });
+    };
 
-    newSocket.on('action-error', (data: { message: string }) => {
+    const handleActionError = (data: { message: string }) => {
       console.error('Action error:', data.message);
       setError(data.message);
       setTimeout(() => setError(null), 3000);
-    });
+    };
 
-    newSocket.on('game-ended', (data: { message: string }) => {
+    const handleGameEnded = (data: { message: string }) => {
       console.log('Game ended:', data.message);
       setError(data.message);
-    });
+    };
+
+    newSocket.on('connect', handleConnect);
+    newSocket.on('disconnect', handleDisconnect);
+    newSocket.on('connect_error', handleConnectError);
+    newSocket.on('game-state', handleGameState);
+    newSocket.on('chat-message', handleChatMessage);
+    newSocket.on('error', handleError);
+    newSocket.on('action-error', handleActionError);
+    newSocket.on('game-ended', handleGameEnded);
 
     setSocket(newSocket);
 
     return () => {
+      newSocket.off('connect', handleConnect);
+      newSocket.off('disconnect', handleDisconnect);
+      newSocket.off('connect_error', handleConnectError);
+      newSocket.off('game-state', handleGameState);
+      newSocket.off('chat-message', handleChatMessage);
+      newSocket.off('error', handleError);
+      newSocket.off('action-error', handleActionError);
+      newSocket.off('game-ended', handleGameEnded);
       newSocket.disconnect();
     };
   }, [gameId, user]);

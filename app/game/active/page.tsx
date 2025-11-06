@@ -856,15 +856,23 @@ export default function ActiveGamePage() {
         <div 
           className="relative w-full h-screen md:max-w-[430px] md:h-[932px] md:max-h-screen md:rounded-lg md:overflow-hidden md:shadow-2xl origin-center"
           style={{
-            backgroundImage: 'url(/poker-table-bg.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: '55% 32%',
-            backgroundRepeat: 'no-repeat',
+            background: 'radial-gradient(ellipse at 50% 40%, #1e5128 0%, #0d2818 50%, #051108 100%)',
             transform: `scale(${scaleFactor})`,
             width: scaleFactor < 1 ? '430px' : '100%',
             height: scaleFactor < 1 ? '932px' : '100vh',
           }}
         >
+          {/* ポーカーテーブルの楕円 */}
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-30"
+            style={{
+              width: '90%',
+              height: '70%',
+              borderRadius: '50%',
+              border: '12px solid #8B4513',
+              boxShadow: 'inset 0 0 80px rgba(0,0,0,0.5), 0 0 40px rgba(139,69,19,0.3)',
+            }}
+          />
       {/* 左上 - メニューアイコン */}
       <div className="absolute top-4 left-4">
         <button 

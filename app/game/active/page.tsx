@@ -1243,7 +1243,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* コミュニティカード */}
-      <div className="absolute top-[22%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute top-[45%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-3">
           {communityCards.map((card, index) => (
             <div key={card.id} style={{ perspective: '1000px' }}>

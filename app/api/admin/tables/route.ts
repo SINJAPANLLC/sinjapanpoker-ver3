@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
         clubName: clubs.name,
         type: clubTables.type,
         stakes: clubTables.stakes,
+        rakePercentage: clubTables.rakePercentage,
+        rakeCap: clubTables.rakeCap,
         maxPlayers: clubTables.maxPlayers,
         currentPlayers: clubTables.currentPlayers,
         status: clubTables.status,

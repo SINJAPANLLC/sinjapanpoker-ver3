@@ -88,14 +88,14 @@ function TableManagementContent() {
             big: parseInt(t.stakes.split('/')[1]) || 0
           } : undefined,
           status: t.status === 'paused' ? 'paused' : t.currentPlayers >= t.maxPlayers ? 'full' : t.currentPlayers > 0 ? 'playing' : 'waiting',
-          createdBy: t.clubName || 'Unknown',
+          createdBy: t.clubName || 'システム',
           createdById: t.clubId || '',
           createdAt: new Date(t.createdAt),
           updatedAt: new Date(t.lastHandAt || t.createdAt),
-          rakePercentage: 0.05,
+          rakePercentage: (t.rakePercentage || 5) / 100,
           totalRake: t.clubRevenue || 0,
           handsPlayed: t.totalHands || 0,
-          avgPot: t.totalHands > 0 ? Math.round((t.totalRakeCollected || 0) / t.totalHands / 0.05) : 0
+          avgPot: t.totalHands > 0 ? Math.round((t.totalRakeCollected || 0) / t.totalHands / ((t.rakePercentage || 5) / 100)) : 0
         }));
         setTables(formattedTables);
         setStats(data.stats);

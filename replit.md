@@ -12,8 +12,7 @@ Preferred communication style: Simple, everyday language.
 
 **November 7, 2025 - UI Position Adjustments**
 - Fixed community cards position: moved down from `top-[38%]` to `top-[40%]` for better visual balance
-- Adjusted Player 2 and 9 positions: `bottom-96` → `bottom-92` (slightly down)
-- Improved overall table layout
+- Player 2 and 9 positions: kept at original `bottom-96`
 
 **November 7, 2025 - Profile Avatar Authentication Fix**
 - **CRITICAL FIX**: Added missing JWT authentication token to profile avatar upload API calls

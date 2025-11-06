@@ -64,6 +64,7 @@ export default function ActiveGamePage() {
   
   const [raiseAmount, setRaiseAmount] = useState(200);
   const [turnTimer, setTurnTimer] = useState(15);
+  const [hasPlayedWarningSound, setHasPlayedWarningSound] = useState(false);
   const [showRaiseSlider, setShowRaiseSlider] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [showChat, setShowChat] = useState(false);
@@ -122,6 +123,34 @@ export default function ActiveGamePage() {
   const [playerBubbles, setPlayerBubbles] = useState<Record<string, { message: string; timestamp: number }>>({});
   const lastProcessedTimestampRef = useRef(0);
   
+  // 効果音を再生する関数
+  const playSound = useCallback((type: 'action' | 'warning') => {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    if (type === 'action') {
+      // アクション音：短いビープ音
+      oscillator.frequency.value = 800;
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } else if (type === 'warning') {
+      // 警告音：2回のビープ音
+      oscillator.frequency.value = 1200;
+      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime + 0.15);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.25);
+    }
+  }, []);
+  
   // 動的な値として計算
   const currentPlayer = getCurrentPlayer();
   const callAmount = getCallAmount();
@@ -140,12 +169,22 @@ export default function ActiveGamePage() {
   useEffect(() => {
     if (gameState?.currentPlayerIndex !== undefined && gameState?.phase !== 'finished' && gameState?.phase !== 'waiting') {
       setTurnTimer(15);
+      setHasPlayedWarningSound(false);
     }
   }, [gameState?.currentPlayerIndex, gameState?.phase]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setTurnTimer((prev) => {
+        // 5秒前に警告音を再生
+        if (prev === 5 && !hasPlayedWarningSound) {
+          const currentPlayerInTurn = gameState?.players[gameState?.currentPlayerIndex];
+          if (currentPlayerInTurn && currentPlayerInTurn.userId === user?.id) {
+            playSound('warning');
+            setHasPlayedWarningSound(true);
+          }
+        }
+        
         if (prev <= 1) {
           // タイマーが0になったら自動アクション
           const currentPlayer = gameState?.players[gameState?.currentPlayerIndex];
@@ -164,7 +203,7 @@ export default function ActiveGamePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [gameState, user, performAction]);
+  }, [gameState, user, performAction, hasPlayedWarningSound, playSound]);
 
   // ゲームに参加（ブラインド設定を含む）
   useEffect(() => {
@@ -1477,6 +1516,7 @@ export default function ActiveGamePage() {
           <div className="flex gap-2 items-center">
             <button 
               onClick={() => {
+                playSound('action');
                 performAction('fold');
                 setShowRaiseSlider(false);
               }}
@@ -1487,6 +1527,7 @@ export default function ActiveGamePage() {
             </button>
             <button 
               onClick={() => {
+                playSound('action');
                 const actualCallAmount = getCallAmount();
                 if (actualCallAmount > 0) {
                   performAction('call');
@@ -1509,6 +1550,7 @@ export default function ActiveGamePage() {
             <button 
               onClick={() => {
                 if (showRaiseSlider) {
+                  playSound('action');
                   const currentPlayerChips = getCurrentPlayer()?.chips || 0;
                   if (raiseAmount >= currentPlayerChips) {
                     performAction('all-in');

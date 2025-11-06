@@ -1273,12 +1273,12 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー1 - 中央下（少し左） */}
-      <div className="absolute bottom-32 left-[45%] transform -translate-x-1/2">
+      <div className="absolute bottom-44 left-[45%] transform -translate-x-1/2">
         <PlayerComponent player={players[0]} />
       </div>
 
       {/* 自分の役表示 - プレイヤー1の左 */}
-      <div className="absolute bottom-28 left-[45%] transform -translate-x-1/2 -translate-x-44">
+      <div className="absolute bottom-40 left-[45%] transform -translate-x-1/2 -translate-x-44">
         <motion.div 
           initial={{ x: -100, opacity: 0, scale: 0.8 }}
           animate={{ x: 0, opacity: 1, scale: 1 }}
@@ -1306,7 +1306,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー1のハンドカード - 右側に大きく扇形で表示 */}
-      <div className="absolute bottom-24 left-[45%] transform translate-x-[80px]">
+      <div className="absolute bottom-36 left-[45%] transform translate-x-[80px]">
         <div className="flex items-end">
           {player1HandCards.map((card, cardIndex) => (
             <motion.div

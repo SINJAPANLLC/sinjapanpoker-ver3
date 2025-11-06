@@ -1167,14 +1167,14 @@ export default function ActiveGamePage() {
       </div>
 
       {/* ゲームフェーズ */}
-      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute top-[50%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1 rounded-md border border-white/30 shadow-md">
           <p className="text-white text-xs font-bold text-center">{gamePhase}</p>
         </div>
       </div>
 
       {/* ポットとサイドポット */}
-      <div className="absolute top-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-3 items-center">
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-3 items-center">
         {/* サイドポット（複数オールインがある場合） */}
         {hasSidePots && (
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
@@ -1243,7 +1243,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* コミュニティカード */}
-      <div className="absolute top-[45%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute top-[38%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-3">
           {communityCards.map((card, index) => (
             <div key={card.id} style={{ perspective: '1000px' }}>
@@ -1361,42 +1361,42 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー2 - 左下 */}
-      <div className="absolute bottom-80 left-6">
+      <div className="absolute bottom-96 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
       {/* プレイヤー3 - 左中 */}
-      <div className="absolute top-[55%] left-6 transform -translate-y-1/2">
+      <div className="absolute top-[50%] left-6 transform -translate-y-1/2">
         <PlayerComponent player={players[2]} />
       </div>
 
       {/* プレイヤー4 - 左上 */}
-      <div className="absolute top-64 left-6">
+      <div className="absolute top-56 left-6">
         <PlayerComponent player={players[3]} />
       </div>
 
       {/* プレイヤー5 - 上左 */}
-      <div className="absolute top-28 left-1/4 transform -translate-x-1/2">
+      <div className="absolute top-20 left-1/4 transform -translate-x-1/2">
         <PlayerComponent player={players[4]} />
       </div>
 
       {/* プレイヤー6 - 上右 */}
-      <div className="absolute top-28 right-1/4 transform translate-x-1/2">
+      <div className="absolute top-20 right-1/4 transform translate-x-1/2">
         <PlayerComponent player={players[5]} />
       </div>
 
       {/* プレイヤー7 - 右上 */}
-      <div className="absolute top-64 right-6">
+      <div className="absolute top-56 right-6">
         <PlayerComponent player={players[6]} />
       </div>
 
       {/* プレイヤー8 - 右中 */}
-      <div className="absolute top-[55%] right-6 transform -translate-y-1/2">
+      <div className="absolute top-[50%] right-6 transform -translate-y-1/2">
         <PlayerComponent player={players[7]} />
       </div>
 
       {/* プレイヤー9 - 右下 */}
-      <div className="absolute bottom-80 right-6">
+      <div className="absolute bottom-96 right-6">
         <PlayerComponent player={players[8]} />
       </div>
 

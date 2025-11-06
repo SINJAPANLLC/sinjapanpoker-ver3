@@ -1376,12 +1376,12 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー5 - 上左 */}
-      <div className="absolute top-36 left-1/4 transform -translate-x-1/2">
+      <div className="absolute top-28 left-1/4 transform -translate-x-1/2">
         <PlayerComponent player={players[4]} />
       </div>
 
       {/* プレイヤー6 - 上右 */}
-      <div className="absolute top-36 right-1/4 transform translate-x-1/2">
+      <div className="absolute top-28 right-1/4 transform translate-x-1/2">
         <PlayerComponent player={players[5]} />
       </div>
 

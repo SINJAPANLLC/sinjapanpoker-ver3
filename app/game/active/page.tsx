@@ -32,7 +32,7 @@ export default function ActiveGamePage() {
   const difficulty = searchParams?.get('difficulty') || 'medium';
   
   // テーブルタイプと背景画像の選択
-  const tableType = searchParams?.get('type') || 'standard'; // standard, vip, tournament, premium
+  const tableType = searchParams?.get('type') || (isPracticeMode ? 'tournament' : 'standard'); // 練習モードは青背景
   const getBackgroundImage = () => {
     switch (tableType) {
       case 'vip':

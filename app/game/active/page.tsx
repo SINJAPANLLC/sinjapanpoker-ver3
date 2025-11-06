@@ -1306,7 +1306,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* コミュニティカード */}
-      <div className="absolute top-[38%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-3">
           {communityCards.map((card, index) => (
             <div key={card.id} style={{ perspective: '1000px' }}>
@@ -1424,7 +1424,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー2 - 左下 */}
-      <div className="absolute bottom-96 left-6">
+      <div className="absolute bottom-80 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
@@ -1459,7 +1459,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー9 - 右下 */}
-      <div className="absolute bottom-96 right-6">
+      <div className="absolute bottom-80 right-6">
         <PlayerComponent player={players[8]} />
       </div>
 

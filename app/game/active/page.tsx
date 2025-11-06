@@ -1361,7 +1361,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー2 - 左下 */}
-      <div className="absolute bottom-72 left-6">
+      <div className="absolute bottom-96 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
@@ -1396,7 +1396,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー9 - 右下 */}
-      <div className="absolute bottom-72 right-6">
+      <div className="absolute bottom-96 right-6">
         <PlayerComponent player={players[8]} />
       </div>
 
@@ -1409,7 +1409,7 @@ export default function ActiveGamePage() {
       )}
 
       {/* アクションボタン - 画面下部 */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full px-4 z-[100]">
+      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-full px-4 z-[100]">
         <div className="max-w-md mx-auto space-y-3">
           {/* レイズスライダー */}
           {showRaiseSlider && (

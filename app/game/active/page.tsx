@@ -31,6 +31,21 @@ export default function ActiveGamePage() {
   const isPracticeMode = searchParams?.get('mode') === 'practice';
   const difficulty = searchParams?.get('difficulty') || 'medium';
   
+  // テーブルタイプと背景画像の選択
+  const tableType = searchParams?.get('type') || 'standard'; // standard, vip, tournament, premium
+  const getBackgroundImage = () => {
+    switch (tableType) {
+      case 'vip':
+        return '/bg-vip.png'; // ゴールド背景
+      case 'tournament':
+        return '/bg-tournament.png'; // 青背景
+      case 'premium':
+        return '/bg-premium.png'; // ピンク背景
+      default:
+        return '/bg-standard.png'; // 緑背景
+    }
+  };
+  
   // デモユーザー（認証なしでテスト）- useStateで一貫性を保つ
   const [demoUser] = useState({
     id: `demo-${Math.random().toString(36).substring(7)}`,
@@ -906,7 +921,7 @@ export default function ActiveGamePage() {
         <div 
           className="relative w-full h-screen md:max-w-[430px] md:h-[932px] md:max-h-screen md:rounded-lg md:overflow-hidden md:shadow-2xl origin-center"
           style={{
-            backgroundImage: 'url(/poker-table-bg.png)',
+            backgroundImage: `url(${getBackgroundImage()})`,
             backgroundSize: 'cover',
             backgroundPosition: '55% 32%',
             backgroundRepeat: 'no-repeat',

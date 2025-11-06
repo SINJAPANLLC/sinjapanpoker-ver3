@@ -232,6 +232,7 @@ app.prepare().then(() => {
         player.isAllIn = false;
         player.hasActed = false;
         player.lastAction = null;
+        player.handDescription = undefined;
         player.isDealer = false;
       }
 

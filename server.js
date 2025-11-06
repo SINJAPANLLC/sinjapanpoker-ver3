@@ -1149,6 +1149,7 @@ app.prepare().then(() => {
           }
           
           if (game.phase === 'waiting') {
+            // ゲーム開始前：プレイヤーを削除
             game.removePlayer(playerInfo.userId);
             io.to(playerInfo.gameId).emit('game-state', game.getState());
             
@@ -1161,6 +1162,76 @@ app.prepare().then(() => {
               
               // ロビーに更新を送信（ゲーム削除）
               broadcastLobbyUpdate();
+            }
+          } else if (player && !player.folded) {
+            // ゲーム進行中：プレイヤーを自動的にフォールド
+            player.folded = true;
+            player.hasActed = true;
+            player.lastAction = 'FOLD';
+            console.log(`${player.username} は切断のため自動フォールドしました`);
+            
+            // 現在のプレイヤーが切断した場合、次のプレイヤーに移動
+            if (game.currentPlayerIndex !== -1 && game.players[game.currentPlayerIndex]?.userId === playerInfo.userId) {
+              // タイマーをクリア
+              game.clearTurnTimer();
+              
+              // フォールド後に1人しか残っていない場合は直接ショーダウンへ
+              const activePlayers = game.players.filter(p => !p.folded);
+              if (activePlayers.length === 1) {
+                game.phase = 'showdown';
+                game.showdown();
+                io.to(playerInfo.gameId).emit('game-state', game.getState());
+                
+                setTimeout(async () => {
+                  const canContinue = game.startNextHand();
+                  if (canContinue) {
+                    io.to(playerInfo.gameId).emit('game-state', game.getState());
+                    const firstPlayer = game.players[game.currentPlayerIndex];
+                    if (firstPlayer && game.isCPUPlayer(firstPlayer)) {
+                      game.executeCPUAction(io, playerInfo.gameId);
+                    } else if (firstPlayer) {
+                      game.startTurnTimer(io, playerInfo.gameId);
+                    }
+                  }
+                }, 3000);
+              } else {
+                // 次のプレイヤーに移動
+                game.currentPlayerIndex = game.getNextActivePlayer((game.currentPlayerIndex + 1) % game.players.length);
+                
+                // ベッティングラウンドが終了したかチェック
+                if (game.isBettingRoundComplete()) {
+                  // 全員オールインまたはフォールドの場合、残りのカードを全て配る
+                  const activeNonAllInPlayers = activePlayers.filter(p => !p.isAllIn);
+                  if (activeNonAllInPlayers.length === 0 && activePlayers.length > 1) {
+                    game.nextPhase();
+                    io.to(playerInfo.gameId).emit('game-state', game.getState());
+                  } else {
+                    game.nextPhase();
+                    io.to(playerInfo.gameId).emit('game-state', game.getState());
+                    
+                    // 次のフェーズの最初のプレイヤーがCPU/離席中なら自動実行
+                    const nextPlayer = game.players[game.currentPlayerIndex];
+                    if (nextPlayer && (game.isCPUPlayer(nextPlayer) || nextPlayer.isAway)) {
+                      game.executeCPUAction(io, playerInfo.gameId);
+                    } else if (nextPlayer) {
+                      game.startTurnTimer(io, playerInfo.gameId);
+                    }
+                  }
+                } else {
+                  io.to(playerInfo.gameId).emit('game-state', game.getState());
+                  
+                  // 次のプレイヤーがCPU/離席中なら自動実行
+                  const nextPlayer = game.players[game.currentPlayerIndex];
+                  if (nextPlayer && (game.isCPUPlayer(nextPlayer) || nextPlayer.isAway)) {
+                    game.executeCPUAction(io, playerInfo.gameId);
+                  } else if (nextPlayer) {
+                    game.startTurnTimer(io, playerInfo.gameId);
+                  }
+                }
+              }
+            } else {
+              // 現在のプレイヤーではない場合は状態だけ更新
+              io.to(playerInfo.gameId).emit('game-state', game.getState());
             }
           }
         }

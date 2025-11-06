@@ -506,7 +506,7 @@ export default function ActiveGamePage() {
                 >
                   <div className={`${
                     (gameState?.phase === 'showdown' || gameState?.phase === 'finished') && !player.folded
-                      ? 'scale-[0.5]'
+                      ? 'scale-[0.65]'
                       : 'scale-[0.35]'
                   } origin-center ${player.folded ? 'opacity-30' : ''}`}>
                     <Card 

@@ -558,90 +558,47 @@ export default function ActiveGamePage() {
 
         {/* アバターアイコン */}
         <div className="relative">
-          {/* ALL IN 炎のエフェクト - ゲーム進行中のみ表示 */}
+          {/* ALL IN シンプルなパルス効果 - ゲーム進行中のみ表示 */}
           {player.isAllIn && gameState?.phase !== 'finished' && gameState?.phase !== 'waiting' && (
             <>
-              {/* 外側の炎グロー */}
+              {/* 外側の赤いグロー */}
               <motion.div
                 style={{
                   position: 'absolute',
-                  inset: 0,
+                  inset: '-8px',
                   borderRadius: '9999px',
-                  background: 'radial-gradient(circle, rgba(255,69,0,0.8) 0%, rgba(255,140,0,0.6) 50%, rgba(255,69,0,0) 100%)',
-                  filter: 'blur(12px)',
+                  background: 'radial-gradient(circle, rgba(239, 68, 68, 0.6) 0%, rgba(239, 68, 68, 0.3) 50%, rgba(239, 68, 68, 0) 100%)',
+                  filter: 'blur(8px)',
                   zIndex: 0
                 }}
                 animate={{
-                  scale: [1, 1.4, 1],
-                  opacity: [0.8, 1, 0.8],
+                  scale: [1, 1.2, 1],
+                  opacity: [0.6, 1, 0.6],
                 }}
                 transition={{
-                  duration: 1,
+                  duration: 1.2,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
               
-              {/* 炎パーティクル1 */}
-              {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, index) => (
-                <motion.div
-                  key={`flame-${index}`}
-                  style={{
-                    position: 'absolute',
-                    width: '16px',
-                    height: '20px',
-                    left: '50%',
-                    top: '50%',
-                    transformOrigin: '50% 50%',
-                  }}
-                  animate={{
-                    rotate: [angle, angle + 360],
-                    x: [
-                      Math.cos((angle * Math.PI) / 180) * 35,
-                      Math.cos(((angle + 360) * Math.PI) / 180) * 35
-                    ],
-                    y: [
-                      Math.sin((angle * Math.PI) / 180) * 35,
-                      Math.sin(((angle + 360) * Math.PI) / 180) * 35
-                    ],
-                    scale: [0.8, 1.2, 0.8],
-                    opacity: [0.7, 1, 0.7],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "linear",
-                    delay: index * 0.1,
-                  }}
-                >
-                  <div 
-                    className="w-full h-full"
-                    style={{
-                      background: 'linear-gradient(to top, #FF4500 0%, #FF8C00 50%, #FFD700 100%)',
-                      borderRadius: '40% 40% 60% 60%',
-                      boxShadow: '0 0 10px #FF4500, 0 0 20px #FF8C00',
-                      filter: 'blur(1px)',
-                    }}
-                  />
-                </motion.div>
-              ))}
-              
-              {/* 内側の赤い輪 */}
+              {/* 脈打つ赤い輪 */}
               <motion.div
                 style={{
                   position: 'absolute',
                   inset: 0,
                   borderRadius: '9999px',
-                  border: '3px solid #FF4500',
-                  boxShadow: '0 0 15px #FF4500, inset 0 0 15px #FF4500',
+                  border: '4px solid rgb(239, 68, 68)',
+                  boxShadow: '0 0 20px rgba(239, 68, 68, 0.8), inset 0 0 20px rgba(239, 68, 68, 0.5)',
                   zIndex: 1
                 }}
                 animate={{
-                  scale: [1, 1.15, 1],
-                  opacity: [0.6, 1, 0.6],
+                  scale: [1, 1.1, 1],
+                  opacity: [0.8, 1, 0.8],
+                  borderWidth: ['4px', '6px', '4px'],
                 }}
                 transition={{
-                  duration: 0.8,
+                  duration: 1.2,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}

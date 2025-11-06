@@ -10,6 +10,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**November 7, 2025 - Game Menu APIs & Spectator/Away Features Complete**
+- **Hand History API** (`/api/hand-history`): JWT-authenticated endpoint retrieves user's game history from `gameHistory` table with pagination (limit/offset)
+- **User Stats API** (`/api/user/stats`): Comprehensive statistics endpoint with daily and cumulative stats (hands played, win rate, chips won/lost, biggest pot) from `playerStats` and `gameHistory` tables
+- **Feedback API** (`/api/feedback`): User feedback submission system with category validation (bug/feature/improvement/other) stored in new `feedback` table
+- **Feedback Table Added**: New database table `feedback` with fields for userId, username, category, message, status (pending/in-review/resolved/closed), response, and timestamps
+- **Spectator Mode**: UI toggle for observation-only mode (existing `isSpectator` state) - players can watch without participating
+- **Away Auto-Actions**: Server-side implementation for away players - automatically checks (if possible) or folds when it's their turn
+  - `awayPlayers` Set tracks away status per game
+  - `set-away-status` socket event updates player away status
+  - Auto-action executes 1 second after turn start with system chat notification
+- **All Game Menu Features Complete**: 14/14 menu items fully functional (UI + backend APIs):
+  - ✅ Home Return, Table Info, Hand History, Player List, Statistics, Action Log, Settings, Rules, Share, Feedback, Language Settings, Account Settings, Spectator Mode, Away Status
+
 **November 6, 2025 - Sound Effects, Chat Fix & Dramatic Card Bias Complete**
 - **Fixed chat message duplication bug**: Properly cleaned up Socket.io event listeners using named functions and `socket.off()`
 - **Implemented action sound effects**: Web Audio API generates short beep sound (800Hz, 0.1s) when players fold/call/raise

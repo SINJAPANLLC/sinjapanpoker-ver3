@@ -301,6 +301,31 @@ app.prepare().then(() => {
     nextPhase() {
       this.bettingRound++;
       
+      // アクティブプレイヤー（フォールドしていない）をチェック
+      const activePlayers = this.players.filter(p => !p.folded);
+      
+      // 全員オールインまたはフォールドの場合、残りのカードを全て配ってショーダウンへ
+      const activeNonAllInPlayers = activePlayers.filter(p => !p.isAllIn);
+      if (activeNonAllInPlayers.length === 0 && activePlayers.length > 1) {
+        // 全員オールインの場合、残りのカードを全て配る
+        while (this.phase !== 'river' && this.phase !== 'showdown') {
+          if (this.phase === 'preflop') {
+            this.phase = 'flop';
+            this.dealFlop();
+          } else if (this.phase === 'flop') {
+            this.phase = 'turn';
+            this.dealTurn();
+          } else if (this.phase === 'turn') {
+            this.phase = 'river';
+            this.dealRiver();
+          }
+        }
+        // ショーダウンへ
+        this.phase = 'showdown';
+        this.showdown();
+        return;
+      }
+      
       if (this.phase === 'preflop') {
         this.phase = 'flop';
         this.dealFlop();

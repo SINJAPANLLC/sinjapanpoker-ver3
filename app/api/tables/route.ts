@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db-api';
 import { clubTables } from '@/shared/schema';
 import { desc, eq } from 'drizzle-orm';
-import { verifyAuth } from '@/lib/auth/verify-auth';
+import { verifyAuth } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authResult = verifyAuth(request);
-    if ('error' in authResult) {
-      return NextResponse.json({ message: authResult.error }, { status: authResult.status });
+    const authResult = await verifyAuth(request);
+    if (!authResult.valid || !authResult.userId) {
+      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -63,13 +63,13 @@ export async function POST(request: NextRequest) {
         maxPlayers,
         rakePercentage: rakePercent,
         rakeCap: rakeCapValue,
-        createdBy: authResult.user.id,
+        createdBy: authResult.userId,
         status: 'active',
         currentPlayers: 0,
       })
       .returning();
 
-    console.log(`テーブル作成: ${newTable.name} (ユーザー: ${authResult.user.username || authResult.user.id})`);
+    console.log(`テーブル作成: ${newTable.name} (ユーザー: ${authResult.username || authResult.userId})`);
 
     return NextResponse.json({
       message: 'テーブルを作成しました',

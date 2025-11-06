@@ -91,6 +91,7 @@ export default function ActiveGamePage() {
   const [showPlayerList, setShowPlayerList] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [isSpectatorMode, setIsSpectatorMode] = useState(false);
   const [isAway, setIsAway] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(1);
   const [dealingCards, setDealingCards] = useState(false);

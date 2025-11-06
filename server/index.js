@@ -95,6 +95,7 @@ class PokerGame {
     this.winningHand = null;
     this.totalBets = new Map();
     this.difficulty = difficulty; // 練習モード用の難易度
+    this.awayPlayers = new Set(); // 離席中のプレイヤーID
   }
 
   addPlayer(player) {
@@ -559,6 +560,20 @@ io.on('connection', (socket) => {
   });
 
   // プレイヤーアクション
+  // 離席状態の設定
+  socket.on('set-away-status', (data) => {
+    const gameId = players.get(socket.id);
+    const game = games.get(gameId);
+    
+    if (game) {
+      if (data.isAway) {
+        game.awayPlayers.add(socket.id);
+      } else {
+        game.awayPlayers.delete(socket.id);
+      }
+    }
+  });
+
   socket.on('player-action', (data) => {
     const gameId = players.get(socket.id);
     const game = games.get(gameId);
@@ -570,14 +585,34 @@ io.on('connection', (socket) => {
       if (result.success) {
         io.to(gameId).emit('game-state', game.getGameState());
         
-        // アクション後、次のプレイヤーがCPUの場合は自動アクションを実行
+        // アクション後、次のプレイヤーがCPUまたは離席中の場合は自動アクションを実行
         const currentPlayer = game.players[game.currentPlayerIndex];
+        
+        // CPU自動アクション
         if (currentPlayer && game.isCPUPlayer(currentPlayer) && game.phase !== 'finished' && game.phase !== 'showdown') {
           game.executeCPUAction((result) => {
             if (result.success) {
               io.to(gameId).emit('game-state', game.getGameState());
             }
           });
+        }
+        
+        // 離席中プレイヤーの自動アクション
+        if (currentPlayer && game.awayPlayers.has(currentPlayer.id) && game.phase !== 'finished' && game.phase !== 'showdown') {
+          setTimeout(() => {
+            // 離席中は自動的にチェック/フォールド
+            const autoAction = game.currentBet === currentPlayer.bet ? 'check' : 'fold';
+            const autoResult = game.playerAction(currentPlayer.id, autoAction);
+            
+            if (autoResult.success) {
+              io.to(gameId).emit('game-state', game.getGameState());
+              io.to(gameId).emit('chat-message', {
+                username: 'システム',
+                message: `${currentPlayer.username}は離席中のため${autoAction === 'check' ? 'チェック' : 'フォールド'}しました`,
+                timestamp: Date.now()
+              });
+            }
+          }, 1000); // 1秒後に自動アクション
         }
       } else {
         socket.emit('action-error', { message: result.error || 'アクションが失敗しました' });

@@ -1424,7 +1424,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー2 - 左下 */}
-      <div className="absolute bottom-88 left-6">
+      <div className="absolute bottom-96 left-6">
         <PlayerComponent player={players[1]} />
       </div>
 
@@ -1459,7 +1459,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* プレイヤー9 - 右下 */}
-      <div className="absolute bottom-88 right-6">
+      <div className="absolute bottom-96 right-6">
         <PlayerComponent player={players[8]} />
       </div>
 

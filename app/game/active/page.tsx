@@ -1167,14 +1167,14 @@ export default function ActiveGamePage() {
       </div>
 
       {/* ゲームフェーズ */}
-      <div className="absolute top-[30%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1 rounded-md border border-white/30 shadow-md">
           <p className="text-white text-xs font-bold text-center">{gamePhase}</p>
         </div>
       </div>
 
       {/* ポットとサイドポット */}
-      <div className="absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-3 items-center">
+      <div className="absolute top-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-3 items-center">
         {/* サイドポット（複数オールインがある場合） */}
         {hasSidePots && (
           <div className="bg-gradient-to-br from-cyan-400 to-blue-600 px-3 py-1.5 rounded border-2 border-white/30 shadow-md">
@@ -1243,7 +1243,7 @@ export default function ActiveGamePage() {
       </div>
 
       {/* コミュニティカード */}
-      <div className="absolute top-[52%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute top-[22%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex gap-3">
           {communityCards.map((card, index) => (
             <div key={card.id} style={{ perspective: '1000px' }}>

@@ -691,14 +691,14 @@ export default function ActiveGamePage() {
               />
             </>
           )}
-          <div className={`relative w-16 h-16 rounded-full border-3 ${player.isAllIn ? 'border-red-500' : player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
+          <div className={`relative w-20 h-20 rounded-full border-3 ${player.isAllIn ? 'border-red-500' : player.isWinner ? 'border-yellow-400' : 'border-white'} shadow-lg overflow-hidden ${player.folded ? 'opacity-40' : ''} z-10`}>
             {player.avatar && player.avatar !== 'default' ? (
               <Image
                 key={`avatar-${player.id}-${player.avatar}`}
                 src={player.avatar}
                 alt={player.name}
-                width={64}
-                height={64}
+                width={80}
+                height={80}
                 unoptimized
                 priority
                 className="w-full h-full object-cover"
@@ -715,8 +715,8 @@ export default function ActiveGamePage() {
 
         {/* ポジションマーカー（D, SB, BB） */}
         {player.position && (
-          <div className="absolute -top-2 -right-2 w-7 h-7 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
-            <p className="text-white text-[10px] font-bold">{player.position}</p>
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20">
+            <p className="text-white text-xs font-bold">{player.position}</p>
           </div>
         )}
 
@@ -803,11 +803,11 @@ export default function ActiveGamePage() {
         </AnimatePresence>
 
         {/* ユーザー情報（アバターの下部に被せる） */}
-        <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(50%+8px)] bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-0.5 rounded-lg border-2 border-white/30 shadow-lg min-w-[80px] z-10 ${player.folded ? 'opacity-40' : ''}`}>
-          <p className="text-white text-[9px] font-bold text-center whitespace-nowrap">
+        <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[calc(50%+10px)] bg-gradient-to-br from-cyan-400 to-blue-600 backdrop-blur-sm px-2 py-1 rounded-lg border-2 border-white/30 shadow-lg min-w-[90px] z-10 ${player.folded ? 'opacity-40' : ''}`}>
+          <p className="text-white text-[10px] font-bold text-center whitespace-nowrap">
             {player.name}
           </p>
-          <p className="text-white text-[9px] font-semibold text-center whitespace-nowrap">
+          <p className="text-white text-[10px] font-semibold text-center whitespace-nowrap">
             {player.chips.toLocaleString()}
           </p>
         </div>

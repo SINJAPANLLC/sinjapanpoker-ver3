@@ -109,6 +109,8 @@ app.prepare().then(() => {
       this.lastRaiserIndex = -1;
       this.bettingRound = 0;
       this.difficulty = difficulty;
+      this.turnTimer = null;
+      this.turnTimeLimit = 15000;
     }
 
     addPlayer(player) {
@@ -452,6 +454,104 @@ app.prepare().then(() => {
       return true;
     }
 
+    // タイマーをクリア
+    clearTurnTimer() {
+      if (this.turnTimer) {
+        clearTimeout(this.turnTimer);
+        this.turnTimer = null;
+      }
+    }
+
+    // ターンタイマーを開始
+    startTurnTimer(io, gameId) {
+      this.clearTurnTimer();
+      
+      const currentPlayer = this.players[this.currentPlayerIndex];
+      if (!currentPlayer) return;
+      
+      // CPU・離席中プレイヤーはタイマーなし
+      if (this.isCPUPlayer(currentPlayer) || currentPlayer.isAway) {
+        return;
+      }
+      
+      this.turnTimer = setTimeout(() => {
+        // タイムアウト：自動的にフォールド/チェック
+        const callAmount = this.currentBet - currentPlayer.bet;
+        if (callAmount === 0) {
+          currentPlayer.hasActed = true;
+          currentPlayer.lastAction = 'CHECK';
+        } else {
+          currentPlayer.folded = true;
+          currentPlayer.hasActed = true;
+          currentPlayer.lastAction = 'FOLD';
+        }
+        
+        console.log(`タイムアウト ${currentPlayer.username} のアクション: ${currentPlayer.lastAction}`);
+        
+        // フォールド後に1人しか残っていない場合は直接ショーダウンへ
+        const activePlayers = this.players.filter(p => !p.folded);
+        if (activePlayers.length === 1) {
+          this.phase = 'showdown';
+          this.showdown();
+          io.to(gameId).emit('game-state', this.getState());
+          
+          setTimeout(async () => {
+            const canContinue = this.startNextHand();
+            if (canContinue) {
+              io.to(gameId).emit('game-state', this.getState());
+              const firstPlayer = this.players[this.currentPlayerIndex];
+              if (firstPlayer && this.isCPUPlayer(firstPlayer)) {
+                this.executeCPUAction(io, gameId);
+              } else if (firstPlayer) {
+                this.startTurnTimer(io, gameId);
+              }
+            }
+          }, 3000);
+          return;
+        }
+        
+        // 次のプレイヤーに移動
+        this.currentPlayerIndex = this.getNextActivePlayer((this.currentPlayerIndex + 1) % this.players.length);
+        
+        // ベッティングラウンドが終了したかチェック
+        const activeNonAllInPlayers = this.players.filter(p => !p.folded && !p.isAllIn);
+        const allActed = activeNonAllInPlayers.every(p => p.hasActed && p.bet === this.currentBet);
+        
+        if (allActed || activeNonAllInPlayers.length === 0) {
+          this.nextPhase();
+        }
+        
+        io.to(gameId).emit('game-state', this.getState());
+        
+        // ゲームが終了していたら次のハンドを開始
+        if (this.phase === 'finished') {
+          setTimeout(async () => {
+            const canContinue = this.startNextHand();
+            if (canContinue) {
+              io.to(gameId).emit('game-state', this.getState());
+              const firstPlayer = this.players[this.currentPlayerIndex];
+              if (firstPlayer && this.isCPUPlayer(firstPlayer)) {
+                this.executeCPUAction(io, gameId);
+              } else if (firstPlayer) {
+                this.startTurnTimer(io, gameId);
+              }
+            }
+          }, 3000);
+          return;
+        }
+        
+        // 次のプレイヤーもCPU/離席中なら再帰的に実行
+        if (this.phase !== 'finished' && this.phase !== 'showdown') {
+          const nextPlayer = this.players[this.currentPlayerIndex];
+          if (nextPlayer && (this.isCPUPlayer(nextPlayer) || nextPlayer.isAway)) {
+            this.executeCPUAction(io, gameId);
+          } else if (nextPlayer) {
+            this.startTurnTimer(io, gameId);
+          }
+        }
+      }, this.turnTimeLimit);
+    }
+
     // CPUプレイヤーかどうか判定
     isCPUPlayer(player) {
       return player && player.userId && player.userId.toString().startsWith('cpu-');
@@ -527,14 +627,40 @@ app.prepare().then(() => {
               break;
           }
           
+          // フォールド後に1人しか残っていない場合は直接ショーダウンへ
+          const activePlayers = this.players.filter(p => !p.folded);
+          if (activePlayers.length === 1) {
+            this.phase = 'showdown';
+            this.showdown();
+            io.to(gameId).emit('game-state', this.getState());
+            
+            setTimeout(async () => {
+              if (this.id !== 'practice-game') {
+                // await saveGameToDatabase(this);
+              }
+              
+              const canContinue = this.startNextHand();
+              if (canContinue) {
+                io.to(gameId).emit('game-state', this.getState());
+                const firstPlayer = this.players[this.currentPlayerIndex];
+                if (firstPlayer && this.isCPUPlayer(firstPlayer)) {
+                  this.executeCPUAction(io, gameId);
+                } else if (firstPlayer) {
+                  this.startTurnTimer(io, gameId);
+                }
+              }
+            }, 3000);
+            return;
+          }
+          
           // 次のプレイヤーに移動
           this.currentPlayerIndex = this.getNextActivePlayer((this.currentPlayerIndex + 1) % this.players.length);
           
           // ベッティングラウンドが終了したかチェック
-          const activePlayers = this.players.filter(p => !p.folded && !p.isAllIn);
-          const allActed = activePlayers.every(p => p.hasActed && p.bet === this.currentBet);
+          const activeNonAllInPlayers = this.players.filter(p => !p.folded && !p.isAllIn);
+          const allActed = activeNonAllInPlayers.every(p => p.hasActed && p.bet === this.currentBet);
           
-          if (allActed || activePlayers.length <= 1) {
+          if (allActed || activeNonAllInPlayers.length === 0) {
             this.nextPhase();
           }
           
@@ -556,6 +682,8 @@ app.prepare().then(() => {
                 const firstPlayer = this.players[this.currentPlayerIndex];
                 if (firstPlayer && this.isCPUPlayer(firstPlayer)) {
                   this.executeCPUAction(io, gameId);
+                } else if (firstPlayer) {
+                  this.startTurnTimer(io, gameId);
                 }
               }
             }, 3000);
@@ -567,6 +695,8 @@ app.prepare().then(() => {
             const nextPlayer = this.players[this.currentPlayerIndex];
             if (nextPlayer && (this.isCPUPlayer(nextPlayer) || nextPlayer.isAway)) {
               this.executeCPUAction(io, gameId);
+            } else if (nextPlayer) {
+              this.startTurnTimer(io, gameId);
             }
           }
         } catch (error) {
@@ -696,9 +826,12 @@ app.prepare().then(() => {
             // ロビーに更新を送信（ゲーム開始）
             broadcastLobbyUpdate();
             
-            // ゲーム開始後、最初のプレイヤーがCPUなら自動アクション
-            if (game.isCPUPlayer && game.isCPUPlayer(game.players[game.currentPlayerIndex])) {
+            // ゲーム開始後、最初のプレイヤーがCPU/離席中なら自動アクション、それ以外ならタイマー開始
+            const firstPlayer = game.players[game.currentPlayerIndex];
+            if (firstPlayer && game.isCPUPlayer(firstPlayer)) {
               game.executeCPUAction(io, gameId);
+            } else if (firstPlayer) {
+              game.startTurnTimer(io, gameId);
             }
           }, 3000);
         }
@@ -734,6 +867,9 @@ app.prepare().then(() => {
         }
 
         console.log(`プレイヤー ${player.username} のアクション: ${action}${amount ? ` (${amount})` : ''}`);
+        
+        // タイマーをクリア
+        game.clearTurnTimer();
 
         switch (action) {
           case 'fold':
@@ -845,6 +981,8 @@ app.prepare().then(() => {
               const firstPlayer = game.players[game.currentPlayerIndex];
               if (firstPlayer && game.isCPUPlayer(firstPlayer)) {
                 game.executeCPUAction(io, playerInfo.gameId);
+              } else if (firstPlayer) {
+                game.startTurnTimer(io, playerInfo.gameId);
               }
             } else {
               io.to(playerInfo.gameId).emit('game-ended', { message: 'ゲームが終了しました' });
@@ -876,6 +1014,8 @@ app.prepare().then(() => {
                 const firstPlayer = game.players[game.currentPlayerIndex];
                 if (firstPlayer && game.isCPUPlayer(firstPlayer)) {
                   game.executeCPUAction(io, playerInfo.gameId);
+                } else if (firstPlayer) {
+                  game.startTurnTimer(io, playerInfo.gameId);
                 }
               } else {
                 io.to(playerInfo.gameId).emit('game-ended', { message: 'ゲームが終了しました' });
@@ -885,21 +1025,27 @@ app.prepare().then(() => {
             return;
           }
           
-          // フェーズ遷移後、次のプレイヤーがCPUなら自動アクション
+          // フェーズ遷移後、次のプレイヤーがCPU/離席中なら自動アクション、それ以外ならタイマー開始
           io.to(playerInfo.gameId).emit('game-state', game.getState());
           const nextPhasePlayer = game.players[game.currentPlayerIndex];
           if (nextPhasePlayer && game.isCPUPlayer(nextPhasePlayer)) {
             game.executeCPUAction(io, playerInfo.gameId);
+          } else if (nextPhasePlayer) {
+            game.startTurnTimer(io, playerInfo.gameId);
           }
           return;
         }
 
         io.to(playerInfo.gameId).emit('game-state', game.getState());
         
-        // 次のプレイヤーがCPUなら自動アクション
+        // 次のプレイヤーがCPU/離席中なら自動アクション、それ以外ならタイマー開始
         const currentPlayer = game.players[game.currentPlayerIndex];
-        if (currentPlayer && game.isCPUPlayer(currentPlayer) && game.phase !== 'finished' && game.phase !== 'showdown') {
-          game.executeCPUAction(io, playerInfo.gameId);
+        if (currentPlayer && game.phase !== 'finished' && game.phase !== 'showdown') {
+          if (game.isCPUPlayer(currentPlayer) || currentPlayer.isAway) {
+            game.executeCPUAction(io, playerInfo.gameId);
+          } else {
+            game.startTurnTimer(io, playerInfo.gameId);
+          }
         }
       } catch (error) {
         console.error('player-action error:', error);

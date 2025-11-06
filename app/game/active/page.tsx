@@ -809,7 +809,7 @@ export default function ActiveGamePage() {
             {player.name}
           </p>
           <p className="text-white text-[10px] font-semibold text-center whitespace-nowrap">
-            {player.chips.toLocaleString()}
+            {Math.floor(player.chips).toLocaleString()}
           </p>
         </div>
 
@@ -1182,7 +1182,7 @@ export default function ActiveGamePage() {
             <p className="text-white text-[8px] font-bold text-center">SIDE POT</p>
             <div className="flex items-center justify-center gap-0.5">
               <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
-              <p className="text-white text-[10px] font-semibold">{sidePotTotal.toLocaleString()}</p>
+              <p className="text-white text-[10px] font-semibold">{Math.floor(sidePotTotal).toLocaleString()}</p>
             </div>
           </div>
         )}
@@ -1237,7 +1237,7 @@ export default function ActiveGamePage() {
             <p className="text-white text-xs font-bold text-center">POT</p>
             <div className="flex items-center justify-center gap-1">
               <Image src="/chip-icon.png" alt="chip" width={16} height={16} unoptimized />
-              <p className="text-white text-sm font-semibold">{pot.toLocaleString()}</p>
+              <p className="text-white text-sm font-semibold">{Math.floor(pot).toLocaleString()}</p>
             </div>
           </motion.div>
         </div>
@@ -2189,7 +2189,7 @@ export default function ActiveGamePage() {
                 ))}
               </motion.div>
               <p className="text-white text-3xl font-bold text-center">チップ追加！</p>
-              <p className="text-yellow-300 text-4xl font-bold text-center mt-2">+{rebuyAmount.toLocaleString()}</p>
+              <p className="text-yellow-300 text-4xl font-bold text-center mt-2">+{Math.floor(rebuyAmount).toLocaleString()}</p>
             </div>
           </motion.div>
         </div>
@@ -2301,7 +2301,7 @@ export default function ActiveGamePage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
-                        <span className="text-white text-xs font-semibold">{player.chips.toLocaleString()}</span>
+                        <span className="text-white text-xs font-semibold">{Math.floor(player.chips).toLocaleString()}</span>
                       </div>
                     </div>
                   ))}
@@ -2527,7 +2527,7 @@ export default function ActiveGamePage() {
                 <p className="text-white/80 text-xs mb-1">現在のチップ</p>
                 <div className="flex items-center gap-2">
                   <Image src="/chip-icon.png" alt="chip" width={20} height={20} unoptimized />
-                  <p className="text-white text-2xl font-bold">{(user?.chips || 0).toLocaleString()}</p>
+                  <p className="text-white text-2xl font-bold">{Math.floor(user?.chips || 0).toLocaleString()}</p>
                 </div>
               </div>
 
@@ -2544,7 +2544,7 @@ export default function ActiveGamePage() {
                           : 'bg-white/20 text-white hover:bg-white/30'
                       } border border-white/40`}
                     >
-                      <p className="text-xs font-bold">{amount.toLocaleString()}</p>
+                      <p className="text-xs font-bold">{Math.floor(amount).toLocaleString()}</p>
                     </button>
                   ))}
                 </div>
@@ -2615,7 +2615,7 @@ export default function ActiveGamePage() {
                       <p className="text-white/70 text-xs">チップ</p>
                       <div className="flex items-center gap-1">
                         <Image src="/chip-icon.png" alt="chip" width={12} height={12} unoptimized />
-                        <p className="text-white text-sm font-semibold">{player.chips.toLocaleString()}</p>
+                        <p className="text-white text-sm font-semibold">{Math.floor(player.chips).toLocaleString()}</p>
                       </div>
                     </div>
                     <div className="bg-white/10 rounded px-2 py-1">

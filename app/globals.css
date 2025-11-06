@@ -32,6 +32,9 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  /* ネイティブアプリ風のタップ動作 */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 html,
@@ -43,15 +46,78 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: #0a0a0a;
   color: white;
+  /* オーバースクロール（バウンス）を無効化 */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  /* 固定ポジションのちらつき防止 */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  /* スクロール位置の保持 */
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 
 body {
   background: radial-gradient(ellipse at top, #1a1a1a 0%, #0a0a0a 50%, #000000 100%);
   background-attachment: fixed;
+  /* プルトゥリフレッシュを無効化 */
+  overscroll-behavior-y: none;
+  /* タッチムーブでのデフォルト動作を制御 */
+  touch-action: pan-x pan-y;
 }
 
 html {
   scroll-behavior: smooth;
+  /* iOS Safariのバウンスを完全に無効化 */
+  position: fixed;
+  overflow: hidden;
+}
+
+/* アプリコンテナのスクロール許可 */
+#__next {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+}
+
+/* 入力要素のネイティブ風スタイル */
+input,
+textarea,
+select,
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  /* 入力要素はユーザー選択を許可 */
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ボタンとリンクは選択不可 */
+button,
+a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* iOSでのズーム無効化 */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea {
+  font-size: 16px !important;
+}
+
+/* タッチデバイスでのホバー効果を無効化 */
+@media (hover: none) {
+  button:hover {
+    transform: none;
+  }
 }
 
 /* カスタムスクロールバー */

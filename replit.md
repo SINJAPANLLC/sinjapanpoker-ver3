@@ -12,7 +12,7 @@ Preferred communication style: Simple, everyday language.
 
 **November 7, 2025 - UI Position Adjustments**
 - Fixed community cards position: moved down from `top-[38%]` to `top-[40%]` for better visual balance
-- Reverted Player 2 and 9 positions to original `bottom-96`
+- Adjusted Player 2 and 9 positions: `bottom-96` → `bottom-92` (slightly down)
 - Improved overall table layout
 
 **November 7, 2025 - Profile Avatar Authentication Fix**

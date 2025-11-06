@@ -504,7 +504,11 @@ export default function ActiveGamePage() {
                     zIndex: 100 + cardIndex,
                   }}
                 >
-                  <div className={`scale-[0.35] origin-center ${player.folded ? 'opacity-30' : ''}`}>
+                  <div className={`${
+                    (gameState?.phase === 'showdown' || gameState?.phase === 'finished') && !player.folded
+                      ? 'scale-[0.5]'
+                      : 'scale-[0.35]'
+                  } origin-center ${player.folded ? 'opacity-30' : ''}`}>
                     <Card 
                       card={card} 
                       faceUp={
@@ -1372,13 +1376,13 @@ export default function ActiveGamePage() {
         <PlayerComponent player={players[3]} />
       </div>
 
-      {/* プレイヤー5 - 上左 */}
-      <div className="absolute top-20 left-1/4 transform -translate-x-1/2">
+      {/* プレイヤー5 - 上左（少し左寄り） */}
+      <div className="absolute top-20 left-[20%] transform -translate-x-1/2">
         <PlayerComponent player={players[4]} />
       </div>
 
-      {/* プレイヤー6 - 上右 */}
-      <div className="absolute top-20 right-1/4 transform translate-x-1/2">
+      {/* プレイヤー6 - 上右（少し右寄り） */}
+      <div className="absolute top-20 right-[20%] transform translate-x-1/2">
         <PlayerComponent player={players[5]} />
       </div>
 

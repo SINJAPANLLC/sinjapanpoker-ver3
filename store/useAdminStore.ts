@@ -47,7 +47,9 @@ export const useAdminStore = create<AdminState>()(
       
       hasPermission: (permission: string) => {
         const state = get();
-        return state.adminUser?.permissions.includes(permission) || false;
+        if (!state.adminUser) return false;
+        if (state.adminUser.role === 'super-admin') return true;
+        return state.adminUser.permissions?.includes(permission) || false;
       }
     }),
     {

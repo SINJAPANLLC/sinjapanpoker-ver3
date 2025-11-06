@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/server/db';
+import { db } from '@/server/db-api';
 import { clubTables } from '@/shared/schema';
-import { desc } from 'drizzle-orm';
-import { verifyAuth } from '@/lib/auth-utils';
+import { desc, eq } from 'drizzle-orm';
+import { verifyAuth } from '@/lib/auth/verify-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // 全テーブルを取得（認証不要でロビーに表示）
+    // activeなテーブルのみを取得（認証不要でロビーに表示）
     const allTables = await db
       .select()
       .from(clubTables)
-      .orderBy(desc(clubTables.createdAt));
+      .where(eq(clubTables.status, 'active'))
+      .orderBy(desc(clubTables.createdAt))
+      .limit(50);
 
     return NextResponse.json({
       tables: allTables,
@@ -23,15 +25,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.user) {
-      return NextResponse.json({ message: '認証が必要です' }, { status: 401 });
+    const authResult = verifyAuth(request);
+    if ('error' in authResult) {
+      return NextResponse.json({ message: authResult.error }, { status: authResult.status });
     }
 
     const body = await request.json();
-    const { name, stakes, maxPlayers, type, rakePercentage, rakeCap } = body;
+    const { name, stakes, maxPlayers, type, rakePercentage, rakeCap, settings, buyIn } = body;
 
-    if (!name || !stakes || !maxPlayers) {
+    if (!name || !maxPlayers) {
       return NextResponse.json({ message: '必須フィールドが不足しています' }, { status: 400 });
     }
 
@@ -39,23 +41,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'プレイヤー数は2～9人です' }, { status: 400 });
     }
 
+    // stakesの処理
+    let stakesStr = stakes;
+    if (settings?.blinds) {
+      stakesStr = `${settings.blinds.small}/${settings.blinds.big}`;
+    } else if (!stakesStr) {
+      stakesStr = '10/20';
+    }
+
     const rakePercent = rakePercentage !== undefined ? Math.round(rakePercentage * 100) : 5;
     const rakeCapValue = rakeCap !== undefined ? rakeCap : 10;
+    const tableType = type === 'sit-and-go' ? 'tournament' : (type || 'cash');
 
     const [newTable] = await db
       .insert(clubTables)
       .values({
         name,
         clubId: null,
-        type: type || 'cash',
-        stakes: typeof stakes === 'string' ? stakes : JSON.stringify(stakes),
+        type: tableType as 'cash' | 'tournament',
+        stakes: typeof stakesStr === 'string' ? stakesStr : JSON.stringify(stakesStr),
         maxPlayers,
         rakePercentage: rakePercent,
         rakeCap: rakeCapValue,
+        createdBy: authResult.user.id,
+        status: 'active',
+        currentPlayers: 0,
       })
       .returning();
 
-    console.log(`テーブル作成: ${newTable.name} (ユーザー: ${authResult.user.username})`);
+    console.log(`テーブル作成: ${newTable.name} (ユーザー: ${authResult.user.username || authResult.user.id})`);
 
     return NextResponse.json({
       message: 'テーブルを作成しました',

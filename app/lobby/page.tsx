@@ -231,6 +231,8 @@ function LobbyContent() {
 
   const handleCreateTable = async (tableData: any) => {
     try {
+      console.log('テーブル作成リクエスト:', tableData);
+      
       const response = await fetch('/api/tables', {
         method: 'POST',
         headers: {
@@ -239,9 +241,13 @@ function LobbyContent() {
         },
         body: JSON.stringify({
           name: tableData.name,
-          stakes: `${tableData.blinds.small}/${tableData.blinds.big}`,
           maxPlayers: tableData.maxPlayers,
           type: tableData.type,
+          settings: tableData.settings,
+          buyIn: tableData.buyIn,
+          isPrivate: tableData.isPrivate,
+          password: tableData.password,
+          description: tableData.description,
           rakePercentage: 0.05,
           rakeCap: 10,
         }),
@@ -249,33 +255,17 @@ function LobbyContent() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('テーブル作成成功:', data);
         // データベースからテーブルリストを再取得
         await fetchTables();
       } else {
-        console.error('テーブル作成失敗:', await response.text());
-        // フォールバック：ローカルに追加
-        const newTable = {
-          id: tableData.id || Date.now().toString(),
-          ...tableData,
-          currentPlayers: 1,
-          status: 'waiting' as const,
-          createdBy: user?.username || 'You',
-          createdAt: new Date()
-        };
-        setTables(prev => [newTable, ...prev]);
+        const errorText = await response.text();
+        console.error('テーブル作成失敗:', errorText);
+        alert(`テーブル作成に失敗しました: ${errorText}`);
       }
     } catch (error) {
       console.error('テーブル作成エラー:', error);
-      // フォールバック：ローカルに追加
-      const newTable = {
-        id: tableData.id || Date.now().toString(),
-        ...tableData,
-        currentPlayers: 1,
-        status: 'waiting' as const,
-        createdBy: user?.username || 'You',
-        createdAt: new Date()
-      };
-      setTables(prev => [newTable, ...prev]);
+      alert('テーブル作成中にエラーが発生しました');
     }
     setShowCreateTable(false);
   };

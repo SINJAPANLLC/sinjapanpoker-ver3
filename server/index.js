@@ -180,8 +180,10 @@ class PokerGame {
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
 
-    // 練習モード専用：30%の確率でドラマチックな展開を演出
-    if (this.difficulty && Math.random() < 0.3) {
+    // ドラマチックな展開を演出する偏り
+    // 練習モード：30%の確率、本番環境：10%の確率
+    const biasChance = this.difficulty ? 0.30 : 0.10;
+    if (Math.random() < biasChance) {
       this.applyDramaticBias(deck);
     }
 

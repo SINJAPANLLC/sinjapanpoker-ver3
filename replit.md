@@ -14,11 +14,14 @@ Preferred communication style: Simple, everyday language.
 - **Fixed chat message duplication bug**: Properly cleaned up Socket.io event listeners using named functions and `socket.off()`
 - **Implemented action sound effects**: Web Audio API generates short beep sound (800Hz, 0.1s) when players fold/call/raise
 - **Implemented 5-second warning sound**: Dual-beep alert (1200Hz, 0.25s) plays when turn timer reaches 5 seconds remaining
-- **Dramatic card bias system**: 30% chance for practice mode games to apply subtle card distribution biases for more exciting gameplay
-  - 25% chance: Strong cards (A, K, Q, J, 10) distributed to create premium starting hands
-  - 25% chance: Pairs more likely by positioning same-rank cards near each other
-  - 25% chance: Balanced distribution of mid-high cards for closer competitions
-  - 25% chance: Increased flush possibilities by grouping same-suit cards
+- **Dramatic card bias system**: Subtle card distribution biases for more exciting gameplay
+  - Practice mode: 30% chance of bias activation
+  - Real money mode: 10% chance of bias activation (more conservative)
+  - Four bias patterns (each 25% when activated):
+    - Strong cards (A, K, Q, J, 10) distributed to create premium starting hands
+    - Pairs more likely by positioning same-rank cards near each other
+    - Balanced distribution of mid-high cards for closer competitions
+    - Increased flush possibilities by grouping same-suit cards
 - **Enhanced UX**: Audio feedback confirms user actions and prevents timeouts; subtle biases create more dramatic and engaging games
 
 **November 6, 2025 - Admin Currency & Tournament Management Complete**

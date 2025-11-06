@@ -10,6 +10,29 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**November 6, 2025 - Admin Currency & Tournament Management Complete**
+- **Currency Granting API** (`/api/admin/grant-currency`): Comprehensive chip and energy management
+  - Supports realChips, gameChips, and energy adjustments (addition/subtraction)
+  - Admin authentication with `requireAdmin()` middleware
+  - Input validation: numerical checks, mandatory reason field, negative balance prevention
+  - Returns updated user balance after successful operation
+- **Tournament Management API** (`/api/admin/tournaments`): Full CRUD operations for tournaments
+  - GET: Retrieves tournament list with statistics (total, registering, in-progress, completed, cancelled)
+  - POST: Creates new tournaments with validation (buy-in ≥10, max players 2-1000)
+  - PATCH: Updates tournament status (start, cancel, complete) with state transition validation
+  - DELETE: Removes tournaments (prevents deletion of in-progress tournaments)
+  - All endpoints require admin authentication
+- **Tournament Management UI** (`/admin/tournaments`): Complete admin interface
+  - Search and filter functionality (by status: all, registering, in-progress, completed, cancelled)
+  - Statistics summary dashboard (total tournaments, total players, total prize pool, in-progress count)
+  - Tournament list with action buttons (start, complete, cancel, delete)
+  - Responsive design with real-time updates via token-protected API calls
+- **Tournament API Security Enhancement** (`/api/tournament/[id]`):
+  - Register action: `verifyAuth()` authentication, prevents registering other users
+  - Start/complete/cancel actions: `requireAdmin()` restricts to admins only
+  - Prize distribution and refund logic implemented
+  - Chip deduction from realChips for tournament buy-ins with 10% fee
+
 **November 5, 2025 - Admin Dashboard Real Data Integration Complete**
 - **Removed all mock data** from admin dashboard pages and integrated real database APIs
 - **Payment Transactions System**: Created `payment_transactions` table to track Stripe deposits

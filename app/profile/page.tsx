@@ -179,10 +179,44 @@ function ProfileContent() {
         alert('ファイルサイズは5MB以下にしてください');
         return;
       }
+
+      // 画像を圧縮・リサイズ
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedAvatar(reader.result as string);
-        setCurrentAvatar('uploaded');
+      reader.onload = (event: any) => {
+        const img = document.createElement('img');
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // 最大サイズを300x300に設定
+          const maxSize = 300;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // 圧縮して保存（品質0.7で約70%の品質）
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          
+          setUploadedAvatar(compressedDataUrl);
+          setCurrentAvatar('uploaded');
+        };
+        img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
     }

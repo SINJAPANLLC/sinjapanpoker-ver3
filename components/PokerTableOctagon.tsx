@@ -50,7 +50,7 @@ export default function PokerTableOctagon({
 
     // プレイヤー2と1（9番目の位置）のY座標を下げる
     if (position === 2 || position === 1) {
-      y += 30; // 30px下に移動
+      y += 50; // 50px下に移動
     }
 
     return {

@@ -46,7 +46,12 @@ export default function PokerTableOctagon({
     const angle = (position * 45) - 90; // 45度間隔で配置
     const radius = 200; // テーブルからの距離
     const x = Math.cos((angle * Math.PI) / 180) * radius;
-    const y = Math.sin((angle * Math.PI) / 180) * radius;
+    let y = Math.sin((angle * Math.PI) / 180) * radius;
+
+    // プレイヤー2と1（9番目の位置）のY座標を下げる
+    if (position === 2 || position === 1) {
+      y += 30; // 30px下に移動
+    }
 
     return {
       position: 'absolute' as const,

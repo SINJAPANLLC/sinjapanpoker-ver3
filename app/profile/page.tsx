@@ -29,6 +29,7 @@ function ProfileContent() {
   const [ownedAvatars, setOwnedAvatars] = useState<string[]>(['default']);
   const [profileData, setProfileData] = useState<any>(null);
   const [achievements, setAchievements] = useState<any[]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // 出金機能関連
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -88,8 +89,13 @@ function ProfileContent() {
               setCurrentAvatar(data.avatar);
             }
           }
+          // 初期読み込み完了
+          setIsInitialLoad(false);
         })
-        .catch(err => console.error('Failed to fetch user stats:', err));
+        .catch(err => {
+          console.error('Failed to fetch user stats:', err);
+          setIsInitialLoad(false);
+        });
 
       // 実績を取得
       const achievementHeaders: Record<string, string> = {};
@@ -105,8 +111,11 @@ function ProfileContent() {
     }
   }, [user?.id]);
 
-  // プロフィール情報が変更されたら保存
+  // プロフィール情報が変更されたら保存（初期読み込み時は除く）
   useEffect(() => {
+    // 初期読み込み中は保存しない
+    if (isInitialLoad) return;
+    
     const profile = {
       currentAvatar,
       uploadedAvatar,
@@ -138,7 +147,7 @@ function ProfileContent() {
         })
         .catch(err => console.error('Failed to save avatar to database:', err));
     }
-  }, [currentAvatar, uploadedAvatar, user?.id]);
+  }, [currentAvatar, uploadedAvatar, user?.id, isInitialLoad]);
 
   // 所有アバターが変更されたら保存
   useEffect(() => {

@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
         maxPlayers,
         rakePercentage: rakePercent,
         rakeCap: rakeCapValue,
-        createdBy: authResult.userId,
         status: 'active',
         currentPlayers: 0,
       })

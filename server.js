@@ -479,17 +479,25 @@ app.prepare().then(() => {
     }
 
     startNextHand() {
-      // チップが0のプレイヤーを退出させる
-      const playersWithChips = this.players.filter(p => p.chips > 0);
-      const removedPlayers = this.players.filter(p => p.chips <= 0);
+      // チップが0のプレイヤーを処理
+      const playersToRemove = [];
       
-      // 退出したプレイヤーをログに記録
-      removedPlayers.forEach(player => {
-        console.log(`プレイヤー退出: ${player.username} (チップ: ${player.chips})`);
+      this.players.forEach(player => {
+        if (player.chips <= 0) {
+          // CPUプレイヤーの場合は自動リバイ
+          if (this.isCPUPlayer(player)) {
+            player.chips = 1000; // 自動的に1000チップ補充
+            console.log(`CPUプレイヤー自動リバイ: ${player.username} (新チップ: ${player.chips})`);
+          } else {
+            // 通常プレイヤーの場合は退出
+            playersToRemove.push(player);
+            console.log(`プレイヤー退出: ${player.username} (チップ: ${player.chips})`);
+          }
+        }
       });
       
-      // プレイヤーリストを更新
-      this.players = playersWithChips;
+      // 退出する通常プレイヤーをリストから削除
+      this.players = this.players.filter(p => !playersToRemove.includes(p));
       
       if (this.players.length < this.minPlayers) {
         this.phase = 'waiting';

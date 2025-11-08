@@ -256,8 +256,16 @@ export default function ActiveGamePage() {
       // tableInfoが読み込まれるのを少し待つ
       setTimeout(() => {
         const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
-        // 練習モードの場合は10000チップ（gameChips）、通常モードは実際の所持チップ（realChips）
-        const chips = isPracticeMode ? (currency.gameChips || 10000) : (currency.realChips || 0);
+        // チップ額の決定
+        let chips: number;
+        if (isPracticeMode) {
+          // 練習モードの場合は10000チップ（gameChips）
+          chips = currency.gameChips || 10000;
+        } else {
+          // キャッシュゲーム：バイイン額で参加
+          const buyIn = tableInfo?.buyIn || 100;
+          chips = buyIn;
+        }
         joinGame(chips, blinds);
       }, 100);
     }

@@ -19,6 +19,7 @@ const db = drizzle({ client: pool });
 const users = pgTable('users', {
   id: varchar('id', { length: 100 }).primaryKey(),
   chips: integer('chips').notNull().default(10000),
+  realChips: integer('real_chips').notNull().default(0),
 });
 
 const games = pgTable('games', {

@@ -8,6 +8,35 @@ SIN JAPAN POKER is a real-time multiplayer online poker application, similar to 
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+**November 8, 2025 - Practice Mode Chip Bug Fix**
+- **CRITICAL BUG FIX**: Fixed practice mode incorrectly using realChips instead of gameChips
+- **Problem**: Practice tables (tableId='practice-game') were deducting/adding realChips, causing unexpected balance changes
+- **Solution**: Added practice mode detection in `/api/game/join` and `/api/game/rebuy` using `tableId.startsWith('practice-game')`
+- **API Updates**:
+  - Join/Rebuy endpoints now branch logic based on practice mode vs real money mode
+  - Practice mode operates on `gameChips` (practice currency)
+  - Real money mode operates on `realChips` (actual currency)
+  - Responses include `isPracticeMode` flag and correct `newBalance`
+- **Client Updates**: Updated buy-in/rebuy handlers to update correct wallet (gameChips vs realChips) based on API response
+- **Architect Review**: Passed security audit - confirmed practice/real mode separation works correctly without regressions
+
+**November 8, 2025 - Cash Game Buy-In Range Feature Complete**
+- **Database Schema Updates**: Added `minBuyIn` and `maxBuyIn` columns to `clubTables` table for configurable buy-in ranges
+- **Table Creation UI Redesign**: Updated from fixed buy-in to min/max range input in `TableCreationModal.tsx`
+- **Buy-In Modal Component** (`BuyInModal.tsx`): Interactive UI for selecting initial buy-in amount within table limits when joining a game
+- **Rebuy Modal Component** (`RebuyModal.tsx`): In-game chip top-up interface with range validation for mid-game chip additions
+- **Join Game API** (`/api/game/join`): Server-side endpoint that deducts chips, validates buy-in range, and authorizes table entry
+- **Rebuy API** (`/api/game/rebuy`): Secure chip addition endpoint using server-authoritative game state from `global.pokerGames` to prevent client-side manipulation
+- **Socket.io Handler Fixes**:
+  - Fixed `add-chips` handler to find players by `userId` instead of `socket.id`
+  - Added server-side buy-in range validation in Socket.io handlers
+  - Implemented error events (`rebuy-error`) for failed chip additions
+- **Security Hardening**: Eliminated client-supplied chip count trust; server now derives current stack from in-memory game state to prevent max buy-in bypass
+- **Global State Exposure**: Socket.io `games` and `players` maps exposed via `global.pokerGames` and `global.pokerPlayers` for cross-layer validation
+- **Architect Review**: Passed final security audit - confirmed no client data tampering vectors remain
+
 ## System Architecture
 
 ### Frontend Architecture

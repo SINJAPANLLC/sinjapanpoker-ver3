@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, type, buyIn, maxPlayers, startTime, prizeStructure } = body;
+    const { name, description, type, buyIn, startingChips, maxPlayers, startTime, prizeStructure } = body;
 
-    if (!name || !type || !buyIn || !maxPlayers) {
+    if (!name || !type || !buyIn || !startingChips || !maxPlayers) {
       return NextResponse.json({ message: '必須項目が不足しています' }, { status: 400 });
     }
 
@@ -60,6 +60,10 @@ export async function POST(request: NextRequest) {
 
     if (buyIn < 10) {
       return NextResponse.json({ message: 'バイインは10チップ以上に設定してください' }, { status: 400 });
+    }
+
+    if (startingChips < 100 || startingChips > 100000) {
+      return NextResponse.json({ message: 'スタックは100～100,000チップの範囲で設定してください' }, { status: 400 });
     }
 
     // prizeStructureのバリデーション
@@ -77,6 +81,7 @@ export async function POST(request: NextRequest) {
       description: description || '',
       type,
       buyIn,
+      startingChips,
       prizePool: 0,
       maxPlayers,
       currentPlayers: 0,

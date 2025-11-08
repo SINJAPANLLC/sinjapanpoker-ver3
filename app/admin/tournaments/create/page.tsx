@@ -23,6 +23,7 @@ function CreateTournamentContent() {
     name: '',
     type: 'sit-n-go' as 'sit-n-go' | 'scheduled' | 'bounty',
     buyIn: 1000,
+    startingChips: 1500,
     maxPlayers: 100,
     startTime: '',
     description: ''
@@ -55,6 +56,10 @@ function CreateTournamentContent() {
         throw new Error('バイインは10チップ以上に設定してください');
       }
 
+      if (formData.startingChips < 100 || formData.startingChips > 100000) {
+        throw new Error('スタックは100～100,000チップの範囲で設定してください');
+      }
+
       // 賞金構造のバリデーション
       const totalPercentage = prizeStructure.reduce((sum, p) => sum + p.percentage, 0);
       if (totalPercentage !== 100) {
@@ -74,6 +79,7 @@ function CreateTournamentContent() {
           name: formData.name,
           type: formData.type,
           buyIn: formData.buyIn,
+          startingChips: formData.startingChips,
           maxPlayers: formData.maxPlayers,
           description: formData.description || '',
           startTime: formData.startTime || null,
@@ -236,11 +242,37 @@ function CreateTournamentContent() {
                     value={formData.buyIn}
                     onChange={(e) => handleInputChange('buyIn', parseInt(e.target.value) || 0)}
                     required
-                    min="1"
+                    min="10"
                     className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
                     placeholder="1000"
                   />
                 </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  参加に必要なチップ額
+                </p>
+              </div>
+
+              {/* スタック */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  スタック（開始チップ） *
+                </label>
+                <div className="relative">
+                  <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <input
+                    type="number"
+                    value={formData.startingChips}
+                    onChange={(e) => handleInputChange('startingChips', parseInt(e.target.value) || 0)}
+                    required
+                    min="100"
+                    max="100000"
+                    className="w-full px-4 py-3 pl-12 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    placeholder="1500"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  ゲーム開始時のチップ数（例：1,500）
+                </p>
               </div>
 
               {/* 最大参加者数 */}

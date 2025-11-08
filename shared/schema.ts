@@ -255,6 +255,7 @@ export const tournaments = pgTable('tournaments', {
   description: text('description'),
   type: varchar('type', { length: 50 }).notNull().$type<'sit-n-go' | 'scheduled' | 'bounty'>(),
   buyIn: integer('buy_in').notNull(),
+  startingChips: integer('starting_chips').notNull().default(1500),
   prizePool: integer('prize_pool').notNull().default(0),
   maxPlayers: integer('max_players').notNull(),
   currentPlayers: integer('current_players').notNull().default(0),

@@ -186,6 +186,13 @@ export function usePokerGame(gameId: string | null, difficulty?: string) {
     });
   }, [socket]);
 
+  const leaveGame = useCallback(() => {
+    if (!socket) return;
+
+    console.log('ゲームから退出します');
+    socket.emit('leave-game');
+  }, [socket]);
+
   const getCurrentPlayer = useCallback(() => {
     if (!gameState || !user) return null;
     return gameState.players.find(p => p.userId === user.id) || null;
@@ -233,6 +240,7 @@ export function usePokerGame(gameId: string | null, difficulty?: string) {
     performAction,
     sendMessage,
     setAwayStatus,
+    leaveGame,
     getCurrentPlayer,
     isMyTurn,
     canCheck,

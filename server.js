@@ -1145,6 +1145,97 @@ app.prepare().then(() => {
       }
     });
 
+    socket.on('leave-game', () => {
+      console.log('プレイヤーが退出:', socket.id);
+      const playerInfo = players.get(socket.id);
+      if (!playerInfo) return;
+
+      const game = games.get(playerInfo.gameId);
+      if (!game) return;
+
+      const player = game.players.find(p => p.userId === playerInfo.userId);
+      if (!player) return;
+
+      console.log(`プレイヤー ${player.username} がゲームから退出しました`);
+      
+      if (game.phase === 'waiting') {
+        // ゲーム開始前：プレイヤーを削除
+        game.removePlayer(playerInfo.userId);
+        io.to(playerInfo.gameId).emit('game-state', game.getState());
+        
+        // プレイヤー管理マップから削除
+        players.delete(socket.id);
+        
+        // ロビーに更新を送信
+        broadcastLobbyUpdate();
+        
+        if (game.players.length === 0) {
+          games.delete(playerInfo.gameId);
+          console.log(`ゲーム ${playerInfo.gameId} を削除しました`);
+          broadcastLobbyUpdate();
+        }
+      } else if (!player.folded) {
+        // ゲーム進行中：プレイヤーを自動的にフォールド
+        player.folded = true;
+        player.hasActed = true;
+        player.lastAction = 'FOLD';
+        console.log(`${player.username} は退出のため自動フォールドしました`);
+        
+        // 現在のプレイヤーが退出した場合、次のプレイヤーに移動
+        if (game.currentPlayerIndex !== -1 && game.players[game.currentPlayerIndex]?.userId === playerInfo.userId) {
+          game.clearTurnTimer();
+          
+          const activePlayers = game.players.filter(p => !p.folded);
+          if (activePlayers.length === 1) {
+            game.phase = 'showdown';
+            game.showdown();
+            io.to(playerInfo.gameId).emit('game-state', game.getState());
+            
+            setTimeout(async () => {
+              const canContinue = game.startNextHand();
+              if (canContinue) {
+                io.to(playerInfo.gameId).emit('game-state', game.getState());
+                const firstPlayer = game.players[game.currentPlayerIndex];
+                if (firstPlayer && game.isCPUPlayer(firstPlayer)) {
+                  game.executeCPUAction(io, playerInfo.gameId);
+                } else if (firstPlayer) {
+                  game.startTurnTimer(io, playerInfo.gameId);
+                }
+              }
+            }, 3000);
+          } else {
+            game.currentPlayerIndex = game.getNextActivePlayer((game.currentPlayerIndex + 1) % game.players.length);
+            
+            if (game.isBettingRoundComplete()) {
+              game.advancePhase(io, playerInfo.gameId);
+            } else {
+              io.to(playerInfo.gameId).emit('game-state', game.getState());
+              const nextPlayer = game.players[game.currentPlayerIndex];
+              if (nextPlayer && (game.isCPUPlayer(nextPlayer) || nextPlayer.isAway)) {
+                game.executeCPUAction(io, playerInfo.gameId);
+              } else if (nextPlayer) {
+                game.startTurnTimer(io, playerInfo.gameId);
+              }
+            }
+          }
+        } else {
+          io.to(playerInfo.gameId).emit('game-state', game.getState());
+        }
+        
+        // ハンド終了後にプレイヤーを削除
+        setTimeout(() => {
+          game.removePlayer(playerInfo.userId);
+          players.delete(socket.id);
+          io.to(playerInfo.gameId).emit('game-state', game.getState());
+        }, 1000);
+      } else {
+        // 既にフォールド済み：すぐに削除
+        game.removePlayer(playerInfo.userId);
+        players.delete(socket.id);
+        io.to(playerInfo.gameId).emit('game-state', game.getState());
+      }
+    });
+
     socket.on('disconnect', () => {
       console.log('クライアント切断:', socket.id);
       const playerInfo = players.get(socket.id);

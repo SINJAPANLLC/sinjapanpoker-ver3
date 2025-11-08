@@ -67,6 +67,7 @@ export default function ActiveGamePage() {
     performAction,
     sendMessage: sendSocketMessage,
     setAwayStatus,
+    leaveGame,
     getCurrentPlayer,
     isMyTurn,
     canCheck,
@@ -958,7 +959,10 @@ export default function ActiveGamePage() {
             {/* メニュー項目 */}
             <div className="space-y-2">
               <button 
-                onClick={() => router.push('/lobby')}
+                onClick={() => {
+                  leaveGame();
+                  router.push('/lobby');
+                }}
                 className="w-full bg-white/20 hover:bg-white/30 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
               >
                 <p className="text-white text-sm font-semibold">🏠 ホームに戻る</p>

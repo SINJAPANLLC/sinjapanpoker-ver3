@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { tableId, amount, currentTableChips } = body;
+    const { tableId, amount } = body;
 
     if (!tableId || !amount || amount <= 0) {
       return NextResponse.json({ message: '無効なリクエストです' }, { status: 400 });
@@ -29,12 +29,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'テーブルが見つかりません' }, { status: 404 });
     }
 
+    // サーバー側のゲーム状態から現在のチップ数を取得（権威的な状態）
+    let currentTableChips = 0;
+    if (global.pokerGames && global.pokerGames.has(tableId)) {
+      const game = global.pokerGames.get(tableId);
+      const player = game.players.find((p: any) => p.userId === authResult.userId);
+      if (player) {
+        currentTableChips = player.chips || 0;
+      }
+    }
+
     // キャッシュゲームの場合、リバイ後の合計チップがmaxBuyInを超えないかチェック
     if (table.type === 'cash') {
-      const totalAfterRebuy = (currentTableChips || 0) + amount;
+      const totalAfterRebuy = currentTableChips + amount;
       if (totalAfterRebuy > table.maxBuyIn) {
         return NextResponse.json({
-          message: `リバイ後のチップ数が最大バイイン（${table.maxBuyIn}）を超えます`,
+          message: `リバイ後のチップ数が最大バイイン（${table.maxBuyIn}）を超えます（現在: ${currentTableChips}, 追加: ${amount}, 最大: ${table.maxBuyIn}）`,
         }, { status: 400 });
       }
       if (amount < table.minBuyIn) {

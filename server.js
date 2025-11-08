@@ -40,6 +40,10 @@ app.prepare().then(() => {
   const games = new Map();
   const players = new Map();
 
+  // APIルートからゲーム状態にアクセスできるようにexport
+  global.pokerGames = games;
+  global.pokerPlayers = players;
+
   // CPUプレイヤーの名前リスト
   const CPU_NAMES = [
     'タケシ', 'ユウキ', 'ケンジ', 'マサヒロ', 'カズヤ',

@@ -461,7 +461,6 @@ export default function ActiveGamePage() {
         body: JSON.stringify({
           tableId,
           amount,
-          currentTableChips: currentPlayerData?.chips || 0,
         }),
       });
 

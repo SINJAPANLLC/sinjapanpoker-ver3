@@ -15,7 +15,9 @@ interface TableData {
   id?: string;
   name: string;
   type: 'cash' | 'tournament' | 'sit-and-go';
-  buyIn: number;
+  buyIn?: number;
+  minBuyIn?: number;
+  maxBuyIn?: number;
   maxPlayers: number;
   isPrivate: boolean;
   password?: string;
@@ -37,7 +39,8 @@ export default function TableCreationModal({
   const [formData, setFormData] = useState<TableData>({
     name: '',
     type: 'cash',
-    buyIn: 1000,
+    minBuyIn: 100,
+    maxBuyIn: 1000,
     maxPlayers: 9,
     isPrivate: false,
     password: '',
@@ -260,20 +263,57 @@ export default function TableCreationModal({
                     transition={{ delay: 0.4 }}
                     className="grid grid-cols-2 gap-4"
                   >
-                    <div>
-                      <label className="block text-white font-semibold mb-3">バイイン</label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={formData.buyIn}
-                          onChange={(e) => setFormData({ ...formData, buyIn: parseInt(e.target.value) })}
-                          className="w-full px-5 py-3.5 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl border border-gray-600/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-400 font-bold">
-                          💰
+                    {formData.type === 'cash' ? (
+                      <>
+                        <div>
+                          <label className="block text-white font-semibold mb-3">最低バイイン</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={formData.minBuyIn}
+                              onChange={(e) => setFormData({ ...formData, minBuyIn: parseInt(e.target.value) })}
+                              min="10"
+                              className="w-full px-5 py-3.5 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl border border-gray-600/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-400 font-bold">
+                              💰
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1">最小 {formData.settings.blinds.big * 10} チップ推奨</p>
+                        </div>
+                        <div>
+                          <label className="block text-white font-semibold mb-3">最大バイイン</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={formData.maxBuyIn}
+                              onChange={(e) => setFormData({ ...formData, maxBuyIn: parseInt(e.target.value) })}
+                              min={formData.minBuyIn || 100}
+                              className="w-full px-5 py-3.5 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl border border-gray-600/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-400 font-bold">
+                              💰
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1">最大 {formData.settings.blinds.big * 200} チップ推奨</p>
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <label className="block text-white font-semibold mb-3">バイイン</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={formData.buyIn}
+                            onChange={(e) => setFormData({ ...formData, buyIn: parseInt(e.target.value) })}
+                            className="w-full px-5 py-3.5 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl border border-gray-600/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all"
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-400 font-bold">
+                            💰
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                     <div>
                       <label className="block text-white font-semibold mb-3">最大プレイヤー数</label>
                       <select

@@ -245,6 +245,8 @@ function LobbyContent() {
           type: tableData.type,
           settings: tableData.settings,
           buyIn: tableData.buyIn,
+          minBuyIn: tableData.minBuyIn,
+          maxBuyIn: tableData.maxBuyIn,
           isPrivate: tableData.isPrivate,
           password: tableData.password,
           description: tableData.description,

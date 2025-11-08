@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, stakes, maxPlayers, type, rakePercentage, rakeCap, settings, buyIn } = body;
+    const { name, stakes, maxPlayers, type, rakePercentage, rakeCap, settings, buyIn, minBuyIn, maxBuyIn } = body;
 
     if (!name || !maxPlayers) {
       return NextResponse.json({ message: '必須フィールドが不足しています' }, { status: 400 });
@@ -53,6 +53,14 @@ export async function POST(request: NextRequest) {
     const rakeCapValue = rakeCap !== undefined ? rakeCap : 10;
     const tableType = type === 'sit-and-go' ? 'tournament' : (type || 'cash');
 
+    // バイイン処理（キャッシュゲームとトーナメントで異なる）
+    const minBuyInValue = tableType === 'cash' ? (minBuyIn || 100) : (buyIn || 100);
+    const maxBuyInValue = tableType === 'cash' ? (maxBuyIn || 1000) : (buyIn || 100);
+
+    if (minBuyInValue > maxBuyInValue) {
+      return NextResponse.json({ message: '最低バイインは最大バイイン以下にしてください' }, { status: 400 });
+    }
+
     const [newTable] = await db
       .insert(clubTables)
       .values({
@@ -60,6 +68,8 @@ export async function POST(request: NextRequest) {
         clubId: null,
         type: tableType as 'cash' | 'tournament',
         stakes: typeof stakesStr === 'string' ? stakesStr : JSON.stringify(stakesStr),
+        minBuyIn: minBuyInValue,
+        maxBuyIn: maxBuyInValue,
         maxPlayers,
         rakePercentage: rakePercent,
         rakeCap: rakeCapValue,

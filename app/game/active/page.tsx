@@ -11,6 +11,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useCurrencyStore } from '@/store/useCurrencyStore';
 import { usePokerGame } from '@/hooks/usePokerGame';
 import { useSearchParams, useRouter } from 'next/navigation';
+import BuyInModal from '@/components/BuyInModal';
+import RebuyModal from '@/components/RebuyModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -103,6 +105,8 @@ export default function ActiveGamePage() {
   const [showShare, setShowShare] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showPlayerList, setShowPlayerList] = useState(false);
+  const [showBuyInModal, setShowBuyInModal] = useState(false);
+  const [showRebuyModal, setShowRebuyModal] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [isSpectatorMode, setIsSpectatorMode] = useState(false);
@@ -253,21 +257,18 @@ export default function ActiveGamePage() {
   // ゲームに参加（ブラインド設定を含む）
   useEffect(() => {
     if (connected && user && !gameState) {
-      // tableInfoが読み込まれるのを少し待つ
-      setTimeout(() => {
-        const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
-        // チップ額の決定
-        let chips: number;
-        if (isPracticeMode) {
-          // 練習モードの場合は10000チップ（gameChips）
-          chips = currency.gameChips || 10000;
-        } else {
-          // キャッシュゲーム：バイイン額で参加
-          const buyIn = tableInfo?.buyIn || 100;
-          chips = buyIn;
-        }
-        joinGame(chips, blinds);
-      }, 100);
+      if (isPracticeMode) {
+        // 練習モードの場合は自動参加
+        setTimeout(() => {
+          const chips = currency.gameChips || 10000;
+          joinGame(chips, undefined);
+        }, 100);
+      } else {
+        // キャッシュゲーム：バイイン選択モーダルを表示
+        setTimeout(() => {
+          setShowBuyInModal(true);
+        }, 100);
+      }
     }
   }, [connected, user, gameState, joinGame, isPracticeMode, currency]);
 
@@ -406,6 +407,84 @@ export default function ActiveGamePage() {
       console.error('Failed to load table info:', error);
     }
   }, [tableId]);
+
+  // バイイン確定時の処理
+  const handleBuyInConfirm = useCallback(async (amount: number) => {
+    try {
+      // バイイン額を支払う（realChipsから減算）
+      const response = await fetch('/api/game/join', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${useAuthStore.getState().token}`,
+        },
+        body: JSON.stringify({
+          tableId,
+          amount,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(errorData.message || 'バイインに失敗しました');
+        setShowBuyInModal(false);
+        return;
+      }
+
+      const data = await response.json();
+      
+      // realChipsを更新
+      const { setCurrency } = useCurrencyStore.getState();
+      setCurrency('realChips', data.newBalance, 'バイインでチップ支払い');
+
+      // ゲームに参加
+      const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
+      joinGame(amount, blinds);
+      setShowBuyInModal(false);
+    } catch (error) {
+      console.error('バイインエラー:', error);
+      alert('バイイン処理中にエラーが発生しました');
+      setShowBuyInModal(false);
+    }
+  }, [tableInfo, joinGame, tableId]);
+
+  // リバイ確定時の処理
+  const handleRebuyConfirm = useCallback(async (amount: number) => {
+    try {
+      // サーバーにリバイリクエストを送信
+      const response = await fetch('/api/game/rebuy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${useAuthStore.getState().token}`,
+        },
+        body: JSON.stringify({
+          tableId,
+          amount,
+          currentTableChips: currentPlayerData?.chips || 0,
+        }),
+      });
+
+      if (response.ok) {
+        const { setCurrency } = useCurrencyStore.getState();
+        setCurrency('realChips', currency.realChips - amount, 'リバイでチップ追加');
+        
+        // チップ追加をSocket.io経由でゲームサーバーに通知
+        if (typeof window !== 'undefined' && (window as any).socket) {
+          (window as any).socket.emit('add-chips', { amount });
+          console.log('Socket.io: チップ追加イベント送信', amount);
+        }
+        
+        setShowRebuyModal(false);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'リバイに失敗しました');
+      }
+    } catch (error) {
+      console.error('リバイエラー:', error);
+      alert('リバイ処理中にエラーが発生しました');
+    }
+  }, [tableId, currency]);
   
   const tableName = tableInfo?.name || gameState?.id || "SIN JAPAN TABLE #1";
   const handNumber = 42;
@@ -1125,7 +1204,7 @@ export default function ActiveGamePage() {
               {isEnabled && mode === 'real' && (
                 <button 
                   onClick={() => {
-                    setShowRebuy(true);
+                    setShowRebuyModal(true);
                     setShowMenu(false);
                   }}
                   className="w-full bg-green-500/80 hover:bg-green-500 py-2.5 px-3 rounded-lg border border-white/40 transition-colors text-left"
@@ -1732,46 +1811,6 @@ export default function ActiveGamePage() {
         </div>
       )}
 
-      {/* リバイモーダル */}
-      {showRebuy && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[150]">
-          <div className="w-96 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-white text-lg font-bold">チップ追加</p>
-              <button 
-                onClick={() => setShowRebuy(false)}
-                className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              >
-                <p className="text-sm">✕</p>
-              </button>
-            </div>
-            
-            <div className="bg-white/10 rounded-lg p-3 mb-4">
-              <p className="text-white text-xs mb-2">現在のチップ: 5,000</p>
-              <p className="text-white text-xs mb-3">最小バイイン: 5,000 / 最大: 20,000</p>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">5,000</p>
-                </button>
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">10,000</p>
-                </button>
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">15,000</p>
-                </button>
-                <button className="bg-white/20 hover:bg-white/30 py-2 rounded border border-white/40 transition-colors">
-                  <p className="text-white text-sm font-bold">20,000</p>
-                </button>
-              </div>
-            </div>
-            
-            <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg border-2 border-white/30 transition-colors">
-              <p className="text-white text-sm font-bold">追加する</p>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ベット履歴ログ */}
       {showActionLog && (
@@ -2615,61 +2654,6 @@ export default function ActiveGamePage() {
         </div>
       )}
 
-      {/* リバイモーダル */}
-      {showRebuy && (
-        <div className="absolute inset-0 flex items-center justify-center z-[150] bg-black/60">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg border-2 border-white/30 shadow-2xl p-6 w-80">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-xl font-bold">💰 チップ追加</h2>
-              <button 
-                onClick={() => setShowRebuy(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-              >
-                <p className="text-lg">✕</p>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="bg-white/20 rounded-lg p-3 border border-white/40">
-                <p className="text-white/80 text-xs mb-1">現在のチップ</p>
-                <div className="flex items-center gap-2">
-                  <Image src="/chip-icon.png" alt="chip" width={20} height={20} unoptimized />
-                  <p className="text-white text-2xl font-bold">{Math.floor(user?.chips || 0).toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-white text-xs font-semibold mb-1 block">追加するチップ</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[1000, 2000, 5000, 10000].map((amount) => (
-                    <button
-                      key={amount}
-                      onClick={() => setRebuyAmount(amount)}
-                      className={`py-2 px-3 rounded-lg transition-colors ${
-                        rebuyAmount === amount
-                          ? 'bg-white text-blue-600'
-                          : 'bg-white/20 text-white hover:bg-white/30'
-                      } border border-white/40`}
-                    >
-                      <p className="text-xs font-bold">{Math.floor(amount).toLocaleString()}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button 
-                onClick={() => {
-                  setShowRebuyNotification(true);
-                  setShowRebuy(false);
-                }}
-                className="w-full bg-green-500 hover:bg-green-600 py-3 px-4 rounded-lg transition-colors"
-              >
-                <p className="text-white text-sm font-bold">購入する</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* プレイヤーリストモーダル */}
       {showPlayerList && (
@@ -2989,6 +2973,28 @@ export default function ActiveGamePage() {
           </div>
         </div>
       )}
+
+      {/* バイイン選択モーダル */}
+      <BuyInModal
+        isOpen={showBuyInModal}
+        onClose={() => setShowBuyInModal(false)}
+        onConfirm={handleBuyInConfirm}
+        minBuyIn={tableInfo?.minBuyIn || 100}
+        maxBuyIn={tableInfo?.maxBuyIn || 1000}
+        currentChips={currency.realChips || 0}
+        tableType={tableInfo?.type || 'cash'}
+      />
+
+      {/* リバイ/トップアップモーダル */}
+      <RebuyModal
+        isOpen={showRebuyModal}
+        onClose={() => setShowRebuyModal(false)}
+        onConfirm={handleRebuyConfirm}
+        minBuyIn={tableInfo?.minBuyIn || 100}
+        maxBuyIn={tableInfo?.maxBuyIn || 1000}
+        currentTableChips={currentPlayerData?.chips || 0}
+        currentWalletChips={currency.realChips || 0}
+      />
 
         </div>
       </div>

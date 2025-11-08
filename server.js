@@ -1253,6 +1253,64 @@ app.prepare().then(() => {
       }
     });
 
+    // チップ追加（リバイ/トップアップ）
+    socket.on('add-chips', async ({ amount }) => {
+      console.log('チップ追加:', socket.id, amount);
+      const playerInfo = players.get(socket.id);
+      if (!playerInfo) {
+        console.error('プレイヤー情報が見つかりません');
+        socket.emit('rebuy-error', { message: 'プレイヤー情報が見つかりません' });
+        return;
+      }
+
+      const gameId = playerInfo.gameId;
+      const game = games.get(gameId);
+      if (!game) {
+        console.error('ゲームが見つかりません');
+        socket.emit('rebuy-error', { message: 'ゲームが見つかりません' });
+        return;
+      }
+
+      // プレイヤーのチップを増やす（userIdで検索）
+      const player = game.players.find(p => p.userId === playerInfo.userId);
+      if (!player) {
+        console.error('ゲーム内のプレイヤーが見つかりません:', playerInfo.userId);
+        socket.emit('rebuy-error', { message: 'ゲーム内のプレイヤーが見つかりません' });
+        return;
+      }
+
+      // テーブル設定を取得してバイイン範囲を検証（キャッシュゲームのみ）
+      if (game.type === 'cash' && game.tableConfig) {
+        const { minBuyIn, maxBuyIn } = game.tableConfig;
+        const totalAfterRebuy = player.chips + amount;
+        
+        if (totalAfterRebuy > maxBuyIn) {
+          console.error(`リバイ拒否: 合計チップ ${totalAfterRebuy} が最大バイイン ${maxBuyIn} を超えます`);
+          socket.emit('rebuy-error', { message: `リバイ後のチップ数が最大バイイン（${maxBuyIn}）を超えます` });
+          return;
+        }
+        
+        if (amount < minBuyIn) {
+          console.error(`リバイ拒否: 追加額 ${amount} が最小バイイン ${minBuyIn} を下回ります`);
+          socket.emit('rebuy-error', { message: `最低${minBuyIn}チップから追加できます` });
+          return;
+        }
+      }
+
+      player.chips += amount;
+      console.log(`チップ追加成功: ${player.username} に ${amount} チップ追加（合計: ${player.chips}）`);
+
+      // 更新されたゲーム状態をブロードキャスト
+      io.to(gameId).emit('game-state', game.getState());
+      
+      // チップ追加通知
+      io.to(gameId).emit('chips-added', {
+        playerId: playerInfo.userId,
+        amount,
+        newTotal: player.chips
+      });
+    });
+
     socket.on('disconnect', () => {
       console.log('クライアント切断:', socket.id);
       const playerInfo = players.get(socket.id);

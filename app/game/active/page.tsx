@@ -433,9 +433,13 @@ export default function ActiveGamePage() {
 
       const data = await response.json();
       
-      // realChipsを更新
+      // チップ残高を更新（練習モードならgameChips、それ以外はrealChips）
       const { setCurrency } = useCurrencyStore.getState();
-      setCurrency('realChips', data.newBalance, 'バイインでチップ支払い');
+      if (data.isPracticeMode) {
+        setCurrency('gameChips', data.newBalance, 'バイインでチップ支払い');
+      } else {
+        setCurrency('realChips', data.newBalance, 'バイインでチップ支払い');
+      }
 
       // ゲームに参加
       const blinds = tableInfo?.blinds || tableInfo?.settings?.blinds || undefined;
@@ -465,8 +469,15 @@ export default function ActiveGamePage() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         const { setCurrency } = useCurrencyStore.getState();
-        setCurrency('realChips', currency.realChips - amount, 'リバイでチップ追加');
+        
+        // チップ残高を更新（練習モードならgameChips、それ以外はrealChips）
+        if (data.isPracticeMode) {
+          setCurrency('gameChips', data.newBalance, 'リバイでチップ追加');
+        } else {
+          setCurrency('realChips', data.newBalance, 'リバイでチップ追加');
+        }
         
         // チップ追加をSocket.io経由でゲームサーバーに通知
         if (typeof window !== 'undefined' && (window as any).socket) {

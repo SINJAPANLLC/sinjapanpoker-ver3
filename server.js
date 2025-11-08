@@ -1144,7 +1144,7 @@ app.prepare().then(() => {
       }
     });
 
-    socket.on('leave-game', () => {
+    socket.on('leave-game', async () => {
       console.log('プレイヤーが退出:', socket.id);
       const playerInfo = players.get(socket.id);
       if (!playerInfo) return;
@@ -1156,6 +1156,24 @@ app.prepare().then(() => {
       if (!player) return;
 
       console.log(`プレイヤー ${player.username} がゲームから退出しました`);
+      
+      // チップを返却（練習モードでない場合のみ）
+      if (game.type !== 'practice' && player.chips > 0) {
+        try {
+          const { db, users } = require('./server/game-db');
+          const { eq } = require('drizzle-orm');
+          
+          const [user] = await db.select().from(users).where(eq(users.id, player.userId)).limit(1);
+          if (user) {
+            await db.update(users)
+              .set({ realChips: user.realChips + player.chips })
+              .where(eq(users.id, player.userId));
+            console.log(`プレイヤー ${player.username} に ${player.chips} チップを返却しました（現在: ${user.realChips + player.chips}）`);
+          }
+        } catch (dbError) {
+          console.error('チップ返却エラー:', dbError);
+        }
+      }
       
       if (game.phase === 'waiting') {
         // ゲーム開始前：プレイヤーを削除

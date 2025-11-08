@@ -220,6 +220,36 @@ export default function ActiveGamePage() {
     return () => clearInterval(interval);
   }, [gameState, user, performAction, hasPlayedWarningSound, playSound]);
 
+  // データベースからrealChipsを同期
+  useEffect(() => {
+    const syncUserData = async () => {
+      if (!user?.id) return;
+
+      try {
+        const token = useAuthStore.getState().token;
+        if (!token) return;
+
+        const response = await fetch(`/api/user/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const { setCurrency } = useCurrencyStore.getState();
+          setCurrency('realChips', data.realChips || 0, 'データベースから同期');
+          setCurrency('gameChips', data.gameChips || 10000, 'データベースから同期');
+          setCurrency('energy', data.energy || 100, 'データベースから同期');
+        }
+      } catch (error) {
+        console.error('ユーザーデータ同期エラー:', error);
+      }
+    };
+
+    syncUserData();
+  }, [user?.id]);
+
   // ゲームに参加（ブラインド設定を含む）
   useEffect(() => {
     if (connected && user && !gameState) {

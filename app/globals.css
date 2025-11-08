@@ -113,6 +113,49 @@ textarea {
   font-size: 16px !important;
 }
 
+/* チェックボックスのカスタムスタイル */
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  border: 2px solid #0066ff;
+  border-radius: 4px;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #0066ff 0%, #00bfff 100%);
+  border-color: #00bfff;
+}
+
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+input[type="checkbox"]:hover {
+  border-color: #00bfff;
+  box-shadow: 0 0 8px rgba(0, 102, 255, 0.3);
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  border-color: #00bfff;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.2);
+}
+
 /* タッチデバイスでのホバー効果を無効化 */
 @media (hover: none) {
   button:hover {

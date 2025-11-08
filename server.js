@@ -833,8 +833,7 @@ app.prepare().then(() => {
         // 練習モード以外はバイインをデータベースから引き落とす
         if (gameId !== 'practice-game' && player.chips > 0) {
           try {
-            const { db } = require('./server/db');
-            const { users } = require('./shared/schema');
+            const { db, users } = require('./server/game-db');
             const { eq } = require('drizzle-orm');
 
             const [user] = await db.select().from(users).where(eq(users.id, player.userId)).limit(1);

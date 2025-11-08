@@ -175,6 +175,8 @@ async function updatePlayerStats(userId, gameResult) {
 }
 
 module.exports = {
+  db,
+  users,
   saveGameToDatabase,
   updatePlayerStats,
 };

@@ -12,6 +12,8 @@ interface Table {
   name: string;
   type: 'cash' | 'sit-and-go';
   buyIn: number;
+  minBuyIn?: number;
+  maxBuyIn?: number;
   currentPlayers: number;
   maxPlayers: number;
   isPrivate: boolean;
@@ -27,6 +29,7 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Trophy, Users, LogOut, Zap, Coins, Flame, Crown, ShoppingCart, BarChart3, User, Plus, Gamepad2, Share2, MessageCircle } from 'lucide-react';
 import TableCreationModal from '@/components/TableCreationModal';
+import BuyInModal from '@/components/BuyInModal';
 import { saveTables, loadTables, saveTournaments, loadTournaments } from '@/lib/storage';
 
 
@@ -40,7 +43,10 @@ function LobbyContent() {
   const [tables, setTables] = useState<Table[]>([]); // ユーザーが作成したテーブルのみ表示
   const [tournaments, setTournaments] = useState<Tournament[]>([]); // Adminが作成したトーナメントのみ表示
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showBuyInModal, setShowBuyInModal] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState<string>('');
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+  const [selectedTablePassword, setSelectedTablePassword] = useState<string>('');
   const [passwordInput, setPasswordInput] = useState('');
   const [socket, setSocket] = useState<Socket | null>(null);
 
@@ -154,6 +160,8 @@ function LobbyContent() {
           name: t.name,
           type: t.type === 'cash' ? 'cash' : 'sit-and-go',
           buyIn: parseInt(t.stakes.split('/')[0]) || 0,
+          minBuyIn: t.minBuyIn || parseInt(t.stakes.split('/')[0]) || 100,
+          maxBuyIn: t.maxBuyIn || parseInt(t.stakes.split('/')[0]) * 100 || 10000,
           currentPlayers: t.currentPlayers || 0,
           maxPlayers: t.maxPlayers || 9,
           isPrivate: false,
@@ -274,17 +282,78 @@ function LobbyContent() {
 
   const handleJoinTable = (tableId: string, password?: string) => {
     const table = tables.find(t => t.id === tableId);
-    if (table?.isPrivate && !password) {
+    if (!table) {
+      alert('テーブルが見つかりません');
+      return;
+    }
+
+    if (table.isPrivate && !password) {
       // プライベートテーブルの場合はパスワード入力を求める
       setSelectedTableId(tableId);
       setShowPasswordModal(true);
       return;
     }
     
-    console.log('Joining table:', tableId, 'with password:', password);
-    // 実際の実装では、テーブル参加のAPIを呼び出す
-    const url = password ? `/game/active?table=${tableId}&password=${encodeURIComponent(password)}` : `/game/active?table=${tableId}`;
-    router.push(url);
+    // 練習モードは直接遷移（バイイン選択不要）
+    if (tableId.startsWith('practice-game')) {
+      const url = password ? `/game/active?table=${tableId}&password=${encodeURIComponent(password)}` : `/game/active?table=${tableId}`;
+      router.push(url);
+      return;
+    }
+
+    // キャッシュゲームはバイインモーダルを表示
+    setSelectedTable(table);
+    setSelectedTableId(tableId);
+    setSelectedTablePassword(password || '');
+    setShowBuyInModal(true);
+  };
+
+  const handleBuyInConfirm = async (amount: number) => {
+    if (!selectedTable || !user) {
+      return;
+    }
+
+    try {
+      // APIにバイイン金額を送信してテーブルに参加
+      const response = await fetch('/api/game/join', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          tableId: selectedTable.id,
+          amount: amount,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'テーブル参加に失敗しました');
+      }
+
+      const data = await response.json();
+      console.log('テーブル参加成功:', data);
+
+      // 残高を更新（練習モードかリアルマネーモードかで分岐）
+      const isPracticeMode = data.isPracticeMode || false;
+      if (isPracticeMode) {
+        setCurrency('gameChips', data.newBalance, 'バイイン');
+      } else {
+        setCurrency('realChips', data.newBalance, 'バイイン');
+      }
+
+      // モーダルを閉じてゲーム画面へ遷移
+      setShowBuyInModal(false);
+      const url = selectedTablePassword 
+        ? `/game/active?table=${selectedTable.id}&password=${encodeURIComponent(selectedTablePassword)}` 
+        : `/game/active?table=${selectedTable.id}`;
+      router.push(url);
+    } catch (error: any) {
+      console.error('テーブル参加エラー:', error);
+      alert(error.message || 'テーブル参加中にエラーが発生しました');
+    }
   };
 
   const handlePasswordSubmit = () => {
@@ -720,6 +789,24 @@ function LobbyContent() {
         onCreateTable={handleCreateTable}
         isAdmin={user?.isAdmin || false}
       />
+
+      {/* バイインモーダル */}
+      {selectedTable && (
+        <BuyInModal
+          isOpen={showBuyInModal}
+          onClose={() => {
+            setShowBuyInModal(false);
+            setSelectedTable(null);
+            setSelectedTableId('');
+            setSelectedTablePassword('');
+          }}
+          onConfirm={handleBuyInConfirm}
+          minBuyIn={selectedTable.minBuyIn || 100}
+          maxBuyIn={selectedTable.maxBuyIn || 10000}
+          currentChips={selectedTable.id.startsWith('practice-game') ? currency.gameChips : currency.realChips}
+          tableType="cash"
+        />
+      )}
 
       {/* パスワード入力モーダル */}
       {showPasswordModal && (

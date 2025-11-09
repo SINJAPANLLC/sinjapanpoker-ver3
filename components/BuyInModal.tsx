@@ -88,7 +88,7 @@ export default function BuyInModal({
                     className="w-full px-5 py-4 bg-gray-800/50 text-white text-xl font-bold rounded-xl border border-gray-600/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-400 text-xl">
-                    💎
+                    🎰
                   </div>
                 </div>
                 <div className="flex justify-between mt-2 text-sm text-gray-400">
